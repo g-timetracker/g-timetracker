@@ -32,82 +32,13 @@ ApplicationWindow {
             Layout.fillHeight: true
             Layout.fillWidth: true
             model: TimeLogModel
-            delegate: Rectangle {
+
+            delegate: TimeLogDelegate {
                 width: parent.width
-                height: 50
-                border {
-                    width: 1
-                    color: "black"
-                }
-
-                RowLayout {
-                    anchors.fill: parent
-                    anchors.margins: parent.border.width
-                    spacing: 10
-
-                    Rectangle {
-                        Layout.fillHeight: true
-                        Layout.fillWidth: false
-                        implicitHeight: startTimeText.implicitHeight
-                        implicitWidth: startTimeText.implicitWidth
-
-                        Text {
-                            id: startTimeText
-
-                            anchors.centerIn: parent
-                            text: model.startTime
-                        }
-                    }
-
-                    Rectangle {
-                        Layout.fillHeight: true
-                        Layout.fillWidth: false
-                        implicitHeight: durationTimeText.implicitHeight
-                        implicitWidth: durationTimeText.implicitWidth
-
-                        Text {
-                            id: durationTimeText
-
-                            anchors.centerIn: parent
-                            text: model.durationTime
-                        }
-                    }
-
-                    Rectangle {
-                        Layout.fillHeight: true
-                        Layout.fillWidth: false
-                        implicitHeight: categoryTimeText.implicitHeight
-                        implicitWidth: categoryTimeText.implicitWidth
-
-                        Text {
-                            id: categoryTimeText
-
-                            anchors.centerIn: parent
-                            text: model.category
-                        }
-                    }
-
-                    Rectangle {
-                        Layout.fillHeight: true
-                        Layout.fillWidth: true
-                        implicitHeight: commentTimeText.implicitHeight
-                        implicitWidth: commentTimeText.implicitWidth
-
-                        Text {
-                            id: commentTimeText
-
-                            anchors.centerIn: parent
-                            text: model.comment
-                        }
-                    }
-                }
-
-                MouseArea {
-                    anchors.fill: parent
-                    onDoubleClicked: {
-                        model.comment = "Edited!"
-                    }
-                }
+                category: model.category
+                startTime: model.startTime
+                durationTime: model.durationTime
+                comment: model.comment
             }
         }
 
