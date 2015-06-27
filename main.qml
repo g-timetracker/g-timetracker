@@ -39,6 +39,8 @@ ApplicationWindow {
                 startTime: model.startTime
                 durationTime: model.durationTime
                 comment: model.comment
+
+                onUpdateCategory: model.category = newCategory
             }
         }
 
