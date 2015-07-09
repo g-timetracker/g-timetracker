@@ -2,5 +2,6 @@
     <qresource prefix="/">
         <file>main.qml</file>
         <file>TimeLogDelegate.qml</file>
+        <file>TimeLogDelegateEditor.qml</file>
     </qresource>
 </RCC>

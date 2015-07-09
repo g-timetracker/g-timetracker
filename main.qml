@@ -2,7 +2,6 @@ import QtQuick 2.4
 import QtQuick.Controls 1.3
 import QtQuick.Layouts 1.1
 import QtQuick.Window 2.2
-import QtQuick.Dialogs 1.2
 
 ApplicationWindow {
     title: qsTr("Hello World")
@@ -24,6 +23,10 @@ ApplicationWindow {
         }
     }
 
+    TimeLogDelegateEditor {
+        id: editDialog
+    }
+
     ColumnLayout {
         anchors.fill: parent
         spacing: 10
@@ -34,13 +37,34 @@ ApplicationWindow {
             model: TimeLogModel
 
             delegate: TimeLogDelegate {
+                id: delegateItem
+
+                function updateData(category, startTime, comment) {
+//                    console.log("updating", category, startTime, comment)
+                    if (model.category != category) {
+                        model.category = category
+                    }
+                    if (model.startTime != startTime) {
+                        model.startTime = startTime
+                    }
+                    if (model.comment != comment) {
+                        model.comment = comment
+                    }
+                }
+
                 width: parent.width
                 category: model.category
                 startTime: model.startTime
                 durationTime: model.durationTime
                 comment: model.comment
 
-                onUpdateCategory: model.category = newCategory
+                MouseArea {
+                    anchors.fill: parent
+                    onDoubleClicked: {
+                        editDialog.delegateItem = delegateItem
+                        editDialog.open()
+                    }
+                }
             }
         }
 
