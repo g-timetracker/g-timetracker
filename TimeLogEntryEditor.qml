@@ -50,7 +50,7 @@ Item {
 
                 onClicked: {
                     var newDate = new Date(date)
-                    delegateEditor.startTime.setYear(newDate.getYear())
+                    delegateEditor.startTime.setFullYear(newDate.getFullYear())
                     delegateEditor.startTime.setMonth(newDate.getMonth())
                     delegateEditor.startTime.setDate(newDate.getDate())
                 }
