@@ -1,6 +1,7 @@
 import QtQuick 2.4
 import QtQuick.Controls 1.4
 import QtQuick.Layouts 1.1
+import QtQuick.Dialogs 1.2
 import QtQuick.Window 2.2
 import QtQml.Models 2.2
 
@@ -68,6 +69,11 @@ ApplicationWindow {
         ListView {
             id: listView
 
+            function deleteItemUnderCursor() {
+                TimeLogModel.removeItem(delegateModel.modelIndex(listView.indexAt(mouseArea.mouseX,
+                                                                                  mouseArea.mouseY)))
+            }
+
             Layout.fillHeight: true
             Layout.fillWidth: true
             model: delegateModel
@@ -91,8 +97,20 @@ ApplicationWindow {
                 tooltip: "Remove item"
 
                 onTriggered: {
-                    TimeLogModel.removeItem(delegateModel.modelIndex(listView.indexAt(mouseArea.mouseX, mouseArea.mouseY)))
+                    removeConfirmationDialog.open()
                 }
+            }
+
+            MessageDialog {
+                id: removeConfirmationDialog
+
+                title: "Remove confirmation"
+                text: "Are you sure want to delete this item?"
+                informativeText: "This item can not be restored"
+                icon: StandardIcon.Question
+                standardButtons: StandardButton.Yes | StandardButton.No
+
+                onYes: listView.deleteItemUnderCursor()
             }
 
             Menu {
