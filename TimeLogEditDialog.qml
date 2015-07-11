@@ -7,6 +7,10 @@ Dialog {
     property TimeLogDelegate delegateItem
 
     function setData() {
+        if (!delegateItem) {
+            return
+        }
+
         delegateEditor.category = delegateItem.category
         delegateEditor.startTime = new Date(delegateItem.startTime)
         delegateEditor.durationTime = 0
@@ -26,7 +30,10 @@ Dialog {
     onAccepted: {
         delegateItem.updateData(delegateEditor.category, delegateEditor.startTime,
                                 delegateEditor.comment)
+        delegateItem = null
     }
+
+    onRejected: delegateItem = null
 
     onReset: setData()
 }

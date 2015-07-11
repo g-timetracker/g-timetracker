@@ -1,7 +1,8 @@
 import QtQuick 2.4
-import QtQuick.Controls 1.3
+import QtQuick.Controls 1.4
 import QtQuick.Layouts 1.1
 import QtQuick.Window 2.2
+import QtQml.Models 2.2
 
 ApplicationWindow {
     title: qsTr("Hello World")
@@ -33,42 +34,93 @@ ApplicationWindow {
         onDataAccepted: TimeLogModel.addItem(newData)
     }
 
+    DelegateModel {
+        id: delegateModel
+
+        model: TimeLogModel
+        delegate: TimeLogDelegate {
+            id: delegateItem
+
+            function updateData(category, startTime, comment) {
+                if (model.category != category) {
+                    model.category = category
+                }
+                if (model.startTime != startTime) {
+                    model.startTime = startTime
+                }
+                if (model.comment != comment) {
+                    model.comment = comment
+                }
+            }
+
+            width: listView.width
+            category: model.category
+            startTime: model.startTime
+            durationTime: model.durationTime
+            comment: model.comment
+        }
+    }
+
     ColumnLayout {
         anchors.fill: parent
         spacing: 10
 
         ListView {
+            id: listView
+
             Layout.fillHeight: true
             Layout.fillWidth: true
-            model: TimeLogModel
+            model: delegateModel
 
-            delegate: TimeLogDelegate {
-                id: delegateItem
+            Action {
+                id: editAction
 
-                function updateData(category, startTime, comment) {
-//                    console.log("updating", category, startTime, comment)
-                    if (model.category != category) {
-                        model.category = category
-                    }
-                    if (model.startTime != startTime) {
-                        model.startTime = startTime
-                    }
-                    if (model.comment != comment) {
-                        model.comment = comment
+                text: "Edit"
+                tooltip: "Edit item"
+
+                onTriggered: {
+                    editDialog.delegateItem = listView.itemAt(mouseArea.mouseX, mouseArea.mouseY)
+                    editDialog.open()
+                }
+            }
+
+            Action {
+                id: removeAction
+
+                text: "Remove"
+                tooltip: "Remove item"
+
+                onTriggered: {
+                    TimeLogModel.removeItem(delegateModel.modelIndex(listView.indexAt(mouseArea.mouseX, mouseArea.mouseY)))
+                }
+            }
+
+            Menu {
+                id: itemMenu
+
+                MenuItem {
+                    action: editAction
+                }
+                MenuItem {
+                    action: removeAction
+                }
+            }
+
+            MouseArea {
+                id: mouseArea
+
+                anchors.fill: parent
+                acceptedButtons: Qt.LeftButton | Qt.RightButton
+
+                onDoubleClicked: {
+                    if (listView.itemAt(mouse.x, mouse.y)) {
+                        editAction.trigger()
                     }
                 }
 
-                width: parent.width
-                category: model.category
-                startTime: model.startTime
-                durationTime: model.durationTime
-                comment: model.comment
-
-                MouseArea {
-                    anchors.fill: parent
-                    onDoubleClicked: {
-                        editDialog.delegateItem = delegateItem
-                        editDialog.open()
+                onClicked: {
+                    if (mouse.button === Qt.RightButton && listView.itemAt(mouse.x, mouse.y)) {
+                        itemMenu.popup()
                     }
                 }
             }

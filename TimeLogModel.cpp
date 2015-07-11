@@ -102,20 +102,17 @@ bool TimeLogModel::setData(const QModelIndex &index, const QVariant &value, int 
     return true;
 }
 
-bool TimeLogModel::insertRows(int row, int count, const QModelIndex &parent)
-{
-
-}
-
-bool TimeLogModel::removeRows(int row, int count, const QModelIndex &parent)
-{
-
-}
-
 void TimeLogModel::addItem(TimeLogData data)
 {
     int itemIndex = m_timeLog.size();
     beginInsertRows(QModelIndex(), itemIndex, itemIndex);
     m_timeLog.append(TimeLogEntry(data));
     endInsertRows();
+}
+
+void TimeLogModel::removeItem(const QModelIndex &index)
+{
+    beginRemoveRows(index.parent(), index.row(), index.row());
+    m_timeLog.removeAt(index.row());
+    endRemoveRows();
 }

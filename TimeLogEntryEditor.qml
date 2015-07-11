@@ -31,6 +31,8 @@ Item {
             TextField {
                 property alias origCategory: delegateEditor.category
 
+                placeholderText: "Enter category"
+
                 onTextChanged: delegateEditor.category = text
 
                 onOrigCategoryChanged: text = origCategory
@@ -110,6 +112,8 @@ Item {
 
             TextField {
                 property alias origComment: delegateEditor.comment
+
+                placeholderText: "Optional comment"
 
                 onTextChanged: delegateEditor.comment = text
 

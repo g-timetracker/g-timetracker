@@ -27,13 +27,11 @@ public:
     virtual Qt::ItemFlags flags(const QModelIndex &index) const;
     virtual bool setData(const QModelIndex &index, const QVariant &value, int role);
 
-    virtual bool insertRows(int row, int count, const QModelIndex &parent);
-    virtual bool removeRows(int row, int count, const QModelIndex &parent);
-
 signals:
 
 public slots:
     void addItem(TimeLogData data = TimeLogData());
+    void removeItem(const QModelIndex &index);
 
 private:
     QList<TimeLogEntry> m_timeLog;
