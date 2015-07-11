@@ -6,6 +6,10 @@ import QtQuick.Window 2.2
 import QtQml.Models 2.2
 
 ApplicationWindow {
+    id: main
+
+    property bool isConfirmationsEnabled: true
+
     title: qsTr("Hello World")
     width: 640
     height: 480
@@ -15,12 +19,17 @@ ApplicationWindow {
         Menu {
             title: qsTr("&File")
             MenuItem {
-                text: qsTr("&Open")
-                onTriggered: messageDialog.show(qsTr("Open start triggered"));
-            }
-            MenuItem {
                 text: qsTr("E&xit")
                 onTriggered: Qt.quit();
+            }
+        }
+        Menu {
+            title: "Settings"
+            MenuItem {
+                text: "Confirmations"
+                checkable: true
+                checked: main.isConfirmationsEnabled
+                onCheckedChanged: main.isConfirmationsEnabled = checked
             }
         }
     }
@@ -97,7 +106,11 @@ ApplicationWindow {
                 tooltip: "Remove item"
 
                 onTriggered: {
-                    removeConfirmationDialog.open()
+                    if (main.isConfirmationsEnabled) {
+                        removeConfirmationDialog.open()
+                    } else {
+                        listView.deleteItemUnderCursor()
+                    }
                 }
             }
 
