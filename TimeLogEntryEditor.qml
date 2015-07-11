@@ -29,11 +29,11 @@ Item {
             }
 
             TextField {
-                text: delegateEditor.category
+                property alias origCategory: delegateEditor.category
 
-                onTextChanged: {
-                    delegateEditor.category = text
-                }
+                onTextChanged: delegateEditor.category = text
+
+                onOrigCategoryChanged: text = origCategory
             }
         }
 
@@ -46,7 +46,7 @@ Item {
             }
 
             Calendar {
-                selectedDate: delegateEditor.startTime
+                property alias origDate: delegateEditor.startTime
 
                 onClicked: {
                     var newDate = new Date(date)
@@ -54,12 +54,14 @@ Item {
                     delegateEditor.startTime.setMonth(newDate.getMonth())
                     delegateEditor.startTime.setDate(newDate.getDate())
                 }
+
+                onOrigDateChanged: selectedDate = origDate
             }
 
             Tumbler {
                 id: timeTumbler
 
-                property alias time: delegateEditor.startTime
+                property alias origTime: delegateEditor.startTime
 
                 TumblerColumn {
                     model: 24
@@ -89,10 +91,10 @@ Item {
                     }
                 }
 
-                onTimeChanged: {
-                    setCurrentIndexAt(0, time.getHours())
-                    setCurrentIndexAt(1, time.getMinutes())
-                    setCurrentIndexAt(2, time.getSeconds())
+                onOrigTimeChanged: {
+                    setCurrentIndexAt(0, origTime.getHours())
+                    setCurrentIndexAt(1, origTime.getMinutes())
+                    setCurrentIndexAt(2, origTime.getSeconds())
                 }
 
             }
@@ -107,11 +109,11 @@ Item {
             }
 
             TextField {
-                text: delegateEditor.comment
+                property alias origComment: delegateEditor.comment
 
-                onTextChanged: {
-                    delegateEditor.comment = text
-                }
+                onTextChanged: delegateEditor.comment = text
+
+                onOrigCommentChanged: text = origComment
             }
         }
     }
