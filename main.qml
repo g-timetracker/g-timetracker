@@ -23,8 +23,14 @@ ApplicationWindow {
         }
     }
 
-    TimeLogDelegateEditor {
+    TimeLogEditDialog {
         id: editDialog
+    }
+
+    TimeLogNewDialog {
+        id: newDialog
+
+        onDataAccepted: TimeLogModel.addItem(newData)
     }
 
     ColumnLayout {
@@ -77,7 +83,7 @@ ApplicationWindow {
                 anchors.centerIn: parent
                 text: "Add item"
                 tooltip: "Adds item into model"
-                onClicked: TimeLogModel.addItem()
+                onClicked: newDialog.open()
             }
         }
     }

@@ -2,22 +2,21 @@ import QtQuick 2.4
 import QtQuick.Layouts 1.1
 import QtQuick.Controls 1.3
 import QtQuick.Extras 1.4
-import QtQuick.Dialogs 1.2
 
-Dialog {
+Item {
     id: delegateEditor
 
-    property TimeLogDelegate delegateItem
     property string category
     property var startTime
     property string durationTime
     property string comment
 
-    width: 600
-    standardButtons: StandardButton.Ok | StandardButton.Cancel
+    implicitWidth: 600
+    implicitHeight: itemsColumn.implicitHeight
 
     Column {
-//            width: 600    // FIXME
+        id: itemsColumn
+
         width: parent.width
         spacing: 10
 
@@ -115,15 +114,5 @@ Dialog {
                 }
             }
         }
-    }
-
-    onDelegateItemChanged: {
-        category = delegateItem.category
-        startTime = new Date(delegateItem.startTime)
-        comment = delegateItem.comment
-    }
-
-    onAccepted: {
-        delegateItem.updateData(category, startTime, comment)
     }
 }

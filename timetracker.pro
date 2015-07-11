@@ -4,7 +4,9 @@ QT += qml quick widgets
 
 SOURCES += main.cpp \
     TimeLogEntry.cpp \
-    TimeLogModel.cpp
+    TimeLogModel.cpp \
+    TimeLogData.cpp \
+    TimeLogSingleton.cpp
 
 RESOURCES += qml.qrc
 
@@ -16,4 +18,6 @@ include(deployment.pri)
 
 HEADERS += \
     TimeLogEntry.h \
-    TimeLogModel.h
+    TimeLogModel.h \
+    TimeLogData.h \
+    TimeLogSingleton.h

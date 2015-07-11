@@ -33,7 +33,7 @@ public:
 signals:
 
 public slots:
-    void addItem();
+    void addItem(TimeLogData data = TimeLogData());
 
 private:
     QList<TimeLogEntry> m_timeLog;

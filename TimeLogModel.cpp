@@ -7,15 +7,6 @@ TimeLogModel::TimeLogModel(QObject *parent) :
 {
 }
 
-void TimeLogModel::addItem()
-{
-    qDebug() << "addItem";
-    int itemIndex = m_timeLog.size();
-    beginInsertRows(QModelIndex(), itemIndex, itemIndex);
-    m_timeLog.append(TimeLogEntry());
-    endInsertRows();
-}
-
 int TimeLogModel::rowCount(const QModelIndex &parent) const
 {
     Q_UNUSED(parent)
@@ -94,7 +85,7 @@ bool TimeLogModel::setData(const QModelIndex &index, const QVariant &value, int 
         break;
     }
     case DurationTimeRole:
-        m_timeLog[index.row()].durationTime = value.toLongLong();
+        m_timeLog[index.row()].durationTime = value.toInt();
         break;
     case CategoryRole:
         m_timeLog[index.row()].category = value.toString();
@@ -119,4 +110,12 @@ bool TimeLogModel::insertRows(int row, int count, const QModelIndex &parent)
 bool TimeLogModel::removeRows(int row, int count, const QModelIndex &parent)
 {
 
+}
+
+void TimeLogModel::addItem(TimeLogData data)
+{
+    int itemIndex = m_timeLog.size();
+    beginInsertRows(QModelIndex(), itemIndex, itemIndex);
+    m_timeLog.append(TimeLogEntry(data));
+    endInsertRows();
 }

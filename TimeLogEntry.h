@@ -2,18 +2,17 @@
 #define TIMELOGENTRY_H
 
 #include <QUuid>
-#include <QDateTime>
 
-struct TimeLogEntry
+#include "TimeLogData.h"
+
+struct TimeLogEntry: public TimeLogData
 {
+//    Q_GADGET
 public:
-    TimeLogEntry();
+    TimeLogEntry(TimeLogData data = TimeLogData());
 
+//    qint64 durationTime;
     QUuid id;
-    QDateTime startTime;
-    qint64 durationTime;
-    QString category;
-    QString comment;
     QDateTime mTime;
 };
 
