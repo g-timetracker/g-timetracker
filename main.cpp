@@ -10,6 +10,9 @@
 int main(int argc, char *argv[])
 {
     QApplication app(argc, argv);
+    app.setOrganizationName("G-TimeTracker");
+    app.setOrganizationDomain("g-timetracker.org");
+    app.setApplicationName("G-TimeTracker");
 
     TimeLogSingleton *singleton = new TimeLogSingleton;
     qRegisterMetaType<TimeLogData>();

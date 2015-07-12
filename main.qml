@@ -4,6 +4,7 @@ import QtQuick.Layouts 1.1
 import QtQuick.Dialogs 1.2
 import QtQuick.Window 2.2
 import QtQml.Models 2.2
+import Qt.labs.settings 1.0
 
 ApplicationWindow {
     id: main
@@ -32,6 +33,12 @@ ApplicationWindow {
                 onCheckedChanged: main.isConfirmationsEnabled = checked
             }
         }
+    }
+
+    Settings {
+        property alias confirmationsEnabled: main.isConfirmationsEnabled
+
+        category: "main"
     }
 
     TimeLogEditDialog {
