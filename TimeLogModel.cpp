@@ -5,6 +5,8 @@
 TimeLogModel::TimeLogModel(QObject *parent) :
     SUPER(parent)
 {
+    connect(this, SIGNAL(rowsInserted(QModelIndex,int,int)), SLOT(processRowsInserted(QModelIndex,int,int)));
+    connect(this, SIGNAL(rowsRemoved(QModelIndex,int,int)), SLOT(processRowsRemoved(QModelIndex,int,int)));
 }
 
 int TimeLogModel::rowCount(const QModelIndex &parent) const
@@ -97,7 +99,7 @@ bool TimeLogModel::setData(const QModelIndex &index, const QVariant &value, int 
         return false;
     }
 
-    emit dataChanged(index, index);
+    emit dataChanged(index, index, QVector<int>() << role);
 
     return true;
 }
@@ -115,4 +117,37 @@ void TimeLogModel::removeItem(const QModelIndex &index)
     beginRemoveRows(index.parent(), index.row(), index.row());
     m_timeLog.removeAt(index.row());
     endRemoveRows();
+}
+
+void TimeLogModel::processRowsInserted(const QModelIndex &parent, int first, int last)
+{
+    // Update duration time for preceeding item, if it exists
+    int start = (first == 0) ? first : first - 1;
+    int end = (last == m_timeLog.size() - 1) ? last - 1 : last;
+
+    for (int i = start; i <= end; i++) {
+        m_timeLog[i].durationTime = m_timeLog.at(i).startTime.secsTo(m_timeLog.at(i+1).startTime);
+    }
+
+    // Duration for most recent item calculated up to current time
+    if (last == m_timeLog.size() - 1) {
+        m_timeLog[last].durationTime = m_timeLog.at(last).startTime.secsTo(QDateTime::currentDateTimeUtc());
+    }
+
+    emit dataChanged(index(start, 0, parent), index(last, 0, parent),
+                     QVector<int>() << DurationTimeRole);
+}
+
+void TimeLogModel::processRowsRemoved(const QModelIndex &parent, int first, int last)
+{
+    if (first != 0) {   // No need to recalculate, if items removed at the beginning
+        if (first == m_timeLog.size())  {   // Items removed at the end of the list
+            m_timeLog[first-1].durationTime = m_timeLog.at(first-1).startTime.secsTo(QDateTime::currentDateTimeUtc());
+        } else {
+            m_timeLog[first-1].durationTime = m_timeLog.at(first-1).startTime.secsTo(m_timeLog.at(first).startTime);
+        }
+
+        emit dataChanged(index(first - 1, 0, parent), index(first - 1, 0, parent),
+                         QVector<int>() << DurationTimeRole);
+    }
 }

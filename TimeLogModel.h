@@ -33,6 +33,10 @@ public slots:
     void addItem(TimeLogData data = TimeLogData());
     void removeItem(const QModelIndex &index);
 
+private slots:
+    void processRowsInserted(const QModelIndex &parent, int first, int last);
+    void processRowsRemoved(const QModelIndex &parent, int first, int last);
+
 private:
     QList<TimeLogEntry> m_timeLog;
 };
