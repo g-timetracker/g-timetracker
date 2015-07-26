@@ -5,8 +5,10 @@
 TimeLogModel::TimeLogModel(QObject *parent) :
     SUPER(parent)
 {
-    connect(this, SIGNAL(rowsInserted(QModelIndex,int,int)), SLOT(processRowsInserted(QModelIndex,int,int)));
-    connect(this, SIGNAL(rowsRemoved(QModelIndex,int,int)), SLOT(processRowsRemoved(QModelIndex,int,int)));
+    connect(this, SIGNAL(rowsInserted(QModelIndex,int,int)),
+            SLOT(processRowsInserted(QModelIndex,int,int)), Qt::QueuedConnection);
+    connect(this, SIGNAL(rowsRemoved(QModelIndex,int,int)),
+            SLOT(processRowsRemoved(QModelIndex,int,int)), Qt::QueuedConnection);
 }
 
 int TimeLogModel::rowCount(const QModelIndex &parent) const
