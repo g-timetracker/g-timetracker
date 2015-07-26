@@ -30,7 +30,8 @@ public:
 signals:
 
 public slots:
-    void addItem(TimeLogData data = TimeLogData());
+    void appendItem(TimeLogData data = TimeLogData());
+    void insertItem(const QModelIndex &index, TimeLogData data = TimeLogData());
     void removeItem(const QModelIndex &index);
 
 private slots:

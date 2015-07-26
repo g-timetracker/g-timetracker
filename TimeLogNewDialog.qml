@@ -4,6 +4,13 @@ import QtQuick.Dialogs 1.2
 Dialog {
     id: newDialog
 
+    property int beforeIndex
+
+    function openDialog(beforeIndex) {
+        newDialog.beforeIndex = (beforeIndex === undefined) ? -1 : beforeIndex
+        open()
+    }
+
     signal dataAccepted(var newData)
 
     width: delegateEditor.implicitWidth

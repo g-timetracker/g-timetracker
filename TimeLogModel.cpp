@@ -106,11 +106,18 @@ bool TimeLogModel::setData(const QModelIndex &index, const QVariant &value, int 
     return true;
 }
 
-void TimeLogModel::addItem(TimeLogData data)
+void TimeLogModel::appendItem(TimeLogData data)
 {
     int itemIndex = m_timeLog.size();
     beginInsertRows(QModelIndex(), itemIndex, itemIndex);
     m_timeLog.append(TimeLogEntry(data));
+    endInsertRows();
+}
+
+void TimeLogModel::insertItem(const QModelIndex &index, TimeLogData data)
+{
+    beginInsertRows(index.parent(), index.row(), index.row());
+    m_timeLog.insert(index.row(), data);
     endInsertRows();
 }
 

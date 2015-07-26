@@ -48,7 +48,13 @@ ApplicationWindow {
     TimeLogNewDialog {
         id: newDialog
 
-        onDataAccepted: TimeLogModel.addItem(newData)
+        onDataAccepted: {
+            if (newDialog.beforeIndex === -1) {
+                TimeLogModel.appendItem(newData)
+            } else {
+                TimeLogModel.insertItem(delegateModel.modelIndex(newDialog.beforeIndex), newData)
+            }
+        }
     }
 
     DelegateModel {
@@ -107,6 +113,17 @@ ApplicationWindow {
             }
 
             Action {
+                id: insertBeforeAction
+
+                text: "Insert before"
+                tooltip: "Insert item before this item"
+
+                onTriggered: {
+                    newDialog.openDialog(listView.indexAt(mouseArea.mouseX, mouseArea.mouseY))
+                }
+            }
+
+            Action {
                 id: removeAction
 
                 text: "Remove"
@@ -138,6 +155,9 @@ ApplicationWindow {
 
                 MenuItem {
                     action: editAction
+                }
+                MenuItem {
+                    action: insertBeforeAction
                 }
                 MenuItem {
                     action: removeAction
@@ -173,7 +193,7 @@ ApplicationWindow {
                 anchors.centerIn: parent
                 text: "Add item"
                 tooltip: "Adds item into model"
-                onClicked: newDialog.open()
+                onClicked: newDialog.openDialog()
             }
         }
     }
