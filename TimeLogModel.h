@@ -39,6 +39,8 @@ private slots:
     void processRowsRemoved(const QModelIndex &parent, int first, int last);
 
 private:
+    void recalcDuration(const QModelIndex &parent, int first, int last);
+
     QList<TimeLogEntry> m_timeLog;
 };
 

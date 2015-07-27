@@ -86,11 +86,11 @@ bool TimeLogModel::setData(const QModelIndex &index, const QVariant &value, int 
             return false;
         }
         m_timeLog[index.row()].startTime = time;
+        recalcDuration(index.parent(), index.row(), index.row());
         break;
     }
     case DurationTimeRole:
-        m_timeLog[index.row()].durationTime = value.toInt();
-        break;
+        return false;   // This property can only be calculated
     case CategoryRole:
         m_timeLog[index.row()].category = value.toString();
         break;
@@ -130,6 +130,20 @@ void TimeLogModel::removeItem(const QModelIndex &index)
 
 void TimeLogModel::processRowsInserted(const QModelIndex &parent, int first, int last)
 {
+    recalcDuration(parent, first, last);
+}
+
+void TimeLogModel::processRowsRemoved(const QModelIndex &parent, int first, int last)
+{
+    Q_UNUSED(last)
+
+    if (first != 0) {   // No need to recalculate, if items removed at the beginning
+        recalcDuration(parent, first-1, first-1);
+    }
+}
+
+void TimeLogModel::recalcDuration(const QModelIndex &parent, int first, int last)
+{
     // Update duration time for preceeding item, if it exists
     int start = (first == 0) ? first : first - 1;
     int end = (last == m_timeLog.size() - 1) ? last - 1 : last;
@@ -145,18 +159,4 @@ void TimeLogModel::processRowsInserted(const QModelIndex &parent, int first, int
 
     emit dataChanged(index(start, 0, parent), index(last, 0, parent),
                      QVector<int>() << DurationTimeRole);
-}
-
-void TimeLogModel::processRowsRemoved(const QModelIndex &parent, int first, int last)
-{
-    if (first != 0) {   // No need to recalculate, if items removed at the beginning
-        if (first == m_timeLog.size())  {   // Items removed at the end of the list
-            m_timeLog[first-1].durationTime = m_timeLog.at(first-1).startTime.secsTo(QDateTime::currentDateTimeUtc());
-        } else {
-            m_timeLog[first-1].durationTime = m_timeLog.at(first-1).startTime.secsTo(m_timeLog.at(first).startTime);
-        }
-
-        emit dataChanged(index(first - 1, 0, parent), index(first - 1, 0, parent),
-                         QVector<int>() << DurationTimeRole);
-    }
 }
