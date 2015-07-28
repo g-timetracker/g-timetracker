@@ -4,10 +4,14 @@ import QtQuick.Dialogs 1.2
 Dialog {
     id: newDialog
 
-    property int beforeIndex
+    property alias startTimeAfter: delegateEditor.startTimeAfter
+    property alias startTimeBefore: delegateEditor.startTimeBefore
+    property int indexBefore
 
-    function openDialog(beforeIndex) {
-        newDialog.beforeIndex = (beforeIndex === undefined) ? -1 : beforeIndex
+    function openDialog(indexBefore, timeAfter, timeBefore) {
+        newDialog.indexBefore = indexBefore
+        newDialog.startTimeAfter = timeAfter
+        newDialog.startTimeBefore = timeBefore
         open()
     }
 
@@ -27,7 +31,7 @@ Dialog {
         }
 
         delegateEditor.category = ""
-        delegateEditor.startTime = new Date()
+        delegateEditor.startTime = startTimeBefore
         delegateEditor.durationTime = 0
         delegateEditor.comment = ""
     }

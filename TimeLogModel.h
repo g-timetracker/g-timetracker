@@ -27,6 +27,8 @@ public:
     virtual Qt::ItemFlags flags(const QModelIndex &index) const;
     virtual bool setData(const QModelIndex &index, const QVariant &value, int role);
 
+    Q_INVOKABLE TimeLogData timeLogData(const QModelIndex &index) const;
+
 signals:
 
 public slots:

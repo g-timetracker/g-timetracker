@@ -8,7 +8,10 @@ struct TimeLogData
 {
     Q_GADGET
 
+    Q_PROPERTY(QDateTime startTime MEMBER startTime)
+    Q_PROPERTY(int durationTime MEMBER durationTime)
     Q_PROPERTY(QString category MEMBER category)
+    Q_PROPERTY(QString comment MEMBER comment)
 public:
     TimeLogData();
     TimeLogData(QDateTime startTime, int durationTime, QString category, QString comment);

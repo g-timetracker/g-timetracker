@@ -6,6 +6,9 @@ import QtQuick.Extras 1.4
 Item {
     id: delegateEditor
 
+    property date startTimeAfter
+    property date startTimeBefore
+
     property string category
     property var startTime
     property string durationTime
@@ -49,6 +52,9 @@ Item {
 
             Calendar {
                 property alias origDate: delegateEditor.startTime
+
+                minimumDate: startTimeAfter
+                maximumDate: startTimeBefore
 
                 onClicked: {
                     var newDate = new Date(date)

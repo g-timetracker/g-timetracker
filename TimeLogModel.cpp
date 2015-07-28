@@ -106,6 +106,15 @@ bool TimeLogModel::setData(const QModelIndex &index, const QVariant &value, int 
     return true;
 }
 
+TimeLogData TimeLogModel::timeLogData(const QModelIndex &index) const
+{
+    if (!index.isValid()) {
+        return TimeLogData();
+    }
+
+    return static_cast<TimeLogData>(m_timeLog.at(index.row()));
+}
+
 void TimeLogModel::appendItem(TimeLogData data)
 {
     int itemIndex = m_timeLog.size();
