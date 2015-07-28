@@ -107,8 +107,23 @@ ApplicationWindow {
                 tooltip: "Edit item"
 
                 onTriggered: {
-                    editDialog.delegateItem = listView.itemAt(mouseArea.mouseX, mouseArea.mouseY)
-                    editDialog.open()
+                    var indexCurrent = listView.indexAt(mouseArea.mouseX, mouseArea.mouseY)
+                    var delegateItem = listView.itemAt(mouseArea.mouseX, mouseArea.mouseY)
+                    var indexAfter = indexCurrent - 1
+                    var startTimeAfter
+                    if (indexAfter === -1) {
+                        startTimeAfter = new Date(0)
+                    } else {
+                        startTimeAfter = TimeLogModel.timeLogData(delegateModel.modelIndex(indexAfter)).startTime
+                    }
+                    var indexBefore = (indexCurrent + 1 === listView.count) ? -1 : indexCurrent + 1
+                    var startTimeBefore
+                    if (indexBefore === -1) {
+                        startTimeBefore = new Date()
+                    } else {
+                        startTimeBefore = TimeLogModel.timeLogData(delegateModel.modelIndex(indexBefore)).startTime
+                    }
+                    editDialog.openDialog(delegateItem, startTimeAfter, startTimeBefore)
                 }
             }
 

@@ -4,6 +4,8 @@ import QtQuick.Dialogs 1.2
 Dialog {
     id: editDialog
 
+    property alias startTimeAfter: delegateEditor.startTimeAfter
+    property alias startTimeBefore: delegateEditor.startTimeBefore
     property TimeLogDelegate delegateItem
 
     function setData() {
@@ -17,6 +19,14 @@ Dialog {
         delegateEditor.comment = delegateItem.comment
     }
 
+    function openDialog(item, timeAfter, timeBefore) {
+        editDialog.startTimeAfter = timeAfter
+        editDialog.startTimeBefore = timeBefore
+        editDialog.delegateItem = item
+        setData()
+        open()
+    }
+
     width: delegateEditor.implicitWidth
     standardButtons: StandardButton.Ok | StandardButton.Cancel | StandardButton.Reset
     title: "Edit entry"
@@ -24,8 +34,6 @@ Dialog {
     TimeLogEntryEditor {
         id: delegateEditor
     }
-
-    onDelegateItemChanged: setData()
 
     onAccepted: {
         delegateItem.updateData(delegateEditor.category, delegateEditor.startTime,
