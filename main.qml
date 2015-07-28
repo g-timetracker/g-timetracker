@@ -124,6 +124,19 @@ ApplicationWindow {
             }
 
             Action {
+                id: insertAfterAction
+
+                text: "Insert after"
+                tooltip: "Insert item after this item"
+
+                onTriggered: {
+                    var clickedIndex = listView.indexAt(mouseArea.mouseX, mouseArea.mouseY)
+                    var beforeIndex = (clickedIndex + 1 === listView.count) ? -1 : clickedIndex + 1
+                    newDialog.openDialog(beforeIndex)
+                }
+            }
+
+            Action {
                 id: removeAction
 
                 text: "Remove"
@@ -160,6 +173,9 @@ ApplicationWindow {
                     action: insertBeforeAction
                 }
                 MenuItem {
+                    action: insertAfterAction
+                }
+                MenuItem {
                     action: removeAction
                 }
             }
@@ -193,7 +209,7 @@ ApplicationWindow {
                 anchors.centerIn: parent
                 text: "Add item"
                 tooltip: "Adds item into model"
-                onClicked: newDialog.openDialog()
+                onClicked: newDialog.openDialog(-1)
             }
         }
     }
