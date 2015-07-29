@@ -15,7 +15,6 @@ Dialog {
 
         delegateEditor.category = delegateItem.category
         delegateEditor.startTime = new Date(delegateItem.startTime)
-        delegateEditor.durationTime = 0
         delegateEditor.comment = delegateItem.comment
     }
 

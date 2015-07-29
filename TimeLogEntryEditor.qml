@@ -2,6 +2,7 @@ import QtQuick 2.4
 import QtQuick.Layouts 1.1
 import QtQuick.Controls 1.3
 import QtQuick.Extras 1.4
+import "Util.js" as Util
 
 Item {
     id: delegateEditor
@@ -11,8 +12,13 @@ Item {
 
     property string category
     property var startTime
-    property string durationTime
     property string comment
+
+    QtObject {
+        id: d
+
+        property int durationTime: (startTimeBefore - startTime) / 1000 |0
+    }
 
     implicitWidth: 600
     implicitHeight: itemsColumn.implicitHeight
@@ -61,6 +67,7 @@ Item {
                     delegateEditor.startTime.setFullYear(newDate.getFullYear())
                     delegateEditor.startTime.setMonth(newDate.getMonth())
                     delegateEditor.startTime.setDate(newDate.getDate())
+                    delegateEditor.startTime = delegateEditor.startTime
                 }
 
                 onOrigDateChanged: selectedDate = origDate
@@ -77,6 +84,7 @@ Item {
                     onCurrentIndexChanged: {
                         if (delegateEditor.startTime !== undefined) {
                             delegateEditor.startTime.setHours(currentIndex)
+                            delegateEditor.startTime = delegateEditor.startTime
                         }
                     }
                 }
@@ -86,6 +94,7 @@ Item {
                     onCurrentIndexChanged: {
                         if (delegateEditor.startTime !== undefined) {
                             delegateEditor.startTime.setMinutes(currentIndex)
+                            delegateEditor.startTime = delegateEditor.startTime
                         }
                     }
                 }
@@ -95,6 +104,7 @@ Item {
                     onCurrentIndexChanged: {
                         if (delegateEditor.startTime !== undefined) {
                             delegateEditor.startTime.setSeconds(currentIndex)
+                            delegateEditor.startTime = delegateEditor.startTime
                         }
                     }
                 }
@@ -106,6 +116,12 @@ Item {
                 }
 
             }
+        }
+
+        Label {
+            width: parent.width
+            elide: Text.ElideLeft
+            text: "Duration: %1".arg(Util.durationText(d.durationTime))
         }
 
         RowLayout {

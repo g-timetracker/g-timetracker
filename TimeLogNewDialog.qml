@@ -32,7 +32,6 @@ Dialog {
 
         delegateEditor.category = ""
         delegateEditor.startTime = startTimeBefore
-        delegateEditor.durationTime = 0
         delegateEditor.comment = ""
     }
 
