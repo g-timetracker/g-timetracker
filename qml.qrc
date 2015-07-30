@@ -6,5 +6,6 @@
         <file>TimeLogEditDialog.qml</file>
         <file>TimeLogNewDialog.qml</file>
         <file>Util.js</file>
+        <file>TimeTumbler.qml</file>
     </qresource>
 </RCC>

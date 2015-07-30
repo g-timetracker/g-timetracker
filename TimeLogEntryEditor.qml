@@ -1,7 +1,6 @@
 import QtQuick 2.4
 import QtQuick.Layouts 1.1
 import QtQuick.Controls 1.3
-import QtQuick.Extras 1.4
 import "Util.js" as Util
 
 Item {
@@ -73,48 +72,37 @@ Item {
                 onOrigDateChanged: selectedDate = origDate
             }
 
-            Tumbler {
+            TimeTumbler {
                 id: timeTumbler
 
                 property alias origTime: delegateEditor.startTime
 
-                TumblerColumn {
-                    model: 24
-
-                    onCurrentIndexChanged: {
-                        if (delegateEditor.startTime !== undefined) {
-                            delegateEditor.startTime.setHours(currentIndex)
-                            delegateEditor.startTime = delegateEditor.startTime
-                        }
-                    }
-                }
-                TumblerColumn {
-                    model: 60
-
-                    onCurrentIndexChanged: {
-                        if (delegateEditor.startTime !== undefined) {
-                            delegateEditor.startTime.setMinutes(currentIndex)
-                            delegateEditor.startTime = delegateEditor.startTime
-                        }
-                    }
-                }
-                TumblerColumn {
-                    model: 60
-
-                    onCurrentIndexChanged: {
-                        if (delegateEditor.startTime !== undefined) {
-                            delegateEditor.startTime.setSeconds(currentIndex)
-                            delegateEditor.startTime = delegateEditor.startTime
-                        }
-                    }
-                }
-
                 onOrigTimeChanged: {
-                    setCurrentIndexAt(0, origTime.getHours())
-                    setCurrentIndexAt(1, origTime.getMinutes())
-                    setCurrentIndexAt(2, origTime.getSeconds())
+                    hours = origTime.getHours()
+                    minutes = origTime.getMinutes()
+                    seconds = origTime.getSeconds()
                 }
 
+                onHoursChanged: {
+                    if (startTime) {
+                        startTime.setHours(hours)
+                        startTime = startTime
+                    }
+                }
+
+                onMinutesChanged: {
+                    if (startTime) {
+                        startTime.setMinutes(minutes)
+                        startTime = startTime
+                    }
+                }
+
+                onSecondsChanged: {
+                    if (startTime) {
+                        startTime.setSeconds(seconds)
+                        startTime = startTime
+                    }
+                }
             }
         }
 
