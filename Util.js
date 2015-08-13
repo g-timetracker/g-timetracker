@@ -48,3 +48,14 @@ function durationText(duration) {
 
     return results.join(", ")
 }
+
+function rangeList(start, end) {
+    try {
+        return Array.apply(null, new Array(end-start)).map(function(value, index) {
+            return start + index
+        })
+    } catch(e) {
+        console.warn("%1, start: %2, end: %3\n%4".arg(e.message).arg(start).arg(end).arg(e.stack))
+        return []
+    }
+}
