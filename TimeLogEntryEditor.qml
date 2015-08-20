@@ -6,11 +6,11 @@ import "Util.js" as Util
 Item {
     id: delegateEditor
 
-    property date startTimeAfter
-    property date startTimeBefore
+    property alias startTimeAfter: timeTumbler.startTimeAfter
+    property alias startTimeBefore: timeTumbler.startTimeBefore
 
     property string category
-    property var startTime
+    property alias startTime: timeTumbler.startTime
     property string comment
 
     QtObject {
@@ -63,10 +63,10 @@ Item {
 
                 onClicked: {
                     var newDate = new Date(date)
-                    delegateEditor.startTime.setFullYear(newDate.getFullYear())
-                    delegateEditor.startTime.setMonth(newDate.getMonth())
-                    delegateEditor.startTime.setDate(newDate.getDate())
-                    delegateEditor.startTime = delegateEditor.startTime
+                    timeTumbler.startTime.setFullYear(newDate.getFullYear())
+                    timeTumbler.startTime.setMonth(newDate.getMonth())
+                    timeTumbler.startTime.setDate(newDate.getDate())
+                    timeTumbler.startTime = timeTumbler.startTime
                 }
 
                 onOrigDateChanged: selectedDate = origDate
@@ -74,112 +74,6 @@ Item {
 
             TimeTumbler {
                 id: timeTumbler
-
-                property alias origTime: delegateEditor.startTime
-                property alias origTimeAfter: delegateEditor.startTimeAfter
-                property alias origTimeBefore: delegateEditor.startTimeBefore
-
-                function recalcBoudaries() {
-                    if (!startTime) {
-                        return
-                    }
-
-                    var newMinHours = 0
-                    var newMaxHours = 23
-
-                    var newMinMinutes = 0
-                    var newMaxMinutes = 59
-
-                    var newMinSeconds = 0
-                    var newMaxSeconds = 59
-
-                    if (startTimeAfter.getFullYear() === startTimeBefore.getFullYear()
-                               && startTimeAfter.getMonth() === startTimeBefore.getMonth()
-                               && startTimeAfter.getDate() === startTimeBefore.getDate()) {
-                        newMinHours = startTimeAfter.getHours()
-                        newMaxHours = startTimeBefore.getHours()
-                        if (newMinHours === newMaxHours) {
-                            newMinMinutes = startTimeAfter.getMinutes()
-                            newMaxMinutes = startTimeBefore.getMinutes()
-                            if (newMaxMinutes === newMaxMinutes){
-                                newMinSeconds = startTimeAfter.getSeconds()
-                                newMaxSeconds = startTimeBefore.getSeconds()
-                            }
-                        }
-                    } else if (startTime.getFullYear() === startTimeBefore.getFullYear()
-                               && startTime.getMonth() === startTimeBefore.getMonth()
-                               && startTime.getDate() === startTimeBefore.getDate()) {
-                        newMinHours = 0
-                        newMaxHours = startTimeBefore.getHours()
-                        if (startTime.getHours() === startTimeBefore.getHours()) {
-                            newMinMinutes = 0
-                            newMaxMinutes = startTimeBefore.getMinutes()
-                            if (startTime.getMinutes() === startTimeBefore.getMinutes()) {
-                                newMinSeconds = 0
-                                newMaxSeconds = startTimeBefore.getSeconds()
-                            }
-                        }
-                    } else if (startTimeAfter.getFullYear() === startTime.getFullYear()
-                               && startTimeAfter.getMonth() === startTime.getMonth()
-                               && startTimeAfter.getDate() === startTime.getDate()) {
-                        newMinHours = startTimeAfter.getHours()
-                        newMaxHours = 23
-                        if (startTimeAfter.getHours() === startTime.getHours()) {
-                            newMinMinutes = startTimeAfter.getMinutes()
-                            newMaxMinutes = 59
-                            if (startTimeAfter.getMinutes() === startTime.getMinutes()) {
-                                newMinSeconds = startTimeAfter.getSeconds()
-                                newMaxSeconds = 59
-                            }
-                        }
-                    }
-
-                    if (minHours !== newMinHours || maxHours !== newMaxHours) {
-                        minHours = newMinHours
-                        maxHours = newMaxHours
-                        hoursModel = Util.rangeList(minHours, maxHours + 1)
-                    }
-                    if (minMinutes !== newMinMinutes || maxMinutes !== newMaxMinutes) {
-                        minMinutes = newMinMinutes
-                        maxMinutes = newMaxMinutes
-                        minutesModel = Util.rangeList(minMinutes, maxMinutes + 1)
-                    }
-                    if (minSeconds !== newMinSeconds || maxSeconds !== newMaxSeconds) {
-                        minSeconds = newMinSeconds
-                        maxSeconds = newMaxSeconds
-                        secondsModel = Util.rangeList(minSeconds, maxSeconds + 1)
-                    }
-                }
-
-                onOrigTimeChanged: {
-                    recalcBoudaries()
-                    hours = origTime.getHours()
-                    minutes = origTime.getMinutes()
-                    seconds = origTime.getSeconds()
-                }
-                onOrigTimeAfterChanged: recalcBoudaries()
-                onOrigTimeBeforeChanged: recalcBoudaries()
-
-                onHoursChanged: {
-                    if (startTime) {
-                        startTime.setHours(hours)
-                        startTime = startTime
-                    }
-                }
-
-                onMinutesChanged: {
-                    if (startTime) {
-                        startTime.setMinutes(minutes)
-                        startTime = startTime
-                    }
-                }
-
-                onSecondsChanged: {
-                    if (startTime) {
-                        startTime.setSeconds(seconds)
-                        startTime = startTime
-                    }
-                }
             }
         }
 
