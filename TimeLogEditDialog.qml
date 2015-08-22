@@ -14,7 +14,7 @@ Dialog {
         }
 
         delegateEditor.category = delegateItem.category
-        delegateEditor.startTime = new Date(delegateItem.startTime)
+        delegateEditor.startTimeCurrent = new Date(delegateItem.startTime)
         delegateEditor.comment = delegateItem.comment
     }
 

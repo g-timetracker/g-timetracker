@@ -5,7 +5,8 @@ import "Util.js" as Util
 Row {
     id: timeTumbler
 
-    property var startTime: new Date()
+    property date startDateCurrent
+    property var startTimeCurrent: new Date()
     property date startTimeAfter
     property date startTimeBefore
 
@@ -16,9 +17,9 @@ Row {
     QtObject {
         id: d
 
-        property int hours: 0
-        property int minutes: 0
-        property int seconds: 0
+        property int hours: hoursTumbler.currentIndex + minHours
+        property int minutes: minutesTumbler.currentIndex + minMinutes
+        property int seconds: secondsTumbler.currentIndex + minSeconds
 
         property int minHours: (currentDayAfter ? startTimeAfter.getHours() : 0)
         property int maxHours: (currentDayBefore ? startTimeBefore.getHours() : 23)
@@ -29,20 +30,20 @@ Row {
         property int minSeconds: (currentMinuteAfter ? startTimeAfter.getSeconds() : 0)
         property int maxSeconds: (currentMinuteBefore ? startTimeBefore.getSeconds() : 59)
 
-        property bool currentDayBefore: (startTime.getFullYear() === startTimeBefore.getFullYear()
-                                         && startTime.getMonth() === startTimeBefore.getMonth()
-                                         && startTime.getDate() === startTimeBefore.getDate())
-        property bool currentDayAfter: (startTimeAfter.getFullYear() === startTime.getFullYear()
-                                        && startTimeAfter.getMonth() === startTime.getMonth()
-                                        && startTimeAfter.getDate() === startTime.getDate())
+        property bool currentDayBefore: (startDateCurrent.getFullYear() === startTimeBefore.getFullYear()
+                                         && startDateCurrent.getMonth() === startTimeBefore.getMonth()
+                                         && startDateCurrent.getDate() === startTimeBefore.getDate())
+        property bool currentDayAfter: (startTimeAfter.getFullYear() === startDateCurrent.getFullYear()
+                                        && startTimeAfter.getMonth() === startDateCurrent.getMonth()
+                                        && startTimeAfter.getDate() === startDateCurrent.getDate())
         property bool currentHourBefore: (currentDayBefore
-                                          && startTime.getHours() === startTimeBefore.getHours())
+                                          && hours === startTimeBefore.getHours())
         property bool currentHourAfter: (currentDayAfter
-                                         && startTimeAfter.getHours() === startTime.getHours())
+                                         && startTimeAfter.getHours() === hours)
         property bool currentMinuteBefore: (currentHourBefore
-                                            && startTime.getMinutes() === startTimeBefore.getMinutes())
+                                            && minutes === startTimeBefore.getMinutes())
         property bool currentMinuteAfter: (currentHourAfter
-                                           && startTimeAfter.getMinutes() === startTime.getMinutes())
+                                           && startTimeAfter.getMinutes() === minutes)
     }
 
     function setHours(newHours) {
@@ -61,39 +62,23 @@ Row {
         id: hoursTumbler
 
         model: Util.rangeList(d.minHours, d.maxHours + 1)
-
-        onCurrentIndexChanged: {
-            if (d.hours !== currentIndex + d.minHours) {
-                d.hours = currentIndex + d.minHours
-            }
-        }
     }
+
     Tumbler {
         id: minutesTumbler
 
         model: Util.rangeList(d.minMinutes, d.maxMinutes + 1)
-
-        onCurrentIndexChanged: {
-            if (d.minutes !== currentIndex + d.minMinutes) {
-                d.minutes = currentIndex + d.minMinutes
-            }
-        }
     }
+
     Tumbler {
         id: secondsTumbler
 
         model: Util.rangeList(d.minSeconds, d.maxSeconds + 1)
-
-        onCurrentIndexChanged: {
-            if (d.seconds !== currentIndex + d.minSeconds) {
-                d.seconds = currentIndex + d.minSeconds
-            }
-        }
     }
 
-    onStartTimeChanged: {
-        setHours(startTime.getHours())
-        setMinutes(startTime.getMinutes())
-        setSeconds(startTime.getSeconds())
+    onStartTimeCurrentChanged: {
+        setHours(startTimeCurrent.getHours())
+        setMinutes(startTimeCurrent.getMinutes())
+        setSeconds(startTimeCurrent.getSeconds())
     }
 }

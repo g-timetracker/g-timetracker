@@ -6,11 +6,12 @@ import "Util.js" as Util
 Item {
     id: delegateEditor
 
-    property alias startTimeAfter: timeTumbler.startTimeAfter
-    property alias startTimeBefore: timeTumbler.startTimeBefore
+    property date startTimeAfter
+    property date startTimeBefore
+    property var startTimeCurrent: new Date()
 
     property string category
-    property alias startTime: timeTumbler.startTime
+    property var startTime: new Date()
     property string comment
 
     QtObject {
@@ -56,17 +57,19 @@ Item {
             }
 
             Calendar {
-                property alias origDate: delegateEditor.startTime
+                id: calendar
+
+                property alias origDate: delegateEditor.startTimeCurrent
 
                 minimumDate: startTimeAfter
                 maximumDate: startTimeBefore
 
-                onClicked: {
-                    var newDate = new Date(date)
-                    timeTumbler.startTime.setFullYear(newDate.getFullYear())
-                    timeTumbler.startTime.setMonth(newDate.getMonth())
-                    timeTumbler.startTime.setDate(newDate.getDate())
-                    timeTumbler.startTime = timeTumbler.startTime
+                onSelectedDateChanged: {
+                    var newDate = new Date(selectedDate)
+                    delegateEditor.startTime.setFullYear(newDate.getFullYear())
+                    delegateEditor.startTime.setMonth(newDate.getMonth())
+                    delegateEditor.startTime.setDate(newDate.getDate())
+                    delegateEditor.startTime = delegateEditor.startTime
                 }
 
                 onOrigDateChanged: selectedDate = origDate
@@ -74,6 +77,26 @@ Item {
 
             TimeTumbler {
                 id: timeTumbler
+
+                startDateCurrent: calendar.selectedDate
+                startTimeCurrent: delegateEditor.startTimeCurrent
+                startTimeBefore: delegateEditor.startTimeBefore
+                startTimeAfter: delegateEditor.startTimeAfter
+
+                onHoursChanged: {
+                    delegateEditor.startTime.setHours(hours)
+                    delegateEditor.startTime = delegateEditor.startTime
+                }
+
+                onMinutesChanged: {
+                    delegateEditor.startTime.setMinutes(minutes)
+                    delegateEditor.startTime = delegateEditor.startTime
+                }
+
+                onSecondsChanged: {
+                    delegateEditor.startTime.setSeconds(seconds)
+                    delegateEditor.startTime = delegateEditor.startTime
+                }
             }
         }
 
