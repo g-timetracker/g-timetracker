@@ -5,6 +5,8 @@
 
 #include "TimeLogEntry.h"
 
+class TimeLogHistory;
+
 class TimeLogModel : public QAbstractListModel
 {
     Q_OBJECT
@@ -41,9 +43,11 @@ private slots:
     void processRowsRemoved(const QModelIndex &parent, int first, int last);
 
 private:
+    void populate();
     void recalcDuration(const QModelIndex &parent, int first, int last);
 
-    QList<TimeLogEntry> m_timeLog;
+    TimeLogHistory *m_history;
+    QVector<TimeLogEntry> m_timeLog;
 };
 
 #endif // TIMELOGMODEL_H

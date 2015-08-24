@@ -9,11 +9,9 @@ struct TimeLogEntry: public TimeLogData
 {
 //    Q_GADGET
 public:
-    TimeLogEntry(TimeLogData data = TimeLogData());
+    TimeLogEntry(const QUuid &uuid = QUuid(), const TimeLogData &data = TimeLogData());
 
-//    qint64 durationTime;
-    QUuid id;
-    QDateTime mTime;
+    QUuid uuid;
 };
 
 #endif // TIMELOGENTRY_H

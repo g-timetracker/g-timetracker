@@ -1,12 +1,13 @@
 TEMPLATE = app
 
-QT += qml quick widgets
+QT += qml quick widgets sql
 
 SOURCES += main.cpp \
     TimeLogEntry.cpp \
     TimeLogModel.cpp \
     TimeLogData.cpp \
-    TimeLogSingleton.cpp
+    TimeLogSingleton.cpp \
+    TimeLogHistory.cpp
 
 RESOURCES += qml.qrc
 
@@ -20,4 +21,5 @@ HEADERS += \
     TimeLogEntry.h \
     TimeLogModel.h \
     TimeLogData.h \
-    TimeLogSingleton.h
+    TimeLogSingleton.h \
+    TimeLogHistory.h

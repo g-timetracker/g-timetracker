@@ -1,8 +1,8 @@
 #include "TimeLogEntry.h"
 
-TimeLogEntry::TimeLogEntry(TimeLogData data) :
+TimeLogEntry::TimeLogEntry(const QUuid &uuid, const TimeLogData &data) :
     TimeLogData(data),
-    mTime(QDateTime::currentDateTimeUtc())
+    uuid(uuid)
 {
 
 }
