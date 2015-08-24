@@ -15,7 +15,8 @@ public:
     void insert(const TimeLogEntry &data);
     void remove(const QUuid &uuid);
     void edit(const TimeLogEntry &data);
-    QVector<TimeLogEntry> getHistory() const;
+    QVector<TimeLogEntry> getHistory(const QDateTime &begin = QDateTime::fromTime_t(0),
+                                     const QDateTime &end = QDateTime::currentDateTime()) const;
 
 signals:
 

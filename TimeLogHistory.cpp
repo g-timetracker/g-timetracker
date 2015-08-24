@@ -88,17 +88,20 @@ void TimeLogHistory::edit(const TimeLogEntry &data)
     query.exec();
 }
 
-QVector<TimeLogEntry> TimeLogHistory::getHistory() const
+QVector<TimeLogEntry> TimeLogHistory::getHistory(const QDateTime &begin, const QDateTime &end) const
 {
     QVector<TimeLogEntry> result;
 
     QSqlDatabase db = QSqlDatabase::database("timelog");
     QSqlQuery query(db);
-    QString queryString("SELECT uuid, start, category, comment FROM timelog ORDER BY start");
+    QString queryString("SELECT uuid, start, category, comment FROM timelog"
+                        " WHERE start BETWEEN ? AND ? ORDER BY start");
     if (!query.prepare(queryString)) {
         qWarning() << "Fail to execute query" << query.lastError();
         return result;
     }
+    query.addBindValue(begin.toTime_t());
+    query.addBindValue(end.toTime_t());
 
     query.exec();
 
