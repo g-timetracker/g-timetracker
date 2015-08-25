@@ -92,8 +92,8 @@ ApplicationWindow {
             id: listView
 
             function deleteItemUnderCursor() {
-                TimeLogModel.removeItem(delegateModel.modelIndex(listView.indexAt(mouseArea.mouseX,
-                                                                                  mouseArea.mouseY)))
+                TimeLogModel.removeItem(delegateModel.modelIndex(listView.indexAt(mouseArea.mouseX + listView.contentX,
+                                                                                  mouseArea.mouseY + listView.contentY)))
             }
 
             Layout.fillHeight: true
@@ -107,8 +107,10 @@ ApplicationWindow {
                 tooltip: "Edit item"
 
                 onTriggered: {
-                    var indexCurrent = listView.indexAt(mouseArea.mouseX, mouseArea.mouseY)
-                    var delegateItem = listView.itemAt(mouseArea.mouseX, mouseArea.mouseY)
+                    var indexCurrent = listView.indexAt(mouseArea.mouseX + listView.contentX,
+                                                        mouseArea.mouseY + listView.contentY)
+                    var delegateItem = listView.itemAt(mouseArea.mouseX + listView.contentX,
+                                                       mouseArea.mouseY + listView.contentY)
                     var indexAfter = indexCurrent - 1
                     var startTimeAfter
                     if (indexAfter === -1) {
@@ -134,7 +136,8 @@ ApplicationWindow {
                 tooltip: "Insert item before this item"
 
                 onTriggered: {
-                    var indexBefore = listView.indexAt(mouseArea.mouseX, mouseArea.mouseY)
+                    var indexBefore = listView.indexAt(mouseArea.mouseX + listView.contentX,
+                                                       mouseArea.mouseY + listView.contentY)
                     var startTimeBefore = TimeLogModel.timeLogData(delegateModel.modelIndex(indexBefore)).startTime
                     var indexAfter = indexBefore - 1
                     var startTimeAfter
@@ -154,7 +157,8 @@ ApplicationWindow {
                 tooltip: "Insert item after this item"
 
                 onTriggered: {
-                    var indexAfter = listView.indexAt(mouseArea.mouseX, mouseArea.mouseY)
+                    var indexAfter = listView.indexAt(mouseArea.mouseX + listView.contentX,
+                                                      mouseArea.mouseY + listView.contentY)
                     var startTimeAfter = TimeLogModel.timeLogData(delegateModel.modelIndex(indexAfter)).startTime
                     var indexBefore = (indexAfter + 1 === listView.count) ? -1 : indexAfter + 1
                     var startTimeBefore
@@ -218,13 +222,15 @@ ApplicationWindow {
                 acceptedButtons: Qt.LeftButton | Qt.RightButton
 
                 onDoubleClicked: {
-                    if (listView.itemAt(mouse.x, mouse.y)) {
+                    if (listView.itemAt(mouse.x + listView.contentX,
+                                        mouse.y + listView.contentY)) {
                         editAction.trigger()
                     }
                 }
 
                 onClicked: {
-                    if (mouse.button === Qt.RightButton && listView.itemAt(mouse.x, mouse.y)) {
+                    if (mouse.button === Qt.RightButton && listView.itemAt(mouse.x + listView.contentX,
+                                                                           mouse.y + listView.contentY)) {
                         itemMenu.popup()
                     }
                 }
