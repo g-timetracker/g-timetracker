@@ -1,6 +1,5 @@
 #include <QStandardPaths>
 #include <QDir>
-#include <QSqlQuery>
 #include <QSqlError>
 
 #include <QDebug>
@@ -90,18 +89,41 @@ void TimeLogHistory::edit(const TimeLogEntry &data)
 
 QVector<TimeLogEntry> TimeLogHistory::getHistory(const QDateTime &begin, const QDateTime &end) const
 {
-    QVector<TimeLogEntry> result;
-
     QSqlDatabase db = QSqlDatabase::database("timelog");
     QSqlQuery query(db);
     QString queryString("SELECT uuid, start, category, comment FROM timelog"
                         " WHERE start BETWEEN ? AND ? ORDER BY start");
     if (!query.prepare(queryString)) {
         qWarning() << "Fail to execute query" << query.lastError();
-        return result;
+        return QVector<TimeLogEntry>();
     }
     query.addBindValue(begin.toTime_t());
     query.addBindValue(end.toTime_t());
+
+    return getHistory(query);
+}
+
+QVector<TimeLogEntry> TimeLogHistory::getHistory(const uint limit, const QDateTime &until) const
+{
+    QSqlDatabase db = QSqlDatabase::database("timelog");
+    QSqlQuery query(db);
+    QString queryString("SELECT uuid, start, category, comment FROM timelog"
+                        " WHERE start < ? ORDER BY start DESC LIMIT ?");
+    if (!query.prepare(queryString)) {
+        qWarning() << "Fail to execute query" << query.lastError();
+        return QVector<TimeLogEntry>();
+    }
+    query.addBindValue(until.toTime_t());
+    query.addBindValue(limit);
+
+    QVector<TimeLogEntry> result = getHistory(query);
+    std::reverse(result.begin(), result.end());
+    return result;
+}
+
+QVector<TimeLogEntry> TimeLogHistory::getHistory(QSqlQuery &query) const
+{
+    QVector<TimeLogEntry> result;
 
     query.exec();
 

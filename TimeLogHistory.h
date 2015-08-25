@@ -2,6 +2,7 @@
 #define TIMELOGHISTORY_H
 
 #include <QObject>
+#include <QSqlQuery>
 
 #include "TimeLogEntry.h"
 
@@ -15,12 +16,14 @@ public:
     void insert(const TimeLogEntry &data);
     void remove(const QUuid &uuid);
     void edit(const TimeLogEntry &data);
+
     QVector<TimeLogEntry> getHistory(const QDateTime &begin = QDateTime::fromTime_t(0),
                                      const QDateTime &end = QDateTime::currentDateTime()) const;
+    QVector<TimeLogEntry> getHistory(const uint limit,
+                                     const QDateTime &until = QDateTime::currentDateTime()) const;
 
-signals:
-
-public slots:
+private:
+    QVector<TimeLogEntry> getHistory(QSqlQuery &query) const;
 };
 
 #endif // TIMELOGHISTORY_H

@@ -3,6 +3,8 @@
 #include "TimeLogModel.h"
 #include "TimeLogHistory.h"
 
+static const int defaultPopulateCount(5);
+
 TimeLogModel::TimeLogModel(QObject *parent) :
     SUPER(parent),
     m_history(new TimeLogHistory(this))
@@ -165,7 +167,7 @@ void TimeLogModel::processRowsRemoved(const QModelIndex &parent, int first, int 
 
 void TimeLogModel::populate()
 {
-    QVector<TimeLogEntry> data = m_history->getHistory();
+    QVector<TimeLogEntry> data = m_history->getHistory(defaultPopulateCount);
     if (!data.size()) {
         return;
     }
