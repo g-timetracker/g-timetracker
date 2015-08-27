@@ -204,33 +204,42 @@ ApplicationWindow {
         anchors.fill: parent
         spacing: 10
 
-        ListView {
-            id: listView
-
+        ColumnLayout {
             Layout.fillHeight: true
             Layout.fillWidth: true
-            verticalLayoutDirection: ListView.BottomToTop
-            model: delegateModel
+            spacing: 0
 
-            MouseArea {
-                id: mouseArea
+            ListView {
+                id: listView
 
-                anchors.fill: parent
-                acceptedButtons: Qt.LeftButton | Qt.RightButton
+                Layout.fillHeight: true
+                Layout.fillWidth: true
+                verticalLayoutDirection: ListView.BottomToTop
+                model: delegateModel
 
-                onDoubleClicked: {
-                    if (listView.itemAt(mouse.x + listView.contentX,
-                                        mouse.y + listView.contentY)) {
-                        editAction.trigger()
+                MouseArea {
+                    id: mouseArea
+
+                    anchors.fill: parent
+                    acceptedButtons: Qt.LeftButton | Qt.RightButton
+
+                    onDoubleClicked: {
+                        if (listView.itemAt(mouse.x + listView.contentX,
+                                            mouse.y + listView.contentY)) {
+                            editAction.trigger()
+                        }
+                    }
+
+                    onClicked: {
+                        if (mouse.button === Qt.RightButton && listView.itemAt(mouse.x + listView.contentX,
+                                                                               mouse.y + listView.contentY)) {
+                            itemMenu.popup()
+                        }
                     }
                 }
-
-                onClicked: {
-                    if (mouse.button === Qt.RightButton && listView.itemAt(mouse.x + listView.contentX,
-                                                                           mouse.y + listView.contentY)) {
-                        itemMenu.popup()
-                    }
-                }
+            }
+            Item {
+                Layout.preferredHeight: (listView.contentHeight > parent.height ? 0 : parent.height - listView.contentHeight)
             }
         }
 
