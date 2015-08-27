@@ -29,14 +29,16 @@ public:
     virtual Qt::ItemFlags flags(const QModelIndex &index) const;
     virtual bool setData(const QModelIndex &index, const QVariant &value, int role);
 
-    Q_INVOKABLE TimeLogData timeLogData(const QModelIndex &index) const;
+    virtual bool removeRows(int row, int count, const QModelIndex &parent);
+
+    TimeLogData timeLogData(const QModelIndex &index) const;
+    void appendItem(TimeLogData data = TimeLogData());
+    void insertItem(const QModelIndex &index, TimeLogData data = TimeLogData());
 
 signals:
 
 public slots:
-    void appendItem(TimeLogData data = TimeLogData());
-    void insertItem(const QModelIndex &index, TimeLogData data = TimeLogData());
-    void removeItem(const QModelIndex &index);
+
 
 private slots:
     void processRowsInserted(const QModelIndex &parent, int first, int last);

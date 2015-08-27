@@ -5,6 +5,7 @@
 #include <QDebug>
 
 #include "TimeLogModel.h"
+#include "ReverseProxyModel.h"
 #include "TimeLogSingleton.h"
 
 int main(int argc, char *argv[])
@@ -17,9 +18,11 @@ int main(int argc, char *argv[])
     TimeLogSingleton *singleton = new TimeLogSingleton;
     qRegisterMetaType<TimeLogData>();
     TimeLogModel *model = new TimeLogModel;
+    ReverseProxyModel *proxy = new ReverseProxyModel;
+    proxy->setSourceModel(model);
 
     QQmlApplicationEngine engine;
-    engine.rootContext()->setContextProperty("TimeLogModel", model);
+    engine.rootContext()->setContextProperty("TimeLogModel", proxy);
     engine.rootContext()->setContextProperty("TimeLog", singleton);
     engine.load(QUrl(QStringLiteral("qrc:/main.qml")));
 

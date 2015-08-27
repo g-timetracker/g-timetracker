@@ -7,7 +7,8 @@ SOURCES += main.cpp \
     TimeLogModel.cpp \
     TimeLogData.cpp \
     TimeLogSingleton.cpp \
-    TimeLogHistory.cpp
+    TimeLogHistory.cpp \
+    ReverseProxyModel.cpp
 
 RESOURCES += qml.qrc
 
@@ -22,4 +23,5 @@ HEADERS += \
     TimeLogModel.h \
     TimeLogData.h \
     TimeLogSingleton.h \
-    TimeLogHistory.h
+    TimeLogHistory.h \
+    ReverseProxyModel.h

@@ -98,6 +98,7 @@ ApplicationWindow {
 
             Layout.fillHeight: true
             Layout.fillWidth: true
+            verticalLayoutDirection: ListView.BottomToTop
             model: delegateModel
 
             Action {
@@ -111,14 +112,14 @@ ApplicationWindow {
                                                         mouseArea.mouseY + listView.contentY)
                     var delegateItem = listView.itemAt(mouseArea.mouseX + listView.contentX,
                                                        mouseArea.mouseY + listView.contentY)
-                    var indexAfter = indexCurrent - 1
+                    var indexAfter = (indexCurrent + 1 === listView.count) ? -1 : indexCurrent + 1
                     var startTimeAfter
                     if (indexAfter === -1) {
                         startTimeAfter = new Date(0)
                     } else {
                         startTimeAfter = TimeLogModel.timeLogData(delegateModel.modelIndex(indexAfter)).startTime
                     }
-                    var indexBefore = (indexCurrent + 1 === listView.count) ? -1 : indexCurrent + 1
+                    var indexBefore = indexCurrent - 1
                     var startTimeBefore
                     if (indexBefore === -1) {
                         startTimeBefore = new Date()
@@ -139,7 +140,7 @@ ApplicationWindow {
                     var indexBefore = listView.indexAt(mouseArea.mouseX + listView.contentX,
                                                        mouseArea.mouseY + listView.contentY)
                     var startTimeBefore = TimeLogModel.timeLogData(delegateModel.modelIndex(indexBefore)).startTime
-                    var indexAfter = indexBefore - 1
+                    var indexAfter = (indexBefore + 1 === listView.count) ? -1 : indexBefore + 1
                     var startTimeAfter
                     if (indexAfter === -1) {
                         startTimeAfter = new Date(0)
@@ -160,7 +161,7 @@ ApplicationWindow {
                     var indexAfter = listView.indexAt(mouseArea.mouseX + listView.contentX,
                                                       mouseArea.mouseY + listView.contentY)
                     var startTimeAfter = TimeLogModel.timeLogData(delegateModel.modelIndex(indexAfter)).startTime
-                    var indexBefore = (indexAfter + 1 === listView.count) ? -1 : indexAfter + 1
+                    var indexBefore = indexAfter - 1
                     var startTimeBefore
                     if (indexBefore === -1) {
                         startTimeBefore = new Date()
@@ -247,7 +248,7 @@ ApplicationWindow {
                 text: "Add item"
                 tooltip: "Adds item into model"
                 onClicked: {
-                    var indexAfter = listView.count - 1
+                    var indexAfter = (listView.count === 0) ? -1 : 0
                     var startTimeAfter
                     if (indexAfter === -1) {
                         startTimeAfter = new Date(0)

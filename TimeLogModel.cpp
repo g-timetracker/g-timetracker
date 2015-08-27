@@ -115,6 +115,25 @@ bool TimeLogModel::setData(const QModelIndex &index, const QVariant &value, int 
     return true;
 }
 
+bool TimeLogModel::removeRows(int row, int count, const QModelIndex &parent)
+{
+    if (parent != QModelIndex()) {
+        return false;
+    }
+
+    beginRemoveRows(parent, row, row + count - 1);
+
+    for (int i = row; i < row + count; i++) {
+        m_history->remove(m_timeLog.at(i).uuid);
+    }
+
+    m_timeLog.remove(row, count);
+
+    endRemoveRows();
+
+    return true;
+}
+
 TimeLogData TimeLogModel::timeLogData(const QModelIndex &index) const
 {
     if (!index.isValid()) {
@@ -141,14 +160,6 @@ void TimeLogModel::insertItem(const QModelIndex &index, TimeLogData data)
     m_timeLog.insert(index.row(), entry);
     m_history->insert(entry);
     endInsertRows();
-}
-
-void TimeLogModel::removeItem(const QModelIndex &index)
-{
-    beginRemoveRows(index.parent(), index.row(), index.row());
-    m_history->remove(m_timeLog.at(index.row()).uuid);
-    m_timeLog.removeAt(index.row());
-    endRemoveRows();
 }
 
 void TimeLogModel::processRowsInserted(const QModelIndex &parent, int first, int last)
