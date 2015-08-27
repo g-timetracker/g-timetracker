@@ -84,6 +84,126 @@ ApplicationWindow {
         }
     }
 
+    Action {
+        id: editAction
+
+        text: "Edit"
+        tooltip: "Edit item"
+
+        onTriggered: {
+            var indexCurrent = listView.indexAt(mouseArea.mouseX + listView.contentX,
+                                                mouseArea.mouseY + listView.contentY)
+            var delegateItem = listView.itemAt(mouseArea.mouseX + listView.contentX,
+                                               mouseArea.mouseY + listView.contentY)
+            var indexAfter = (indexCurrent + 1 === listView.count) ? -1 : indexCurrent + 1
+            var startTimeAfter
+            if (indexAfter === -1) {
+                startTimeAfter = new Date(0)
+            } else {
+                startTimeAfter = TimeLogModel.timeLogData(delegateModel.modelIndex(indexAfter)).startTime
+            }
+            var indexBefore = indexCurrent - 1
+            var startTimeBefore
+            if (indexBefore === -1) {
+                startTimeBefore = new Date()
+            } else {
+                startTimeBefore = TimeLogModel.timeLogData(delegateModel.modelIndex(indexBefore)).startTime
+            }
+            editDialog.openDialog(delegateItem, startTimeAfter, startTimeBefore)
+        }
+    }
+
+    Action {
+        id: insertBeforeAction
+
+        text: "Insert before"
+        tooltip: "Insert item before this item"
+
+        onTriggered: {
+            var indexBefore = listView.indexAt(mouseArea.mouseX + listView.contentX,
+                                               mouseArea.mouseY + listView.contentY)
+            var startTimeBefore = TimeLogModel.timeLogData(delegateModel.modelIndex(indexBefore)).startTime
+            var indexAfter = (indexBefore + 1 === listView.count) ? -1 : indexBefore + 1
+            var startTimeAfter
+            if (indexAfter === -1) {
+                startTimeAfter = new Date(0)
+            } else {
+                startTimeAfter = TimeLogModel.timeLogData(delegateModel.modelIndex(indexAfter)).startTime
+            }
+            newDialog.openDialog(indexBefore, startTimeAfter, startTimeBefore)
+        }
+    }
+
+    Action {
+        id: insertAfterAction
+
+        text: "Insert after"
+        tooltip: "Insert item after this item"
+
+        onTriggered: {
+            var indexAfter = listView.indexAt(mouseArea.mouseX + listView.contentX,
+                                              mouseArea.mouseY + listView.contentY)
+            var startTimeAfter = TimeLogModel.timeLogData(delegateModel.modelIndex(indexAfter)).startTime
+            var indexBefore = indexAfter - 1
+            var startTimeBefore
+            if (indexBefore === -1) {
+                startTimeBefore = new Date()
+            } else {
+                startTimeBefore = TimeLogModel.timeLogData(delegateModel.modelIndex(indexBefore)).startTime
+            }
+            newDialog.openDialog(indexBefore, startTimeAfter, startTimeBefore)
+        }
+    }
+
+    Action {
+        id: removeAction
+
+        function deleteItemUnderCursor() {
+            TimeLogModel.removeItem(delegateModel.modelIndex(listView.indexAt(mouseArea.mouseX + listView.contentX,
+                                                                              mouseArea.mouseY + listView.contentY)))
+        }
+
+        text: "Remove"
+        tooltip: "Remove item"
+
+        onTriggered: {
+            if (main.isConfirmationsEnabled) {
+                removeConfirmationDialog.open()
+            } else {
+                removeAction.deleteItemUnderCursor()
+            }
+        }
+    }
+
+    MessageDialog {
+        id: removeConfirmationDialog
+
+        title: "Remove confirmation"
+        text: "Are you sure want to delete this item?"
+        informativeText: "This item can not be restored"
+        icon: StandardIcon.Question
+        standardButtons: StandardButton.Yes | StandardButton.No
+
+        onYes: removeAction.deleteItemUnderCursor()
+    }
+
+    Menu {
+        id: itemMenu
+
+        MenuItem {
+            action: editAction
+        }
+        MenuItem {
+            action: insertBeforeAction
+        }
+        MenuItem {
+            action: insertAfterAction
+        }
+        MenuItem {
+            action: removeAction
+        }
+    }
+
     ColumnLayout {
         anchors.fill: parent
         spacing: 10
@@ -91,130 +211,10 @@ ApplicationWindow {
         ListView {
             id: listView
 
-            function deleteItemUnderCursor() {
-                TimeLogModel.removeItem(delegateModel.modelIndex(listView.indexAt(mouseArea.mouseX + listView.contentX,
-                                                                                  mouseArea.mouseY + listView.contentY)))
-            }
-
             Layout.fillHeight: true
             Layout.fillWidth: true
             verticalLayoutDirection: ListView.BottomToTop
             model: delegateModel
-
-            Action {
-                id: editAction
-
-                text: "Edit"
-                tooltip: "Edit item"
-
-                onTriggered: {
-                    var indexCurrent = listView.indexAt(mouseArea.mouseX + listView.contentX,
-                                                        mouseArea.mouseY + listView.contentY)
-                    var delegateItem = listView.itemAt(mouseArea.mouseX + listView.contentX,
-                                                       mouseArea.mouseY + listView.contentY)
-                    var indexAfter = (indexCurrent + 1 === listView.count) ? -1 : indexCurrent + 1
-                    var startTimeAfter
-                    if (indexAfter === -1) {
-                        startTimeAfter = new Date(0)
-                    } else {
-                        startTimeAfter = TimeLogModel.timeLogData(delegateModel.modelIndex(indexAfter)).startTime
-                    }
-                    var indexBefore = indexCurrent - 1
-                    var startTimeBefore
-                    if (indexBefore === -1) {
-                        startTimeBefore = new Date()
-                    } else {
-                        startTimeBefore = TimeLogModel.timeLogData(delegateModel.modelIndex(indexBefore)).startTime
-                    }
-                    editDialog.openDialog(delegateItem, startTimeAfter, startTimeBefore)
-                }
-            }
-
-            Action {
-                id: insertBeforeAction
-
-                text: "Insert before"
-                tooltip: "Insert item before this item"
-
-                onTriggered: {
-                    var indexBefore = listView.indexAt(mouseArea.mouseX + listView.contentX,
-                                                       mouseArea.mouseY + listView.contentY)
-                    var startTimeBefore = TimeLogModel.timeLogData(delegateModel.modelIndex(indexBefore)).startTime
-                    var indexAfter = (indexBefore + 1 === listView.count) ? -1 : indexBefore + 1
-                    var startTimeAfter
-                    if (indexAfter === -1) {
-                        startTimeAfter = new Date(0)
-                    } else {
-                        startTimeAfter = TimeLogModel.timeLogData(delegateModel.modelIndex(indexAfter)).startTime
-                    }
-                    newDialog.openDialog(indexBefore, startTimeAfter, startTimeBefore)
-                }
-            }
-
-            Action {
-                id: insertAfterAction
-
-                text: "Insert after"
-                tooltip: "Insert item after this item"
-
-                onTriggered: {
-                    var indexAfter = listView.indexAt(mouseArea.mouseX + listView.contentX,
-                                                      mouseArea.mouseY + listView.contentY)
-                    var startTimeAfter = TimeLogModel.timeLogData(delegateModel.modelIndex(indexAfter)).startTime
-                    var indexBefore = indexAfter - 1
-                    var startTimeBefore
-                    if (indexBefore === -1) {
-                        startTimeBefore = new Date()
-                    } else {
-                        startTimeBefore = TimeLogModel.timeLogData(delegateModel.modelIndex(indexBefore)).startTime
-                    }
-                    newDialog.openDialog(indexBefore, startTimeAfter, startTimeBefore)
-                }
-            }
-
-            Action {
-                id: removeAction
-
-                text: "Remove"
-                tooltip: "Remove item"
-
-                onTriggered: {
-                    if (main.isConfirmationsEnabled) {
-                        removeConfirmationDialog.open()
-                    } else {
-                        listView.deleteItemUnderCursor()
-                    }
-                }
-            }
-
-            MessageDialog {
-                id: removeConfirmationDialog
-
-                title: "Remove confirmation"
-                text: "Are you sure want to delete this item?"
-                informativeText: "This item can not be restored"
-                icon: StandardIcon.Question
-                standardButtons: StandardButton.Yes | StandardButton.No
-
-                onYes: listView.deleteItemUnderCursor()
-            }
-
-            Menu {
-                id: itemMenu
-
-                MenuItem {
-                    action: editAction
-                }
-                MenuItem {
-                    action: insertBeforeAction
-                }
-                MenuItem {
-                    action: insertAfterAction
-                }
-                MenuItem {
-                    action: removeAction
-                }
-            }
 
             MouseArea {
                 id: mouseArea
