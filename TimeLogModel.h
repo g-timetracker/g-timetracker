@@ -22,6 +22,8 @@ public:
     explicit TimeLogModel(QObject *parent = 0);
 
     virtual int rowCount(const QModelIndex &parent) const;
+    virtual bool canFetchMore(const QModelIndex &parent) const;
+    virtual void fetchMore(const QModelIndex & parent);
 
     virtual QVariant data(const QModelIndex &index, int role) const;
     virtual QVariant headerData(int section, Qt::Orientation orientation, int role) const;
@@ -45,7 +47,7 @@ private slots:
     void processRowsRemoved(const QModelIndex &parent, int first, int last);
 
 private:
-    void populate();
+    void getMoreHistory();
     void recalcDuration(const QModelIndex &parent, int first, int last);
 
     TimeLogHistory *m_history;

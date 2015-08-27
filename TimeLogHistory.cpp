@@ -87,6 +87,27 @@ void TimeLogHistory::edit(const TimeLogEntry &data)
     query.exec();
 }
 
+bool TimeLogHistory::hasHistory(const QDateTime &before) const
+{
+    QSqlDatabase db = QSqlDatabase::database("timelog");
+    QSqlQuery query(db);
+    QString queryString("SELECT uuid, start, category, comment FROM timelog"
+                        " WHERE start < ? ORDER BY start DESC LIMIT 1");
+    if (!query.prepare(queryString)) {
+        qWarning() << "Fail to execute query" << query.lastError();
+        return false;
+    }
+    query.addBindValue(before.toTime_t());
+
+    query.exec();
+
+    bool result = query.next();
+
+    query.finish();
+
+    return result;
+}
+
 QVector<TimeLogEntry> TimeLogHistory::getHistory(const QDateTime &begin, const QDateTime &end) const
 {
     QSqlDatabase db = QSqlDatabase::database("timelog");

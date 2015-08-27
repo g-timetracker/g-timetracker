@@ -13,8 +13,6 @@ TimeLogModel::TimeLogModel(QObject *parent) :
             SLOT(processRowsInserted(QModelIndex,int,int)), Qt::QueuedConnection);
     connect(this, SIGNAL(rowsRemoved(QModelIndex,int,int)),
             SLOT(processRowsRemoved(QModelIndex,int,int)), Qt::QueuedConnection);
-
-    populate();
 }
 
 int TimeLogModel::rowCount(const QModelIndex &parent) const
@@ -22,6 +20,24 @@ int TimeLogModel::rowCount(const QModelIndex &parent) const
     Q_UNUSED(parent)
 
     return m_timeLog.size();
+}
+
+bool TimeLogModel::canFetchMore(const QModelIndex &parent) const
+{
+    if (parent != QModelIndex()) {
+        return false;
+    }
+
+    return m_history->hasHistory(m_timeLog.size() ? m_timeLog.at(0).startTime : QDateTime::currentDateTime());;
+}
+
+void TimeLogModel::fetchMore(const QModelIndex &parent)
+{
+    if (parent != QModelIndex()) {
+        return;
+    }
+
+    getMoreHistory();
 }
 
 QVariant TimeLogModel::data(const QModelIndex &index, int role) const
@@ -176,14 +192,16 @@ void TimeLogModel::processRowsRemoved(const QModelIndex &parent, int first, int 
     }
 }
 
-void TimeLogModel::populate()
+void TimeLogModel::getMoreHistory()
 {
-    QVector<TimeLogEntry> data = m_history->getHistory(defaultPopulateCount);
+    QDateTime limit = m_timeLog.size() ? m_timeLog.at(0).startTime : QDateTime::currentDateTime();
+    QVector<TimeLogEntry> data = m_history->getHistory(defaultPopulateCount, limit);
     if (!data.size()) {
         return;
     }
 
     beginInsertRows(QModelIndex(), 0, data.size() - 1);
+    data.append(m_timeLog);
     m_timeLog.swap(data);
     endInsertRows();
 }
