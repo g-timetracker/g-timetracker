@@ -22,6 +22,7 @@ public:
     QString comment;
 };
 
+Q_DECLARE_TYPEINFO(TimeLogData, Q_MOVABLE_TYPE);
 Q_DECLARE_METATYPE(TimeLogData)
 
 #endif // TIMELOGDATA_H

@@ -7,11 +7,12 @@
 
 struct TimeLogEntry: public TimeLogData
 {
-//    Q_GADGET
 public:
     TimeLogEntry(const QUuid &uuid = QUuid(), const TimeLogData &data = TimeLogData());
 
     QUuid uuid;
 };
+
+Q_DECLARE_TYPEINFO(TimeLogEntry, Q_MOVABLE_TYPE);
 
 #endif // TIMELOGENTRY_H
