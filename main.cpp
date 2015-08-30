@@ -1,4 +1,5 @@
 #include <QApplication>
+#include <QCommandLineParser>
 #include <QQmlApplicationEngine>
 #include <QtQml/QQmlContext>
 
@@ -14,6 +15,14 @@ int main(int argc, char *argv[])
     app.setOrganizationName("G-TimeTracker");
     app.setOrganizationDomain("g-timetracker.org");
     app.setApplicationName("G-TimeTracker");
+    app.setApplicationVersion("0.1");
+
+    QCommandLineParser parser;
+    parser.setApplicationDescription("Global Time Tracker");
+    parser.addHelpOption();
+    parser.addVersionOption();
+
+    parser.process(app);
 
     TimeLogSingleton *singleton = new TimeLogSingleton;
     qRegisterMetaType<TimeLogData>();
