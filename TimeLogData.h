@@ -16,6 +16,8 @@ public:
     TimeLogData();
     TimeLogData(QDateTime startTime, int durationTime, QString category, QString comment);
 
+    bool isValid() const;
+
     QDateTime startTime;
     int durationTime;
     QString category;

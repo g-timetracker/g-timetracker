@@ -6,3 +6,8 @@ TimeLogEntry::TimeLogEntry(const QUuid &uuid, const TimeLogData &data) :
 {
 
 }
+
+bool TimeLogEntry::isValid() const
+{
+    return (SUPER::isValid() && !uuid.isNull());
+}

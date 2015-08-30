@@ -8,6 +8,7 @@
 #include "TimeLogModel.h"
 #include "ReverseProxyModel.h"
 #include "TimeLogSingleton.h"
+#include "DataImporter.h"
 
 int main(int argc, char *argv[])
 {
@@ -22,7 +23,15 @@ int main(int argc, char *argv[])
     parser.addHelpOption();
     parser.addVersionOption();
 
+    QCommandLineOption importOption(QStringList() << "i" << "import", "Import a CSV file", "file");
+    parser.addOption(importOption);
+
     parser.process(app);
+
+    if (parser.isSet(importOption)) {
+        DataImporter importer;
+        return (importer.importFile(parser.value(importOption)) ? EXIT_SUCCESS : EXIT_FAILURE);
+    }
 
     TimeLogSingleton *singleton = new TimeLogSingleton;
     qRegisterMetaType<TimeLogData>();

@@ -1,10 +1,10 @@
 #include "TimeLogData.h"
 
 TimeLogData::TimeLogData() :
-    startTime(QDateTime::currentDateTimeUtc()),
+    startTime(QDateTime()),
     durationTime(0),
-    category("Empty category"),
-    comment("Test comment")
+    category(QString()),
+    comment(QString())
 {
 
 }
@@ -16,4 +16,9 @@ TimeLogData::TimeLogData(QDateTime startTime, int durationTime, QString category
     comment(comment)
 {
 
+}
+
+bool TimeLogData::isValid() const
+{
+    return startTime.isValid();
 }

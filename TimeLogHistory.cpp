@@ -39,6 +39,11 @@ TimeLogHistory::~TimeLogHistory()
 
 void TimeLogHistory::insert(const TimeLogEntry &data)
 {
+    if (!data.isValid()) {
+        qWarning() << "Invalid data";
+        return;
+    }
+
     QSqlDatabase db = QSqlDatabase::database("timelog");
     QSqlQuery query(db);
     QString queryString("INSERT INTO timelog (uuid, start, category, comment, mtime)"

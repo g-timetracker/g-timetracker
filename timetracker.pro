@@ -8,7 +8,8 @@ SOURCES += main.cpp \
     TimeLogData.cpp \
     TimeLogSingleton.cpp \
     TimeLogHistory.cpp \
-    ReverseProxyModel.cpp
+    ReverseProxyModel.cpp \
+    DataImporter.cpp
 
 RESOURCES += qml.qrc
 
@@ -24,4 +25,5 @@ HEADERS += \
     TimeLogData.h \
     TimeLogSingleton.h \
     TimeLogHistory.h \
-    ReverseProxyModel.h
+    ReverseProxyModel.h \
+    DataImporter.h

@@ -7,8 +7,11 @@
 
 struct TimeLogEntry: public TimeLogData
 {
+    typedef TimeLogData SUPER;
 public:
     TimeLogEntry(const QUuid &uuid = QUuid(), const TimeLogData &data = TimeLogData());
+
+    bool isValid() const;
 
     QUuid uuid;
 };
