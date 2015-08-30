@@ -9,7 +9,8 @@
 #include "TimeLogHistory.h"
 
 DataImporter::DataImporter() :
-    m_db(new TimeLogHistory)
+    m_db(new TimeLogHistory),
+    m_sep(";")
 {
 
 }
@@ -22,6 +23,11 @@ DataImporter::~DataImporter()
 bool DataImporter::import(const QString &path) const
 {
     return processPath(path);
+}
+
+void DataImporter::setSeparator(const QString &sep)
+{
+    m_sep = sep;
 }
 
 bool DataImporter::processPath(const QString &path) const
@@ -109,7 +115,7 @@ TimeLogEntry DataImporter::parseLine(const QString &line) const
 {
     TimeLogEntry result;
 
-    QStringList fields = line.split(';', QString::KeepEmptyParts);
+    QStringList fields = line.split(m_sep, QString::KeepEmptyParts);
     if (fields.isEmpty()) {
         return result;
     }

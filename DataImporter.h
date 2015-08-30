@@ -12,6 +12,7 @@ public:
     ~DataImporter();
 
     bool import(const QString &path) const;
+    void setSeparator(const QString &sep);
 
 private:
     bool processPath(const QString &path) const;
@@ -21,6 +22,7 @@ private:
     TimeLogEntry parseLine(const QString &line) const;
 
     TimeLogHistory *m_db;
+    QString m_sep;
 };
 
 #endif // DATAIMPORTER_H

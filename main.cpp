@@ -26,11 +26,14 @@ int main(int argc, char *argv[])
     QCommandLineOption importOption(QStringList() << "i" << "import", "Import a CSV file(s)",
                                     "file or directory");
     parser.addOption(importOption);
+    QCommandLineOption separatorOption("separator", "Separator for import", "string", ";");
+    parser.addOption(separatorOption);
 
     parser.process(app);
 
     if (parser.isSet(importOption)) {
         DataImporter importer;
+        importer.setSeparator(parser.value(separatorOption));
         return (importer.import(parser.value(importOption)) ? EXIT_SUCCESS : EXIT_FAILURE);
     }
 
