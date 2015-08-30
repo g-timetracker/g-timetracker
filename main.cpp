@@ -23,14 +23,15 @@ int main(int argc, char *argv[])
     parser.addHelpOption();
     parser.addVersionOption();
 
-    QCommandLineOption importOption(QStringList() << "i" << "import", "Import a CSV file", "file");
+    QCommandLineOption importOption(QStringList() << "i" << "import", "Import a CSV file(s)",
+                                    "file or directory");
     parser.addOption(importOption);
 
     parser.process(app);
 
     if (parser.isSet(importOption)) {
         DataImporter importer;
-        return (importer.importFile(parser.value(importOption)) ? EXIT_SUCCESS : EXIT_FAILURE);
+        return (importer.import(parser.value(importOption)) ? EXIT_SUCCESS : EXIT_FAILURE);
     }
 
     TimeLogSingleton *singleton = new TimeLogSingleton;

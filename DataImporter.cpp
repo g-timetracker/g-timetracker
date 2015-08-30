@@ -1,4 +1,6 @@
+#include <QFileInfo>
 #include <QFile>
+#include <QDir>
 #include <QTextStream>
 
 #include <QDebug>
@@ -6,51 +8,101 @@
 #include "DataImporter.h"
 #include "TimeLogHistory.h"
 
-DataImporter::DataImporter()
+DataImporter::DataImporter() :
+    m_db(new TimeLogHistory)
 {
 
 }
 
-bool DataImporter::importFile(const QString &path) const
+DataImporter::~DataImporter()
 {
-    TimeLogHistory db;
+    delete m_db;
+}
+
+bool DataImporter::import(const QString &path) const
+{
+    return processPath(path);
+}
+
+bool DataImporter::processPath(const QString &path) const
+{
+    QFileInfo fileInfo(path);
+    if (!fileInfo.exists()) {
+        qCritical() << "Path does not exists" << path;
+        return false;
+    }
+
+    if (fileInfo.isFile()) {
+        return processFile(path);
+    } else if (fileInfo.isDir()) {
+        return processDirectory(path);
+    } else {
+        qCritical() << "Not file or directory" << path;
+        return false;
+    }
+}
+
+bool DataImporter::processDirectory(const QString &path) const
+{
+    QDir dir(path);
+
+    QStringList entries = dir.entryList(QDir::AllEntries | QDir::NoDotAndDotDot, QDir::DirsFirst);
+    foreach (const QString &file, entries) {
+        QString filePath = dir.filePath(file);
+        if (!processPath(filePath)) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+bool DataImporter::processFile(const QString &path) const
+{
+    QVector<TimeLogEntry> data = parseFile(path);
+
+    if (data.size()) {
+        foreach (const TimeLogEntry &entry, data) {
+            m_db->insert(entry);
+        }
+
+        qInfo() << "Successfully imported file" << path;
+    }
+
+    return !data.isEmpty();
+}
+
+QVector<TimeLogEntry> DataImporter::parseFile(const QString &path) const
+{
+    QVector<TimeLogEntry> result;
 
     QFile file(path);
     if (!file.exists()) {
         qCritical() << "File does not exists" << path;
-        return false;
+        return result;
     }
 
     if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
         qCritical() << "Fail to open file" << path << file.errorString();
-        return false;
+        return result;
     }
-
-    QVector<TimeLogEntry> data;
 
     QTextStream stream(&file);
     while (!stream.atEnd()) {
         QString line = stream.readLine();
         TimeLogEntry entry = parseLine(line);
         if (entry.isValid()) {
-            data.append(entry);
+            result.append(entry);
         } else {
             qWarning() << "Invalid entry in file" << path << "line:" << line;
         }
     }
 
-    if (!data.size()) {
+    if (!result.size()) {
         qCritical() << "No data in file" << path;
-        return false;
     }
 
-    foreach (const TimeLogEntry &entry, data) {
-        db.insert(entry);
-    }
-
-    qInfo() << "Successfully imported file" << path;
-
-    return true;
+    return result;
 }
 
 TimeLogEntry DataImporter::parseLine(const QString &line) const
