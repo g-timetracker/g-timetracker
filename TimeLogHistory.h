@@ -21,7 +21,8 @@ public:
                                 const QDateTime &end = QDateTime::currentDateTime()) const;
     bool hasHistory(const QDateTime &before = QDateTime::currentDateTime()) const;
     QVector<TimeLogEntry> getHistory(const QDateTime &begin = QDateTime::fromTime_t(0),
-                                     const QDateTime &end = QDateTime::currentDateTime()) const;
+                                     const QDateTime &end = QDateTime::currentDateTime(),
+                                     const QString &category = QString()) const;
     QVector<TimeLogEntry> getHistory(const uint limit,
                                      const QDateTime &until = QDateTime::currentDateTime()) const;
 

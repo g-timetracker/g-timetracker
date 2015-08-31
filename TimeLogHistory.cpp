@@ -139,18 +139,22 @@ bool TimeLogHistory::hasHistory(const QDateTime &before) const
     return result;
 }
 
-QVector<TimeLogEntry> TimeLogHistory::getHistory(const QDateTime &begin, const QDateTime &end) const
+QVector<TimeLogEntry> TimeLogHistory::getHistory(const QDateTime &begin, const QDateTime &end, const QString &category) const
 {
     QSqlDatabase db = QSqlDatabase::database("timelog");
     QSqlQuery query(db);
-    QString queryString("SELECT uuid, start, category, comment FROM timelog"
-                        " WHERE start BETWEEN ? AND ? ORDER BY start");
+    QString queryString = QString("SELECT uuid, start, category, comment FROM timelog"
+                                  " WHERE (start BETWEEN ? AND ?) %1 ORDER BY start")
+                                  .arg(category.isEmpty() ? "" : "AND category=?");
     if (!query.prepare(queryString)) {
         qWarning() << "Fail to execute query" << query.lastError();
         return QVector<TimeLogEntry>();
     }
     query.addBindValue(begin.toTime_t());
     query.addBindValue(end.toTime_t());
+    if (!category.isEmpty()) {
+        query.addBindValue(category);
+    }
 
     return getHistory(query);
 }
