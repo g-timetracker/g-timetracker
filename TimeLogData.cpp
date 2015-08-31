@@ -20,5 +20,5 @@ TimeLogData::TimeLogData(QDateTime startTime, int durationTime, QString category
 
 bool TimeLogData::isValid() const
 {
-    return startTime.isValid();
+    return (startTime.isValid() && !category.isEmpty());
 }
