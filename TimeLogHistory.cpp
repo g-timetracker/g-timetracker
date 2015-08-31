@@ -92,6 +92,32 @@ void TimeLogHistory::edit(const TimeLogEntry &data)
     query.exec();
 }
 
+QVector<QString> TimeLogHistory::categories(const QDateTime &begin, const QDateTime &end) const
+{
+    QSqlDatabase db = QSqlDatabase::database("timelog");
+    QSqlQuery query(db);
+    QString queryString("SELECT DISTINCT category FROM timelog"
+                        " WHERE start BETWEEN ? AND ? ORDER BY category");
+    if (!query.prepare(queryString)) {
+        qWarning() << "Fail to execute query" << query.lastError();
+        return QVector<QString>();
+    }
+    query.addBindValue(begin.toTime_t());
+    query.addBindValue(end.toTime_t());
+
+    QVector<QString> result;
+
+    query.exec();
+
+    while (query.next()) {
+        result.append(query.value(0).toString());
+    }
+
+    query.finish();
+
+    return result;
+}
+
 bool TimeLogHistory::hasHistory(const QDateTime &before) const
 {
     QSqlDatabase db = QSqlDatabase::database("timelog");

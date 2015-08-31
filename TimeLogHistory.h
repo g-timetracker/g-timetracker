@@ -17,6 +17,8 @@ public:
     void remove(const QUuid &uuid);
     void edit(const TimeLogEntry &data);
 
+    QVector<QString> categories(const QDateTime &begin = QDateTime::fromTime_t(0),
+                                const QDateTime &end = QDateTime::currentDateTime()) const;
     bool hasHistory(const QDateTime &before = QDateTime::currentDateTime()) const;
     QVector<TimeLogEntry> getHistory(const QDateTime &begin = QDateTime::fromTime_t(0),
                                      const QDateTime &end = QDateTime::currentDateTime()) const;
