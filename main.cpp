@@ -3,8 +3,6 @@
 #include <QQmlApplicationEngine>
 #include <QtQml/QQmlContext>
 
-#include <QDebug>
-
 #include "TimeLogModel.h"
 #include "ReverseProxyModel.h"
 #include "TimeLogSingleton.h"

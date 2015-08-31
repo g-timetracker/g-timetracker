@@ -1,5 +1,3 @@
-#include <QDebug>
-
 #include "TimeLogModel.h"
 #include "TimeLogHistory.h"
 

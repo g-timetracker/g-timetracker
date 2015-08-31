@@ -3,10 +3,12 @@
 #include <QDir>
 #include <QTextStream>
 
-#include <QDebug>
+#include <QLoggingCategory>
 
 #include "DataImporter.h"
 #include "TimeLogHistory.h"
+
+Q_LOGGING_CATEGORY(DATA_IMPORTER_CATEGORY, "DataImporter")
 
 DataImporter::DataImporter() :
     m_db(new TimeLogHistory),
@@ -34,7 +36,7 @@ bool DataImporter::processPath(const QString &path) const
 {
     QFileInfo fileInfo(path);
     if (!fileInfo.exists()) {
-        qCritical() << "Path does not exists" << path;
+        qCCritical(DATA_IMPORTER_CATEGORY) << "Path does not exists" << path;
         return false;
     }
 
@@ -43,7 +45,7 @@ bool DataImporter::processPath(const QString &path) const
     } else if (fileInfo.isDir()) {
         return processDirectory(path);
     } else {
-        qCritical() << "Not file or directory" << path;
+        qCCritical(DATA_IMPORTER_CATEGORY) << "Not file or directory" << path;
         return false;
     }
 }
@@ -72,7 +74,7 @@ bool DataImporter::processFile(const QString &path) const
             m_db->insert(entry);
         }
 
-        qInfo() << "Successfully imported file" << path;
+        qCInfo(DATA_IMPORTER_CATEGORY) << "Successfully imported file" << path;
     }
 
     return !data.isEmpty();
@@ -84,12 +86,12 @@ QVector<TimeLogEntry> DataImporter::parseFile(const QString &path) const
 
     QFile file(path);
     if (!file.exists()) {
-        qCritical() << "File does not exists" << path;
+        qCCritical(DATA_IMPORTER_CATEGORY) << "File does not exists" << path;
         return result;
     }
 
     if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
-        qCritical() << "Fail to open file" << path << file.errorString();
+        qCCritical(DATA_IMPORTER_CATEGORY) << "Fail to open file" << path << file.errorString();
         return result;
     }
 
@@ -100,12 +102,12 @@ QVector<TimeLogEntry> DataImporter::parseFile(const QString &path) const
         if (entry.isValid()) {
             result.append(entry);
         } else {
-            qWarning() << "Invalid entry in file" << path << "line:" << line;
+            qCWarning(DATA_IMPORTER_CATEGORY) << "Invalid entry in file" << path << "line:" << line;
         }
     }
 
     if (!result.size()) {
-        qCritical() << "No data in file" << path;
+        qCCritical(DATA_IMPORTER_CATEGORY) << "No data in file" << path;
     }
 
     return result;
@@ -122,19 +124,19 @@ TimeLogEntry DataImporter::parseLine(const QString &line) const
 
     if (fields.size() >= 1) {
         result.startTime = QDateTime::fromString(fields.at(0), Qt::ISODate);
-        qDebug() << "Entry time" << fields.at(0) << result.startTime.toString();
+        qCDebug(DATA_IMPORTER_CATEGORY) << "Entry time" << fields.at(0) << result.startTime.toString();
     }
     if (fields.size() >= 2) {
         result.category = fields.at(1);
-        qDebug() << "Entry category" << result.category;
+        qCDebug(DATA_IMPORTER_CATEGORY) << "Entry category" << result.category;
     }
     if (fields.size() >= 3) {
         result.comment = fields.at(2);
-        qDebug() << "Entry comment" << result.comment;
+        qCDebug(DATA_IMPORTER_CATEGORY) << "Entry comment" << result.comment;
     }
     if (fields.size() >= 4) {
         result.uuid = QUuid(fields.at(3));
-        qDebug() << "Entry uuid" << result.uuid;
+        qCDebug(DATA_IMPORTER_CATEGORY) << "Entry uuid" << result.uuid;
     } else {
         result.uuid = QUuid::createUuid();
     }
