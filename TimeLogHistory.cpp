@@ -6,7 +6,7 @@
 
 #include "TimeLogHistory.h"
 
-Q_LOGGING_CATEGORY(TIME_LOG_HISTORY_CATEGORY, "TimeLogHistory")
+Q_LOGGING_CATEGORY(TIME_LOG_HISTORY_CATEGORY, "TimeLogHistory", QtInfoMsg)
 
 TimeLogHistory::TimeLogHistory(QObject *parent) :
     QObject(parent)

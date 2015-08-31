@@ -8,7 +8,7 @@
 #include "DataImporter.h"
 #include "TimeLogHistory.h"
 
-Q_LOGGING_CATEGORY(DATA_IMPORTER_CATEGORY, "DataImporter")
+Q_LOGGING_CATEGORY(DATA_IMPORTER_CATEGORY, "DataImporter", QtInfoMsg)
 
 DataImporter::DataImporter() :
     m_db(new TimeLogHistory),
