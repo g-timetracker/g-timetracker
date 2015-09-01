@@ -26,6 +26,9 @@ public:
     QVector<TimeLogEntry> getHistory(const uint limit,
                                      const QDateTime &until = QDateTime::currentDateTime()) const;
 
+signals:
+    void error(const QString &errorText) const;
+
 private:
     QVector<TimeLogEntry> getHistory(QSqlQuery &query) const;
 };

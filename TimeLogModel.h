@@ -38,6 +38,7 @@ public:
     void insertItem(const QModelIndex &index, TimeLogData data = TimeLogData());
 
 signals:
+    void error(const QString &errorText) const;
 
 public slots:
 
@@ -45,6 +46,7 @@ public slots:
 private slots:
     void processRowsInserted(const QModelIndex &parent, int first, int last);
     void processRowsRemoved(const QModelIndex &parent, int first, int last);
+    void historyError(const QString &errorText) const;
 
 private:
     void getMoreHistory();

@@ -41,6 +41,22 @@ ApplicationWindow {
         category: "main"
     }
 
+    Connections {
+        target: TimeLog
+        onError: {
+            errorDialog.text = errorText
+            errorDialog.open()
+        }
+    }
+
+    MessageDialog {
+        id: errorDialog
+
+        title: "Error"
+        icon: StandardIcon.Critical
+        standardButtons: StandardButton.Ok
+    }
+
     TimeLogEditDialog {
         id: editDialog
     }

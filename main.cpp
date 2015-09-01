@@ -40,6 +40,7 @@ int main(int argc, char *argv[])
     TimeLogSingleton *singleton = new TimeLogSingleton;
     qRegisterMetaType<TimeLogData>();
     TimeLogModel *model = new TimeLogModel;
+    QObject::connect(model, SIGNAL(error(QString)), singleton, SIGNAL(error(QString)));
     ReverseProxyModel *proxy = new ReverseProxyModel;
     proxy->setSourceModel(model);
 

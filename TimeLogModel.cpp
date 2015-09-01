@@ -11,6 +11,8 @@ TimeLogModel::TimeLogModel(QObject *parent) :
             SLOT(processRowsInserted(QModelIndex,int,int)), Qt::QueuedConnection);
     connect(this, SIGNAL(rowsRemoved(QModelIndex,int,int)),
             SLOT(processRowsRemoved(QModelIndex,int,int)), Qt::QueuedConnection);
+    connect(m_history, SIGNAL(error(QString)),
+            this, SLOT(historyError(QString)));
 }
 
 int TimeLogModel::rowCount(const QModelIndex &parent) const
@@ -188,6 +190,11 @@ void TimeLogModel::processRowsRemoved(const QModelIndex &parent, int first, int 
     if (first != 0) {   // No need to recalculate, if items removed at the beginning
         recalcDuration(parent, first-1, first-1);
     }
+}
+
+void TimeLogModel::historyError(const QString &errorText) const
+{
+    emit error(QString("Database error: %1").arg(errorText));
 }
 
 void TimeLogModel::getMoreHistory()

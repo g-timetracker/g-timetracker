@@ -44,17 +44,15 @@ TimeLogHistory::~TimeLogHistory()
 
 void TimeLogHistory::insert(const TimeLogEntry &data)
 {
-    if (!data.isValid()) {
-        qCCritical(TIME_LOG_HISTORY_CATEGORY) << "Invalid data";
-        return;
-    }
+    Q_ASSERT(data.isValid());
 
     QSqlDatabase db = QSqlDatabase::database("timelog");
     QSqlQuery query(db);
     QString queryString("INSERT INTO timelog (uuid, start, category, comment, mtime)"
                         " VALUES (?,?,?,?,strftime('%s','now'));");
     if (!query.prepare(queryString)) {
-        qCCritical(TIME_LOG_HISTORY_CATEGORY) << "Fail to prepare query:" << query.lastError();
+        qCCritical(TIME_LOG_HISTORY_CATEGORY) << "Fail to prepare query:" << query.lastError().text();
+        emit error(query.lastError().text());
         return;
     }
     query.addBindValue(data.uuid.toRfc4122());
@@ -63,24 +61,29 @@ void TimeLogHistory::insert(const TimeLogEntry &data)
     query.addBindValue(data.comment);
 
     if (!query.exec()) {
-        qCCritical(TIME_LOG_HISTORY_CATEGORY) << "Fail to execute query:" << query.lastError();
+        qCCritical(TIME_LOG_HISTORY_CATEGORY) << "Fail to execute query:" << query.lastError().text();
+        emit error(query.lastError().text());
         return;
     }
 }
 
 void TimeLogHistory::remove(const QUuid &uuid)
 {
+    Q_ASSERT(!uuid.isNull());
+
     QSqlDatabase db = QSqlDatabase::database("timelog");
     QSqlQuery query(db);
     QString queryString("DELETE FROM timelog WHERE uuid=?;");
     if (!query.prepare(queryString)) {
-        qCCritical(TIME_LOG_HISTORY_CATEGORY) << "Fail to prepare query:" << query.lastError();
+        qCCritical(TIME_LOG_HISTORY_CATEGORY) << "Fail to prepare query:" << query.lastError().text();
+        emit error(query.lastError().text());
         return;
     }
     query.addBindValue(uuid.toRfc4122());
 
     if (!query.exec()) {
-        qCWarning(TIME_LOG_HISTORY_CATEGORY) << "Fail to execute query:" << query.lastError();
+        qCWarning(TIME_LOG_HISTORY_CATEGORY) << "Fail to execute query:" << query.lastError().text();
+        emit error(query.lastError().text());
         return;
     }
 }
@@ -92,7 +95,8 @@ void TimeLogHistory::edit(const TimeLogEntry &data)
     QString queryString("UPDATE timelog SET start=?, category=?, comment=?, mtime=strftime('%s','now')"
                         " WHERE uuid=?;");
     if (!query.prepare(queryString)) {
-        qCCritical(TIME_LOG_HISTORY_CATEGORY) << "Fail to prepare query:" << query.lastError();
+        qCCritical(TIME_LOG_HISTORY_CATEGORY) << "Fail to prepare query:" << query.lastError().text();
+        emit error(query.lastError().text());
         return;
     }
     query.addBindValue(data.startTime.toTime_t());
@@ -101,7 +105,8 @@ void TimeLogHistory::edit(const TimeLogEntry &data)
     query.addBindValue(data.uuid.toRfc4122());
 
     if (!query.exec()) {
-        qCCritical(TIME_LOG_HISTORY_CATEGORY) << "Fail to execute query:" << query.lastError();
+        qCCritical(TIME_LOG_HISTORY_CATEGORY) << "Fail to execute query:" << query.lastError().text();
+        emit error(query.lastError().text());
         return;
     }
 }
@@ -113,7 +118,8 @@ QVector<QString> TimeLogHistory::categories(const QDateTime &begin, const QDateT
     QString queryString("SELECT DISTINCT category FROM timelog"
                         " WHERE start BETWEEN ? AND ? ORDER BY category");
     if (!query.prepare(queryString)) {
-        qCCritical(TIME_LOG_HISTORY_CATEGORY) << "Fail to prepare query:" << query.lastError();
+        qCCritical(TIME_LOG_HISTORY_CATEGORY) << "Fail to prepare query:" << query.lastError().text();
+        emit error(query.lastError().text());
         return QVector<QString>();
     }
     query.addBindValue(begin.toTime_t());
@@ -122,7 +128,8 @@ QVector<QString> TimeLogHistory::categories(const QDateTime &begin, const QDateT
     QVector<QString> result;
 
     if (!query.exec()) {
-        qCCritical(TIME_LOG_HISTORY_CATEGORY) << "Fail to execute query:" << query.lastError();
+        qCCritical(TIME_LOG_HISTORY_CATEGORY) << "Fail to execute query:" << query.lastError().text();
+        emit error(query.lastError().text());
         return QVector<QString>();
     }
 
@@ -142,13 +149,15 @@ bool TimeLogHistory::hasHistory(const QDateTime &before) const
     QString queryString("SELECT uuid, start, category, comment FROM timelog"
                         " WHERE start < ? ORDER BY start DESC LIMIT 1");
     if (!query.prepare(queryString)) {
-        qCCritical(TIME_LOG_HISTORY_CATEGORY) << "Fail to prepare query:" << query.lastError();
+        qCCritical(TIME_LOG_HISTORY_CATEGORY) << "Fail to prepare query:" << query.lastError().text();
+        emit error(query.lastError().text());
         return false;
     }
     query.addBindValue(before.toTime_t());
 
     if (!query.exec()) {
-        qCCritical(TIME_LOG_HISTORY_CATEGORY) << "Fail to execute query:" << query.lastError();
+        qCCritical(TIME_LOG_HISTORY_CATEGORY) << "Fail to execute query:" << query.lastError().text();
+        emit error(query.lastError().text());
         return false;
     }
 
@@ -167,7 +176,8 @@ QVector<TimeLogEntry> TimeLogHistory::getHistory(const QDateTime &begin, const Q
                                   " WHERE (start BETWEEN ? AND ?) %1 ORDER BY start")
                                   .arg(category.isEmpty() ? "" : "AND category=?");
     if (!query.prepare(queryString)) {
-        qCCritical(TIME_LOG_HISTORY_CATEGORY) << "Fail to prepare query:" << query.lastError();
+        qCCritical(TIME_LOG_HISTORY_CATEGORY) << "Fail to prepare query:" << query.lastError().text();
+        emit error(query.lastError().text());
         return QVector<TimeLogEntry>();
     }
     query.addBindValue(begin.toTime_t());
@@ -186,7 +196,8 @@ QVector<TimeLogEntry> TimeLogHistory::getHistory(const uint limit, const QDateTi
     QString queryString("SELECT uuid, start, category, comment FROM timelog"
                         " WHERE start < ? ORDER BY start DESC LIMIT ?");
     if (!query.prepare(queryString)) {
-        qCCritical(TIME_LOG_HISTORY_CATEGORY) << "Fail to prepare query:" << query.lastError();
+        qCCritical(TIME_LOG_HISTORY_CATEGORY) << "Fail to prepare query:" << query.lastError().text();
+        emit error(query.lastError().text());
         return QVector<TimeLogEntry>();
     }
     query.addBindValue(until.toTime_t());
@@ -202,7 +213,8 @@ QVector<TimeLogEntry> TimeLogHistory::getHistory(QSqlQuery &query) const
     QVector<TimeLogEntry> result;
 
     if (!query.exec()) {
-        qCCritical(TIME_LOG_HISTORY_CATEGORY) << "Fail to execute query:" << query.lastError();
+        qCCritical(TIME_LOG_HISTORY_CATEGORY) << "Fail to execute query:" << query.lastError().text();
+        emit error(query.lastError().text());
         return result;
     }
 

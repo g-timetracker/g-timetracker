@@ -13,6 +13,9 @@ public:
 
     Q_INVOKABLE static TimeLogData createTimeLogData(QDateTime startTime, int durationTime,
                                                      QString category, QString comment);
+
+signals:
+    void error(const QString &errorText) const;
 };
 
 #endif // TIMELOGSINGLETON_H
