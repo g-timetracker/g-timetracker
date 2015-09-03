@@ -203,11 +203,11 @@ bool TimeLogHistory::hasHistory(const QDateTime &before) const
     return result;
 }
 
-QVector<TimeLogEntry> TimeLogHistory::getHistory(const QDateTime &begin, const QDateTime &end, const QString &category) const
+void TimeLogHistory::getHistory(const QDateTime &begin, const QDateTime &end, const QString &category) const
 {
     if (!m_isInitialized) {
         qCCritical(TIME_LOG_HISTORY_CATEGORY) << "db is not initialized";
-        return QVector<TimeLogEntry>();
+        return;
     }
 
     QSqlDatabase db = QSqlDatabase::database("timelog");
@@ -218,7 +218,7 @@ QVector<TimeLogEntry> TimeLogHistory::getHistory(const QDateTime &begin, const Q
     if (!query.prepare(queryString)) {
         qCCritical(TIME_LOG_HISTORY_CATEGORY) << "Fail to prepare query:" << query.lastError().text();
         emit error(query.lastError().text());
-        return QVector<TimeLogEntry>();
+        return;
     }
     query.addBindValue(begin.toTime_t());
     query.addBindValue(end.toTime_t());
@@ -226,14 +226,17 @@ QVector<TimeLogEntry> TimeLogHistory::getHistory(const QDateTime &begin, const Q
         query.addBindValue(category);
     }
 
-    return getHistory(query);
+    QVector<TimeLogEntry> result = getHistory(query);
+    if (!result.isEmpty()) {
+        emit dataAvailable(result);
+    }
 }
 
-QVector<TimeLogEntry> TimeLogHistory::getHistory(const uint limit, const QDateTime &until) const
+void TimeLogHistory::getHistory(const uint limit, const QDateTime &until) const
 {
     if (!m_isInitialized) {
         qCCritical(TIME_LOG_HISTORY_CATEGORY) << "db is not initialized";
-        return QVector<TimeLogEntry>();
+        return;
     }
 
     QSqlDatabase db = QSqlDatabase::database("timelog");
@@ -243,14 +246,16 @@ QVector<TimeLogEntry> TimeLogHistory::getHistory(const uint limit, const QDateTi
     if (!query.prepare(queryString)) {
         qCCritical(TIME_LOG_HISTORY_CATEGORY) << "Fail to prepare query:" << query.lastError().text();
         emit error(query.lastError().text());
-        return QVector<TimeLogEntry>();
+        return;
     }
     query.addBindValue(until.toTime_t());
     query.addBindValue(limit);
 
     QVector<TimeLogEntry> result = getHistory(query);
-    std::reverse(result.begin(), result.end());
-    return result;
+    if (!result.isEmpty()) {
+        std::reverse(result.begin(), result.end());
+        emit dataAvailable(result);
+    }
 }
 
 QVector<TimeLogEntry> TimeLogHistory::getHistory(QSqlQuery &query) const

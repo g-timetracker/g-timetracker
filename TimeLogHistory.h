@@ -24,14 +24,17 @@ public:
     QVector<QString> categories(const QDateTime &begin = QDateTime::fromTime_t(0),
                                 const QDateTime &end = QDateTime::currentDateTime()) const;
     bool hasHistory(const QDateTime &before = QDateTime::currentDateTime()) const;
-    QVector<TimeLogEntry> getHistory(const QDateTime &begin = QDateTime::fromTime_t(0),
-                                     const QDateTime &end = QDateTime::currentDateTime(),
-                                     const QString &category = QString()) const;
-    QVector<TimeLogEntry> getHistory(const uint limit,
-                                     const QDateTime &until = QDateTime::currentDateTime()) const;
+
+public slots:
+    void getHistory(const QDateTime &begin = QDateTime::fromTime_t(0),
+                    const QDateTime &end = QDateTime::currentDateTime(),
+                    const QString &category = QString()) const;
+    void getHistory(const uint limit,
+                    const QDateTime &until = QDateTime::currentDateTime()) const;
 
 signals:
     void error(const QString &errorText) const;
+    void dataAvailable(QVector<TimeLogEntry> data) const;
 
 private:
     bool m_isInitialized;

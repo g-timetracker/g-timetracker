@@ -1,7 +1,16 @@
+#include <QLoggingCategory>
+
 #include "TimeLogModel.h"
 #include "TimeLogHistory.h"
 
+Q_LOGGING_CATEGORY(TIME_LOG_MODEL_CATEGORY, "TimeLogModel", QtInfoMsg)
+
 static const int defaultPopulateCount(5);
+
+bool startTimeCompare(const TimeLogEntry &a, const TimeLogEntry &b)
+{
+    return a.startTime < b.startTime;
+}
 
 TimeLogModel::TimeLogModel(TimeLogHistory *history, QObject *parent) :
     SUPER(parent),
@@ -13,6 +22,8 @@ TimeLogModel::TimeLogModel(TimeLogHistory *history, QObject *parent) :
             SLOT(processRowsRemoved(QModelIndex,int,int)), Qt::QueuedConnection);
     connect(m_history, SIGNAL(error(QString)),
             this, SLOT(historyError(QString)));
+    connect(m_history, SIGNAL(dataAvailable(QVector<TimeLogEntry>)),
+            this, SLOT(historyDataAvailable(QVector<TimeLogEntry>)));
 }
 
 int TimeLogModel::rowCount(const QModelIndex &parent) const
@@ -207,18 +218,38 @@ void TimeLogModel::historyError(const QString &errorText)
     endResetModel();
 }
 
+void TimeLogModel::historyDataAvailable(QVector<TimeLogEntry> data)
+{
+    int index = 0;
+
+    if (!m_timeLog.isEmpty() && !startTimeCompare(data.last(), m_timeLog.first())) {
+        QVector<TimeLogEntry>::iterator it = std::lower_bound(m_timeLog.begin(), m_timeLog.end(),
+                                                              data.last(), startTimeCompare);
+        index = it - m_timeLog.begin();
+    }
+
+    beginInsertRows(QModelIndex(), index, index + data.size() - 1);
+    if (index == 0) {
+        data.append(m_timeLog);
+        m_timeLog.swap(data);
+    } else {
+        qCWarning(TIME_LOG_MODEL_CATEGORY) << "Inserting data not into beginning,"
+                                           << "size:" << m_timeLog.size()
+                                           << "index:" << index
+                                           << "data size:" << data.size();
+        m_timeLog.insert(index, data.size(), TimeLogEntry());
+        for (int i = 0; i < data.size(); i++) {
+            m_timeLog[index+i] = data.at(i);
+        }
+    }
+    endInsertRows();
+}
+
 void TimeLogModel::getMoreHistory()
 {
     QDateTime limit = m_timeLog.size() ? m_timeLog.at(0).startTime : QDateTime::currentDateTime();
-    QVector<TimeLogEntry> data = m_history->getHistory(defaultPopulateCount, limit);
-    if (!data.size()) {
-        return;
-    }
-
-    beginInsertRows(QModelIndex(), 0, data.size() - 1);
-    data.append(m_timeLog);
-    m_timeLog.swap(data);
-    endInsertRows();
+    QMetaObject::invokeMethod(m_history, "getHistory", Qt::QueuedConnection,
+                              Q_ARG(uint, defaultPopulateCount), Q_ARG(QDateTime, limit));
 }
 
 void TimeLogModel::recalcDuration(const QModelIndex &parent, int first, int last)
