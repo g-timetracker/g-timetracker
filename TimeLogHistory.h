@@ -14,6 +14,7 @@ public:
     ~TimeLogHistory();
 
     bool init();
+    qlonglong size() const;
 
 public slots:
     void insert(const TimeLogEntry &data);
@@ -23,7 +24,6 @@ public slots:
 public:
     QVector<QString> categories(const QDateTime &begin = QDateTime::fromTime_t(0),
                                 const QDateTime &end = QDateTime::currentDateTime()) const;
-    bool hasHistory(const QDateTime &before = QDateTime::currentDateTime()) const;
 
 public slots:
     void getHistory(const QDateTime &begin = QDateTime::fromTime_t(0),
@@ -38,8 +38,10 @@ signals:
 
 private:
     bool m_isInitialized;
+    qlonglong m_size;
 
     QVector<TimeLogEntry> getHistory(QSqlQuery &query) const;
+    bool updateSize();
 };
 
 #endif // TIMELOGHISTORY_H

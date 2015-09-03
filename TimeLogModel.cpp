@@ -39,7 +39,7 @@ bool TimeLogModel::canFetchMore(const QModelIndex &parent) const
         return false;
     }
 
-    return m_history->hasHistory(m_timeLog.size() ? m_timeLog.at(0).startTime : QDateTime::currentDateTime());;
+    return m_history->size() > m_timeLog.size();
 }
 
 void TimeLogModel::fetchMore(const QModelIndex &parent)

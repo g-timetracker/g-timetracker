@@ -10,7 +10,8 @@ Q_LOGGING_CATEGORY(TIME_LOG_HISTORY_CATEGORY, "TimeLogHistory", QtInfoMsg)
 
 TimeLogHistory::TimeLogHistory(QObject *parent) :
     QObject(parent),
-    m_isInitialized(false)
+    m_isInitialized(false),
+    m_size(0)
 {
 
 }
@@ -47,9 +48,18 @@ bool TimeLogHistory::init()
         return false;
     }
 
+    if (!updateSize()) {
+        return false;
+    }
+
     m_isInitialized = true;
 
     return true;
+}
+
+qlonglong TimeLogHistory::size() const
+{
+    return m_size;
 }
 
 void TimeLogHistory::insert(const TimeLogEntry &data)
@@ -80,6 +90,8 @@ void TimeLogHistory::insert(const TimeLogEntry &data)
         emit error(query.lastError().text());
         return;
     }
+
+    m_size += query.numRowsAffected();
 }
 
 void TimeLogHistory::remove(const QUuid &uuid)
@@ -106,6 +118,8 @@ void TimeLogHistory::remove(const QUuid &uuid)
         emit error(query.lastError().text());
         return;
     }
+
+    m_size -= query.numRowsAffected();
 }
 
 void TimeLogHistory::edit(const TimeLogEntry &data)
@@ -166,37 +180,6 @@ QVector<QString> TimeLogHistory::categories(const QDateTime &begin, const QDateT
     while (query.next()) {
         result.append(query.value(0).toString());
     }
-
-    query.finish();
-
-    return result;
-}
-
-bool TimeLogHistory::hasHistory(const QDateTime &before) const
-{
-    if (!m_isInitialized) {
-        qCCritical(TIME_LOG_HISTORY_CATEGORY) << "db is not initialized";
-        return false;
-    }
-
-    QSqlDatabase db = QSqlDatabase::database("timelog");
-    QSqlQuery query(db);
-    QString queryString("SELECT uuid, start, category, comment FROM timelog"
-                        " WHERE start < ? ORDER BY start DESC LIMIT 1");
-    if (!query.prepare(queryString)) {
-        qCCritical(TIME_LOG_HISTORY_CATEGORY) << "Fail to prepare query:" << query.lastError().text();
-        emit error(query.lastError().text());
-        return false;
-    }
-    query.addBindValue(before.toTime_t());
-
-    if (!query.exec()) {
-        qCCritical(TIME_LOG_HISTORY_CATEGORY) << "Fail to execute query:" << query.lastError().text();
-        emit error(query.lastError().text());
-        return false;
-    }
-
-    bool result = query.next();
 
     query.finish();
 
@@ -281,4 +264,28 @@ QVector<TimeLogEntry> TimeLogHistory::getHistory(QSqlQuery &query) const
     query.finish();
 
     return result;
+}
+
+bool TimeLogHistory::updateSize()
+{
+    QSqlDatabase db = QSqlDatabase::database("timelog");
+    QSqlQuery query(db);
+    QString queryString = QString("SELECT count(*) FROM timelog");
+    if (!query.prepare(queryString)) {
+        qCCritical(TIME_LOG_HISTORY_CATEGORY) << "Fail to prepare query:" << query.lastError().text();
+        emit error(query.lastError().text());
+        return false;
+    }
+
+    if (!query.exec()) {
+        qCCritical(TIME_LOG_HISTORY_CATEGORY) << "Fail to execute query:" << query.lastError().text();
+        emit error(query.lastError().text());
+        return false;
+    }
+
+    query.next();
+    m_size = query.value(0).toULongLong();
+    query.finish();
+
+    return true;
 }
