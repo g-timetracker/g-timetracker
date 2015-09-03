@@ -52,6 +52,10 @@ bool TimeLogHistory::init()
         return false;
     }
 
+    if (!updateCategories(QDateTime::fromTime_t(0), QDateTime::currentDateTime())) {
+        return false;
+    }
+
     m_isInitialized = true;
 
     return true;
@@ -60,6 +64,11 @@ bool TimeLogHistory::init()
 qlonglong TimeLogHistory::size() const
 {
     return m_size;
+}
+
+QSet<QString> TimeLogHistory::categories() const
+{
+    return m_categories;
 }
 
 void TimeLogHistory::insert(const TimeLogEntry &data)
@@ -92,6 +101,7 @@ void TimeLogHistory::insert(const TimeLogEntry &data)
     }
 
     m_size += query.numRowsAffected();
+    m_categories.insert(data.category);
 }
 
 void TimeLogHistory::remove(const QUuid &uuid)
@@ -148,42 +158,8 @@ void TimeLogHistory::edit(const TimeLogEntry &data)
         emit error(query.lastError().text());
         return;
     }
-}
 
-QVector<QString> TimeLogHistory::categories(const QDateTime &begin, const QDateTime &end) const
-{
-    if (!m_isInitialized) {
-        qCCritical(TIME_LOG_HISTORY_CATEGORY) << "db is not initialized";
-        return QVector<QString>();
-    }
-
-    QSqlDatabase db = QSqlDatabase::database("timelog");
-    QSqlQuery query(db);
-    QString queryString("SELECT DISTINCT category FROM timelog"
-                        " WHERE start BETWEEN ? AND ? ORDER BY category");
-    if (!query.prepare(queryString)) {
-        qCCritical(TIME_LOG_HISTORY_CATEGORY) << "Fail to prepare query:" << query.lastError().text();
-        emit error(query.lastError().text());
-        return QVector<QString>();
-    }
-    query.addBindValue(begin.toTime_t());
-    query.addBindValue(end.toTime_t());
-
-    QVector<QString> result;
-
-    if (!query.exec()) {
-        qCCritical(TIME_LOG_HISTORY_CATEGORY) << "Fail to execute query:" << query.lastError().text();
-        emit error(query.lastError().text());
-        return QVector<QString>();
-    }
-
-    while (query.next()) {
-        result.append(query.value(0).toString());
-    }
-
-    query.finish();
-
-    return result;
+    m_categories.insert(data.category);
 }
 
 void TimeLogHistory::getHistory(const QDateTime &begin, const QDateTime &end, const QString &category) const
@@ -286,6 +262,39 @@ bool TimeLogHistory::updateSize()
     query.next();
     m_size = query.value(0).toULongLong();
     query.finish();
+
+    return true;
+}
+
+bool TimeLogHistory::updateCategories(const QDateTime &begin, const QDateTime &end)
+{
+    QSqlDatabase db = QSqlDatabase::database("timelog");
+    QSqlQuery query(db);
+    QString queryString("SELECT DISTINCT category FROM timelog"
+                        " WHERE start BETWEEN ? AND ?");
+    if (!query.prepare(queryString)) {
+        qCCritical(TIME_LOG_HISTORY_CATEGORY) << "Fail to prepare query:" << query.lastError().text();
+        emit error(query.lastError().text());
+        return false;
+    }
+    query.addBindValue(begin.toTime_t());
+    query.addBindValue(end.toTime_t());
+
+    QSet<QString> result;
+
+    if (!query.exec()) {
+        qCCritical(TIME_LOG_HISTORY_CATEGORY) << "Fail to execute query:" << query.lastError().text();
+        emit error(query.lastError().text());
+        return false;
+    }
+
+    while (query.next()) {
+        result.insert(query.value(0).toString());
+    }
+
+    query.finish();
+
+    m_categories.swap(result);
 
     return true;
 }

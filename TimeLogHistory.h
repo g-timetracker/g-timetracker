@@ -3,6 +3,7 @@
 
 #include <QObject>
 #include <QSqlQuery>
+#include <QSet>
 
 #include "TimeLogEntry.h"
 
@@ -15,17 +16,13 @@ public:
 
     bool init();
     qlonglong size() const;
+    QSet<QString> categories() const;
 
 public slots:
     void insert(const TimeLogEntry &data);
     void remove(const QUuid &uuid);
     void edit(const TimeLogEntry &data);
 
-public:
-    QVector<QString> categories(const QDateTime &begin = QDateTime::fromTime_t(0),
-                                const QDateTime &end = QDateTime::currentDateTime()) const;
-
-public slots:
     void getHistory(const QDateTime &begin = QDateTime::fromTime_t(0),
                     const QDateTime &end = QDateTime::currentDateTime(),
                     const QString &category = QString()) const;
@@ -39,9 +36,12 @@ signals:
 private:
     bool m_isInitialized;
     qlonglong m_size;
+    QSet<QString> m_categories;
 
     QVector<TimeLogEntry> getHistory(QSqlQuery &query) const;
     bool updateSize();
+    bool updateCategories(const QDateTime &begin = QDateTime::fromTime_t(0),
+                          const QDateTime &end = QDateTime::currentDateTime());
 };
 
 #endif // TIMELOGHISTORY_H
