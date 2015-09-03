@@ -1,19 +1,18 @@
-#ifndef TIMELOGHISTORY_H
-#define TIMELOGHISTORY_H
+#ifndef TIMELOGHISTORYWORKER_H
+#define TIMELOGHISTORYWORKER_H
 
 #include <QObject>
+#include <QSqlQuery>
 #include <QSet>
 
 #include "TimeLogEntry.h"
 
-class TimeLogHistoryWorker;
-
-class TimeLogHistory : public QObject
+class TimeLogHistoryWorker : public QObject
 {
     Q_OBJECT
 public:
-    explicit TimeLogHistory(QObject *parent = 0);
-    ~TimeLogHistory();
+    explicit TimeLogHistoryWorker(QObject *parent = 0);
+    ~TimeLogHistoryWorker();
 
     bool init();
     qlonglong size() const;
@@ -35,7 +34,14 @@ signals:
     void dataAvailable(QVector<TimeLogEntry> data) const;
 
 private:
-    TimeLogHistoryWorker *m_worker;
+    bool m_isInitialized;
+    qlonglong m_size;
+    QSet<QString> m_categories;
+
+    QVector<TimeLogEntry> getHistory(QSqlQuery &query) const;
+    bool updateSize();
+    bool updateCategories(const QDateTime &begin = QDateTime::fromTime_t(0),
+                          const QDateTime &end = QDateTime::currentDateTime());
 };
 
-#endif // TIMELOGHISTORY_H
+#endif // TIMELOGHISTORYWORKER_H

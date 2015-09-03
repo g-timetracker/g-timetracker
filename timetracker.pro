@@ -7,9 +7,10 @@ SOURCES += main.cpp \
     TimeLogModel.cpp \
     TimeLogData.cpp \
     TimeLogSingleton.cpp \
-    TimeLogHistory.cpp \
     ReverseProxyModel.cpp \
-    DataImporter.cpp
+    DataImporter.cpp \
+    TimeLogHistoryWorker.cpp \
+    TimeLogHistory.cpp
 
 RESOURCES += qml.qrc
 
@@ -24,6 +25,7 @@ HEADERS += \
     TimeLogModel.h \
     TimeLogData.h \
     TimeLogSingleton.h \
-    TimeLogHistory.h \
     ReverseProxyModel.h \
-    DataImporter.h
+    DataImporter.h \
+    TimeLogHistoryWorker.h \
+    TimeLogHistory.h
