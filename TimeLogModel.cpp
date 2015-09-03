@@ -120,21 +120,18 @@ bool TimeLogModel::setData(const QModelIndex &index, const QVariant &value, int 
         }
         m_timeLog[index.row()].startTime = time;
         recalcDuration(index.parent(), index.row(), index.row());
-        QMetaObject::invokeMethod(m_history, "edit", Qt::QueuedConnection,
-                                  Q_ARG(TimeLogEntry, m_timeLog.at(index.row())));
+        m_history->edit(m_timeLog.at(index.row()));
         break;
     }
     case DurationTimeRole:
         return false;   // This property can only be calculated
     case CategoryRole:
         m_timeLog[index.row()].category = value.toString();
-        QMetaObject::invokeMethod(m_history, "edit", Qt::QueuedConnection,
-                                  Q_ARG(TimeLogEntry, m_timeLog.at(index.row())));
+        m_history->edit(m_timeLog.at(index.row()));
         break;
     case CommentRole:
         m_timeLog[index.row()].comment = value.toString();
-        QMetaObject::invokeMethod(m_history, "edit", Qt::QueuedConnection,
-                                  Q_ARG(TimeLogEntry, m_timeLog.at(index.row())));
+        m_history->edit(m_timeLog.at(index.row()));
         break;
     default:
         return false;
@@ -158,7 +155,7 @@ bool TimeLogModel::removeRows(int row, int count, const QModelIndex &parent)
     endRemoveRows();
 
     foreach (const TimeLogEntry &entry, removed) {
-        QMetaObject::invokeMethod(m_history, "remove", Qt::QueuedConnection, Q_ARG(QUuid, entry.uuid));
+        m_history->remove(entry.uuid);
     }
 
     return true;
@@ -182,7 +179,7 @@ void TimeLogModel::appendItem(TimeLogData data)
     m_timeLog.append(entry);
     endInsertRows();
 
-    QMetaObject::invokeMethod(m_history, "insert", Qt::QueuedConnection, Q_ARG(TimeLogEntry, entry));
+    m_history->insert(entry);
 }
 
 void TimeLogModel::insertItem(const QModelIndex &index, TimeLogData data)
@@ -193,7 +190,7 @@ void TimeLogModel::insertItem(const QModelIndex &index, TimeLogData data)
     m_timeLog.insert(index.row(), entry);
     endInsertRows();
 
-    QMetaObject::invokeMethod(m_history, "insert", Qt::QueuedConnection, Q_ARG(TimeLogEntry, entry));
+    m_history->insert(entry);
 }
 
 void TimeLogModel::processRowsInserted(const QModelIndex &parent, int first, int last)
@@ -248,8 +245,7 @@ void TimeLogModel::historyDataAvailable(QVector<TimeLogEntry> data)
 void TimeLogModel::getMoreHistory()
 {
     QDateTime limit = m_timeLog.size() ? m_timeLog.at(0).startTime : QDateTime::currentDateTime();
-    QMetaObject::invokeMethod(m_history, "getHistory", Qt::QueuedConnection,
-                              Q_ARG(uint, defaultPopulateCount), Q_ARG(QDateTime, limit));
+    m_history->getHistory(defaultPopulateCount, limit);
 }
 
 void TimeLogModel::recalcDuration(const QModelIndex &parent, int first, int last)

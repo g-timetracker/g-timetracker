@@ -6,6 +6,8 @@
 
 #include "TimeLogEntry.h"
 
+class QThread;
+
 class TimeLogHistoryWorker;
 
 class TimeLogHistory : public QObject
@@ -16,6 +18,8 @@ public:
     ~TimeLogHistory();
 
     bool init();
+    void madeAsync();
+
     qlonglong size() const;
     QSet<QString> categories() const;
 
@@ -34,8 +38,16 @@ signals:
     void error(const QString &errorText) const;
     void dataAvailable(QVector<TimeLogEntry> data) const;
 
+private slots:
+    void workerSizeChanged(qlonglong size);
+    void workerCategoriesChanged(QSet<QString> categories);
+
 private:
+    QThread *m_thread;
     TimeLogHistoryWorker *m_worker;
+
+    qlonglong m_size;
+    QSet<QString> m_categories;
 };
 
 #endif // TIMELOGHISTORY_H

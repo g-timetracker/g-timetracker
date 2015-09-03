@@ -33,10 +33,16 @@ signals:
     void error(const QString &errorText) const;
     void dataAvailable(QVector<TimeLogEntry> data) const;
 
+    void sizeChanged(qlonglong size) const;
+    void categoriesChanged(QSet<QString> categories) const;
+
 private:
     bool m_isInitialized;
     qlonglong m_size;
     QSet<QString> m_categories;
+
+    void setSize(qlonglong size);
+    void addToCategories(QString category);
 
     QVector<TimeLogEntry> getHistory(QSqlQuery &query) const;
     bool updateSize();

@@ -100,8 +100,8 @@ void TimeLogHistoryWorker::insert(const TimeLogEntry &data)
         return;
     }
 
-    m_size += query.numRowsAffected();
-    m_categories.insert(data.category);
+    setSize(m_size + query.numRowsAffected());
+    addToCategories(data.category);
 }
 
 void TimeLogHistoryWorker::remove(const QUuid &uuid)
@@ -129,7 +129,7 @@ void TimeLogHistoryWorker::remove(const QUuid &uuid)
         return;
     }
 
-    m_size -= query.numRowsAffected();
+    setSize(m_size - query.numRowsAffected());
 }
 
 void TimeLogHistoryWorker::edit(const TimeLogEntry &data)
@@ -159,7 +159,7 @@ void TimeLogHistoryWorker::edit(const TimeLogEntry &data)
         return;
     }
 
-    m_categories.insert(data.category);
+    addToCategories(data.category);
 }
 
 void TimeLogHistoryWorker::getHistory(const QDateTime &begin, const QDateTime &end, const QString &category) const
@@ -217,6 +217,28 @@ void TimeLogHistoryWorker::getHistory(const uint limit, const QDateTime &until) 
     }
 }
 
+void TimeLogHistoryWorker::setSize(qlonglong size)
+{
+    if (m_size == size) {
+        return;
+    }
+
+    m_size = size;
+
+    emit sizeChanged(m_size);
+}
+
+void TimeLogHistoryWorker::addToCategories(QString category)
+{
+    if (m_categories.contains(category)) {
+        return;
+    }
+
+    m_categories.insert(category);
+
+    emit categoriesChanged(m_categories);
+}
+
 QVector<TimeLogEntry> TimeLogHistoryWorker::getHistory(QSqlQuery &query) const
 {
     QVector<TimeLogEntry> result;
@@ -260,7 +282,7 @@ bool TimeLogHistoryWorker::updateSize()
     }
 
     query.next();
-    m_size = query.value(0).toULongLong();
+    setSize(query.value(0).toULongLong());
     query.finish();
 
     return true;
@@ -295,6 +317,7 @@ bool TimeLogHistoryWorker::updateCategories(const QDateTime &begin, const QDateT
     query.finish();
 
     m_categories.swap(result);
+    emit categoriesChanged(m_categories);
 
     return true;
 }

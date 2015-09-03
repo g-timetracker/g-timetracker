@@ -1,3 +1,5 @@
+#include <QThread>
+
 #include <QLoggingCategory>
 
 #include "TimeLogHistory.h"
@@ -7,17 +9,25 @@ Q_LOGGING_CATEGORY(TIME_LOG_HISTORY_CATEGORY, "TimeLogHistory", QtInfoMsg)
 
 TimeLogHistory::TimeLogHistory(QObject *parent) :
     QObject(parent),
-    m_worker(new TimeLogHistoryWorker(this))
+    m_thread(new QThread(this)),
+    m_worker(new TimeLogHistoryWorker(this)),
+    m_size(0)
 {
     connect(m_worker, SIGNAL(error(QString)),
             this, SIGNAL(error(QString)));
     connect(m_worker, SIGNAL(dataAvailable(QVector<TimeLogEntry>)),
             this, SIGNAL(dataAvailable(QVector<TimeLogEntry>)));
+    connect(m_worker, SIGNAL(sizeChanged(qlonglong)),
+            this, SLOT(workerSizeChanged(qlonglong)));
+    connect(m_worker, SIGNAL(categoriesChanged(QSet<QString>)),
+            this, SLOT(workerCategoriesChanged(QSet<QString>)));
 }
 
 TimeLogHistory::~TimeLogHistory()
 {
-
+    if (m_thread->isRunning()) {
+        m_thread->quit();
+    }
 }
 
 bool TimeLogHistory::init()
@@ -25,37 +35,66 @@ bool TimeLogHistory::init()
     return m_worker->init();
 }
 
+void TimeLogHistory::madeAsync()
+{
+    if (m_worker->thread() != thread()) {
+        return;
+    }
+
+    m_thread->setParent(0);
+    m_worker->setParent(0);
+
+    connect (m_thread, SIGNAL(finished()), m_worker, SLOT(deleteLater()));
+    connect (m_worker, SIGNAL(destroyed()), m_thread, SLOT(deleteLater()));
+
+    m_worker->moveToThread(m_thread);
+
+    m_thread->start();
+}
+
 qlonglong TimeLogHistory::size() const
 {
-    return m_worker->size();
+    return m_size;
 }
 
 QSet<QString> TimeLogHistory::categories() const
 {
-    return m_worker->categories();
+    return m_categories;
 }
 
 void TimeLogHistory::insert(const TimeLogEntry &data)
 {
-    m_worker->insert(data);
+    QMetaObject::invokeMethod(m_worker, "insert", Qt::AutoConnection, Q_ARG(TimeLogEntry, data));
 }
 
 void TimeLogHistory::remove(const QUuid &uuid)
 {
-    m_worker->remove(uuid);
+    QMetaObject::invokeMethod(m_worker, "remove", Qt::AutoConnection, Q_ARG(QUuid, uuid));
 }
 
 void TimeLogHistory::edit(const TimeLogEntry &data)
 {
-    m_worker->edit(data);
+    QMetaObject::invokeMethod(m_worker, "edit", Qt::AutoConnection, Q_ARG(TimeLogEntry, data));
 }
 
 void TimeLogHistory::getHistory(const QDateTime &begin, const QDateTime &end, const QString &category) const
 {
-    m_worker->getHistory(begin, end, category);
+    QMetaObject::invokeMethod(m_worker, "getHistory", Qt::AutoConnection, Q_ARG(QDateTime, begin),
+                              Q_ARG(QDateTime, end), Q_ARG(QString, category));
 }
 
 void TimeLogHistory::getHistory(const uint limit, const QDateTime &until) const
 {
-    m_worker->getHistory(limit, until);
+    QMetaObject::invokeMethod(m_worker, "getHistory", Qt::AutoConnection, Q_ARG(uint, limit),
+                              Q_ARG(QDateTime, until));
+}
+
+void TimeLogHistory::workerSizeChanged(qlonglong size)
+{
+    m_size = size;
+}
+
+void TimeLogHistory::workerCategoriesChanged(QSet<QString> categories)
+{
+    m_categories.swap(categories);
 }
