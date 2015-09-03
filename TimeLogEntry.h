@@ -17,5 +17,6 @@ public:
 };
 
 Q_DECLARE_TYPEINFO(TimeLogEntry, Q_MOVABLE_TYPE);
+Q_DECLARE_METATYPE(TimeLogEntry)
 
 #endif // TIMELOGENTRY_H

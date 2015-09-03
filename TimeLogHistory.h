@@ -13,10 +13,14 @@ public:
     explicit TimeLogHistory(QObject *parent = 0);
     ~TimeLogHistory();
 
+    bool init();
+
+public slots:
     void insert(const TimeLogEntry &data);
     void remove(const QUuid &uuid);
     void edit(const TimeLogEntry &data);
 
+public:
     QVector<QString> categories(const QDateTime &begin = QDateTime::fromTime_t(0),
                                 const QDateTime &end = QDateTime::currentDateTime()) const;
     bool hasHistory(const QDateTime &before = QDateTime::currentDateTime()) const;
@@ -30,6 +34,8 @@ signals:
     void error(const QString &errorText) const;
 
 private:
+    bool m_isInitialized;
+
     QVector<TimeLogEntry> getHistory(QSqlQuery &query) const;
 };
 

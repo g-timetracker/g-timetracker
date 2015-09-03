@@ -19,7 +19,7 @@ public:
         CommentRole
     };
 
-    explicit TimeLogModel(QObject *parent = 0);
+    explicit TimeLogModel(TimeLogHistory *history, QObject *parent = 0);
 
     virtual int rowCount(const QModelIndex &parent) const;
     virtual bool canFetchMore(const QModelIndex &parent) const;
@@ -46,7 +46,7 @@ public slots:
 private slots:
     void processRowsInserted(const QModelIndex &parent, int first, int last);
     void processRowsRemoved(const QModelIndex &parent, int first, int last);
-    void historyError(const QString &errorText) const;
+    void historyError(const QString &errorText);
 
 private:
     void getMoreHistory();

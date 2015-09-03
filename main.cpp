@@ -3,10 +3,15 @@
 #include <QQmlApplicationEngine>
 #include <QtQml/QQmlContext>
 
+#include <QLoggingCategory>
+
+#include "TimeLogHistory.h"
 #include "TimeLogModel.h"
 #include "ReverseProxyModel.h"
 #include "TimeLogSingleton.h"
 #include "DataImporter.h"
+
+Q_LOGGING_CATEGORY(MAIN_CATEGORY, "main", QtInfoMsg)
 
 int main(int argc, char *argv[])
 {
@@ -31,22 +36,29 @@ int main(int argc, char *argv[])
 
     parser.process(app);
 
+    TimeLogHistory history;
+    if (!history.init()) {
+        qCCritical(MAIN_CATEGORY) << "Fail to initialize db";
+        return EXIT_FAILURE;
+    }
+
     if (parser.isSet(importOption)) {
-        DataImporter importer;
+        DataImporter importer(&history);
         importer.setSeparator(parser.value(separatorOption));
         return (importer.import(parser.value(importOption)) ? EXIT_SUCCESS : EXIT_FAILURE);
     }
 
-    TimeLogSingleton *singleton = new TimeLogSingleton;
+    qRegisterMetaType<TimeLogEntry>();
+    TimeLogSingleton singleton;
     qRegisterMetaType<TimeLogData>();
-    TimeLogModel *model = new TimeLogModel;
-    QObject::connect(model, SIGNAL(error(QString)), singleton, SIGNAL(error(QString)));
-    ReverseProxyModel *proxy = new ReverseProxyModel;
-    proxy->setSourceModel(model);
+    TimeLogModel model(&history);
+    QObject::connect(&model, SIGNAL(error(QString)), &singleton, SIGNAL(error(QString)));
+    ReverseProxyModel proxy;
+    proxy.setSourceModel(&model);
 
     QQmlApplicationEngine engine;
-    engine.rootContext()->setContextProperty("TimeLogModel", proxy);
-    engine.rootContext()->setContextProperty("TimeLog", singleton);
+    engine.rootContext()->setContextProperty("TimeLogModel", &proxy);
+    engine.rootContext()->setContextProperty("TimeLog", &singleton);
     engine.load(QUrl(QStringLiteral("qrc:/main.qml")));
 
     return app.exec();

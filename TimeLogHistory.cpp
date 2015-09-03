@@ -9,31 +9,10 @@
 Q_LOGGING_CATEGORY(TIME_LOG_HISTORY_CATEGORY, "TimeLogHistory", QtInfoMsg)
 
 TimeLogHistory::TimeLogHistory(QObject *parent) :
-    QObject(parent)
+    QObject(parent),
+    m_isInitialized(false)
 {
-    QString path(QString("%1/timelog")
-                 .arg(QStandardPaths::writableLocation(QStandardPaths::DataLocation)));
-    QDir().mkpath(path);
-    QSqlDatabase db = QSqlDatabase::addDatabase("QSQLITE", "timelog");
-    db.setDatabaseName(QString("%1/%2.sqlite").arg(path).arg("db"));
 
-    if (!db.open()) {
-        qCCritical(TIME_LOG_HISTORY_CATEGORY) << "Fail to open db:" << db.lastError();
-        return;
-    }
-
-    QSqlQuery query(db);
-    QString queryString("CREATE TABLE IF NOT EXISTS timelog"
-                        " (uuid BLOB UNIQUE, start INTEGER PRIMARY KEY, category TEXT, comment TEXT, mtime INTEGER);");
-    if (!query.prepare(queryString)) {
-        qCCritical(TIME_LOG_HISTORY_CATEGORY) << "Fail to prepare query:" << query.lastError();
-        return;
-    }
-
-    if (!query.exec()) {
-        qCCritical(TIME_LOG_HISTORY_CATEGORY) << "Fail to execute query:" << query.lastError();
-        return;
-    }
 }
 
 TimeLogHistory::~TimeLogHistory()
@@ -42,9 +21,45 @@ TimeLogHistory::~TimeLogHistory()
     QSqlDatabase::removeDatabase("timelog");
 }
 
+bool TimeLogHistory::init()
+{
+    QString path(QString("%1/timelog")
+                 .arg(QStandardPaths::writableLocation(QStandardPaths::DataLocation)));
+    QDir().mkpath(path);
+    QSqlDatabase db = QSqlDatabase::addDatabase("QSQLITE", "timelog");
+    db.setDatabaseName(QString("%1/%2.sqlite").arg(path).arg("db"));
+
+    if (!db.open()) {
+        qCCritical(TIME_LOG_HISTORY_CATEGORY) << "Fail to open db:" << db.lastError().text();
+        return false;
+    }
+
+    QSqlQuery query(db);
+    QString queryString("CREATE TABLE IF NOT EXISTS timelog"
+                        " (uuid BLOB UNIQUE, start INTEGER PRIMARY KEY, category TEXT, comment TEXT, mtime INTEGER);");
+    if (!query.prepare(queryString)) {
+        qCCritical(TIME_LOG_HISTORY_CATEGORY) << "Fail to prepare query:" << query.lastError().text();
+        return false;
+    }
+
+    if (!query.exec()) {
+        qCCritical(TIME_LOG_HISTORY_CATEGORY) << "Fail to execute query:" << query.lastError().text();
+        return false;
+    }
+
+    m_isInitialized = true;
+
+    return true;
+}
+
 void TimeLogHistory::insert(const TimeLogEntry &data)
 {
     Q_ASSERT(data.isValid());
+
+    if (!m_isInitialized) {
+        qCCritical(TIME_LOG_HISTORY_CATEGORY) << "db is not initialized";
+        return;
+    }
 
     QSqlDatabase db = QSqlDatabase::database("timelog");
     QSqlQuery query(db);
@@ -71,6 +86,11 @@ void TimeLogHistory::remove(const QUuid &uuid)
 {
     Q_ASSERT(!uuid.isNull());
 
+    if (!m_isInitialized) {
+        qCCritical(TIME_LOG_HISTORY_CATEGORY) << "db is not initialized";
+        return;
+    }
+
     QSqlDatabase db = QSqlDatabase::database("timelog");
     QSqlQuery query(db);
     QString queryString("DELETE FROM timelog WHERE uuid=?;");
@@ -90,6 +110,11 @@ void TimeLogHistory::remove(const QUuid &uuid)
 
 void TimeLogHistory::edit(const TimeLogEntry &data)
 {
+    if (!m_isInitialized) {
+        qCCritical(TIME_LOG_HISTORY_CATEGORY) << "db is not initialized";
+        return;
+    }
+
     QSqlDatabase db = QSqlDatabase::database("timelog");
     QSqlQuery query(db);
     QString queryString("UPDATE timelog SET start=?, category=?, comment=?, mtime=strftime('%s','now')"
@@ -113,6 +138,11 @@ void TimeLogHistory::edit(const TimeLogEntry &data)
 
 QVector<QString> TimeLogHistory::categories(const QDateTime &begin, const QDateTime &end) const
 {
+    if (!m_isInitialized) {
+        qCCritical(TIME_LOG_HISTORY_CATEGORY) << "db is not initialized";
+        return QVector<QString>();
+    }
+
     QSqlDatabase db = QSqlDatabase::database("timelog");
     QSqlQuery query(db);
     QString queryString("SELECT DISTINCT category FROM timelog"
@@ -144,6 +174,11 @@ QVector<QString> TimeLogHistory::categories(const QDateTime &begin, const QDateT
 
 bool TimeLogHistory::hasHistory(const QDateTime &before) const
 {
+    if (!m_isInitialized) {
+        qCCritical(TIME_LOG_HISTORY_CATEGORY) << "db is not initialized";
+        return false;
+    }
+
     QSqlDatabase db = QSqlDatabase::database("timelog");
     QSqlQuery query(db);
     QString queryString("SELECT uuid, start, category, comment FROM timelog"
@@ -170,6 +205,11 @@ bool TimeLogHistory::hasHistory(const QDateTime &before) const
 
 QVector<TimeLogEntry> TimeLogHistory::getHistory(const QDateTime &begin, const QDateTime &end, const QString &category) const
 {
+    if (!m_isInitialized) {
+        qCCritical(TIME_LOG_HISTORY_CATEGORY) << "db is not initialized";
+        return QVector<TimeLogEntry>();
+    }
+
     QSqlDatabase db = QSqlDatabase::database("timelog");
     QSqlQuery query(db);
     QString queryString = QString("SELECT uuid, start, category, comment FROM timelog"
@@ -191,6 +231,11 @@ QVector<TimeLogEntry> TimeLogHistory::getHistory(const QDateTime &begin, const Q
 
 QVector<TimeLogEntry> TimeLogHistory::getHistory(const uint limit, const QDateTime &until) const
 {
+    if (!m_isInitialized) {
+        qCCritical(TIME_LOG_HISTORY_CATEGORY) << "db is not initialized";
+        return QVector<TimeLogEntry>();
+    }
+
     QSqlDatabase db = QSqlDatabase::database("timelog");
     QSqlQuery query(db);
     QString queryString("SELECT uuid, start, category, comment FROM timelog"

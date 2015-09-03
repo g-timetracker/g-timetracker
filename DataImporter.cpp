@@ -10,8 +10,8 @@
 
 Q_LOGGING_CATEGORY(DATA_IMPORTER_CATEGORY, "DataImporter", QtInfoMsg)
 
-DataImporter::DataImporter() :
-    m_db(new TimeLogHistory),
+DataImporter::DataImporter(TimeLogHistory *history) :
+    m_db(history),
     m_sep(";")
 {
 
@@ -19,7 +19,7 @@ DataImporter::DataImporter() :
 
 DataImporter::~DataImporter()
 {
-    delete m_db;
+
 }
 
 bool DataImporter::import(const QString &path) const
