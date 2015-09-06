@@ -42,6 +42,7 @@ private:
     qlonglong m_size;
     QSet<QString> m_categories;
 
+    bool setupTriggers();
     void setSize(qlonglong size);
     void addToCategories(QString category);
 

@@ -37,7 +37,7 @@ bool TimeLogHistoryWorker::init()
 
     QSqlQuery query(db);
     QString queryString("CREATE TABLE IF NOT EXISTS timelog"
-                        " (uuid BLOB UNIQUE, start INTEGER PRIMARY KEY, category TEXT, comment TEXT, mtime INTEGER);");
+                        " (uuid BLOB UNIQUE, start INTEGER PRIMARY KEY, category TEXT, comment TEXT, duration INTEGER, mtime INTEGER);");
     if (!query.prepare(queryString)) {
         qCCritical(HISTORY_WORKER_CATEGORY) << "Fail to prepare query:" << query.lastError().text()
                                             << query.lastQuery();
@@ -47,6 +47,10 @@ bool TimeLogHistoryWorker::init()
     if (!query.exec()) {
         qCCritical(HISTORY_WORKER_CATEGORY) << "Fail to execute query:" << query.lastError().text()
                                             << query.executedQuery();
+        return false;
+    }
+
+    if (!setupTriggers()) {
         return false;
     }
 
@@ -260,6 +264,89 @@ void TimeLogHistoryWorker::getHistory(const uint limit, const QDateTime &until) 
         std::reverse(result.begin(), result.end());
         emit dataAvailable(result);
     }
+}
+
+bool TimeLogHistoryWorker::setupTriggers()
+{
+    QSqlDatabase db = QSqlDatabase::database("timelog");
+    QSqlQuery query(db);
+    QString queryString;
+
+    queryString = "CREATE TRIGGER IF NOT EXISTS insert_item AFTER INSERT ON timelog "
+                  "BEGIN "
+                  "    UPDATE timelog SET duration=(NEW.start - start) "
+                  "    WHERE start=( "
+                  "        SELECT start FROM timelog WHERE start < NEW.start ORDER BY start DESC LIMIT 1 "
+                  "    ); "
+                  "    UPDATE timelog SET duration=IFNULL( "
+                  "        ( SELECT start FROM timelog WHERE start > NEW.start ORDER BY start ASC LIMIT 1 ) - NEW.start, "
+                  "        -1 "
+                  "    ) WHERE start=NEW.start; "
+                  "END;";
+    if (!query.prepare(queryString)) {
+        qCCritical(HISTORY_WORKER_CATEGORY) << "Fail to prepare query:" << query.lastError().text()
+                                            << query.lastQuery();
+        return false;
+    }
+
+    if (!query.exec()) {
+        qCCritical(HISTORY_WORKER_CATEGORY) << "Fail to execute query:" << query.lastError().text()
+                                            << query.executedQuery();
+        return false;
+    }
+
+    queryString = "CREATE TRIGGER IF NOT EXISTS delete_item AFTER DELETE ON timelog "
+                  "BEGIN "
+                  "    UPDATE timelog SET duration=IFNULL( "
+                  "        ( SELECT start FROM timelog WHERE start > OLD.start ORDER BY start ASC LIMIT 1 ) - start, "
+                  "        -1 "
+                  "    ) WHERE start=( "
+                  "        SELECT start FROM timelog WHERE start < OLD.start ORDER BY start DESC LIMIT 1 "
+                  "    ); "
+                  "END;";
+    if (!query.prepare(queryString)) {
+        qCCritical(HISTORY_WORKER_CATEGORY) << "Fail to prepare query:" << query.lastError().text()
+                                            << query.lastQuery();
+        return false;
+    }
+
+    if (!query.exec()) {
+        qCCritical(HISTORY_WORKER_CATEGORY) << "Fail to execute query:" << query.lastError().text()
+                                            << query.executedQuery();
+        return false;
+    }
+
+    queryString = "CREATE TRIGGER IF NOT EXISTS update_item AFTER UPDATE OF start ON timelog "
+                  "BEGIN "
+                  "    UPDATE timelog SET duration=(NEW.start - start) "
+                  "    WHERE start=( "
+                  "        SELECT start FROM timelog WHERE start < NEW.start ORDER BY start DESC LIMIT 1 "
+                  "    ); "
+                  "    UPDATE timelog SET duration=IFNULL( "
+                  "        ( SELECT start FROM timelog WHERE start > OLD.start ORDER BY start ASC LIMIT 1 ) - start,"
+                  "        -1"
+                  "    ) WHERE start=NULLIF( "  // If previous item not changed, do not update it's duration twice
+                  "        ( SELECT start FROM timelog WHERE start < OLD.start ORDER BY start DESC LIMIT 1 ), "
+                  "        ( SELECT start FROM timelog WHERE start < NEW.start ORDER BY start DESC LIMIT 1 ) "
+                  "    ); "
+                  "    UPDATE timelog SET duration=IFNULL( "
+                  "        ( SELECT start FROM timelog WHERE start > NEW.start ORDER BY start ASC LIMIT 1 ) - NEW.start, "
+                  "        -1 "
+                  "    ) WHERE start=NEW.start; "
+                  "END;";
+    if (!query.prepare(queryString)) {
+        qCCritical(HISTORY_WORKER_CATEGORY) << "Fail to prepare query:" << query.lastError().text()
+                                            << query.lastQuery();
+        return false;
+    }
+
+    if (!query.exec()) {
+        qCCritical(HISTORY_WORKER_CATEGORY) << "Fail to execute query:" << query.lastError().text()
+                                            << query.executedQuery();
+        return false;
+    }
+
+    return true;
 }
 
 void TimeLogHistoryWorker::setSize(qlonglong size)
