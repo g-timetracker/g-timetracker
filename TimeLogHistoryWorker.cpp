@@ -71,13 +71,13 @@ QSet<QString> TimeLogHistoryWorker::categories() const
     return m_categories;
 }
 
-void TimeLogHistoryWorker::insert(const TimeLogEntry &data)
+bool TimeLogHistoryWorker::insert(const TimeLogEntry &data)
 {
     Q_ASSERT(data.isValid());
 
     if (!m_isInitialized) {
         qCCritical(HISTORY_WORKER_CATEGORY) << "db is not initialized";
-        return;
+        return false;
     }
 
     QSqlDatabase db = QSqlDatabase::database("timelog");
@@ -87,7 +87,7 @@ void TimeLogHistoryWorker::insert(const TimeLogEntry &data)
     if (!query.prepare(queryString)) {
         qCCritical(HISTORY_WORKER_CATEGORY) << "Fail to prepare query:" << query.lastError().text();
         emit error(query.lastError().text());
-        return;
+        return false;
     }
     query.addBindValue(data.uuid.toRfc4122());
     query.addBindValue(data.startTime.toTime_t());
@@ -97,11 +97,46 @@ void TimeLogHistoryWorker::insert(const TimeLogEntry &data)
     if (!query.exec()) {
         qCCritical(HISTORY_WORKER_CATEGORY) << "Fail to execute query:" << query.lastError().text();
         emit error(query.lastError().text());
-        return;
+        return false;
     }
 
     setSize(m_size + query.numRowsAffected());
     addToCategories(data.category);
+
+    return true;
+}
+
+bool TimeLogHistoryWorker::insert(const QVector<TimeLogEntry> &data)
+{
+    QSqlDatabase db = QSqlDatabase::database("timelog");
+    if (!db.transaction()) {
+        qCCritical(HISTORY_WORKER_CATEGORY) << "Fail to start transaction:" << db.lastError().text();
+        emit error(db.lastError().text());
+        return false;
+    }
+
+    foreach (const TimeLogEntry &entry, data) {
+        if (!insert(entry)) {
+            if (!db.rollback()) {
+                qCCritical(HISTORY_WORKER_CATEGORY) << "Fail to rollback transaction:" << db.lastError().text();
+                emit error(db.lastError().text());
+            }
+
+            return false;
+        }
+    }
+
+    if (!db.commit()) {
+        qCCritical(HISTORY_WORKER_CATEGORY) << "Fail to commit transaction:" << db.lastError().text();
+        emit error(db.lastError().text());
+        if (!db.rollback()) {
+            qCCritical(HISTORY_WORKER_CATEGORY) << "Fail to rollback transaction:" << db.lastError().text();
+            emit error(db.lastError().text());
+        }
+        return false;
+    }
+
+    return true;
 }
 
 void TimeLogHistoryWorker::remove(const QUuid &uuid)

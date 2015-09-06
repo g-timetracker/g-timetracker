@@ -70,11 +70,11 @@ bool DataImporter::processFile(const QString &path) const
     QVector<TimeLogEntry> data = parseFile(path);
 
     if (data.size()) {
-        foreach (const TimeLogEntry &entry, data) {
-            m_db->insert(entry);
+        if (m_db->insert(data)) {
+            qCInfo(DATA_IMPORTER_CATEGORY) << "Successfully imported file" << path;
+        } else {
+            qCWarning(DATA_IMPORTER_CATEGORY) << "Failed to import file" << path;
         }
-
-        qCInfo(DATA_IMPORTER_CATEGORY) << "Successfully imported file" << path;
     }
 
     return !data.isEmpty();
@@ -124,7 +124,7 @@ TimeLogEntry DataImporter::parseLine(const QString &line) const
 
     if (fields.size() >= 1) {
         result.startTime = QDateTime::fromString(fields.at(0), Qt::ISODate);
-        qCDebug(DATA_IMPORTER_CATEGORY) << "Entry time" << fields.at(0) << result.startTime.toString();
+        qCDebug(DATA_IMPORTER_CATEGORY) << "Entry time" << fields.at(0) << result.startTime.toTime_t();
     }
     if (fields.size() >= 2) {
         result.category = fields.at(1);

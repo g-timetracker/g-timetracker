@@ -67,6 +67,15 @@ void TimeLogHistory::insert(const TimeLogEntry &data)
     QMetaObject::invokeMethod(m_worker, "insert", Qt::AutoConnection, Q_ARG(TimeLogEntry, data));
 }
 
+bool TimeLogHistory::insert(const QVector<TimeLogEntry> &data)
+{
+    bool result;
+    QMetaObject::invokeMethod(m_worker, "insert", Qt::AutoConnection, Q_RETURN_ARG(bool, result),
+                              Q_ARG(QVector<TimeLogEntry>, data));
+
+    return result;
+}
+
 void TimeLogHistory::remove(const QUuid &uuid)
 {
     QMetaObject::invokeMethod(m_worker, "remove", Qt::AutoConnection, Q_ARG(QUuid, uuid));

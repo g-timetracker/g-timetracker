@@ -25,6 +25,7 @@ public:
 
 public slots:
     void insert(const TimeLogEntry &data);
+    bool insert(const QVector<TimeLogEntry> &data);
     void remove(const QUuid &uuid);
     void edit(const TimeLogEntry &data);
 
