@@ -207,7 +207,7 @@ void TimeLogHistoryWorker::getHistory(const QDateTime &begin, const QDateTime &e
 
     QSqlDatabase db = QSqlDatabase::database("timelog");
     QSqlQuery query(db);
-    QString queryString = QString("SELECT uuid, start, category, comment FROM timelog"
+    QString queryString = QString("SELECT uuid, start, category, comment, duration FROM timelog"
                                   " WHERE (start BETWEEN ? AND ?) %1 ORDER BY start")
                                   .arg(category.isEmpty() ? "" : "AND category=?");
     if (!query.prepare(queryString)) {
@@ -237,7 +237,7 @@ void TimeLogHistoryWorker::getHistory(const uint limit, const QDateTime &until) 
 
     QSqlDatabase db = QSqlDatabase::database("timelog");
     QSqlQuery query(db);
-    QString queryString("SELECT uuid, start, category, comment FROM timelog"
+    QString queryString("SELECT uuid, start, category, comment, duration FROM timelog"
                         " WHERE start < ? ORDER BY start DESC LIMIT ?");
     if (!query.prepare(queryString)) {
         qCCritical(HISTORY_WORKER_CATEGORY) << "Fail to prepare query:" << query.lastError().text()
@@ -399,6 +399,7 @@ QVector<TimeLogEntry> TimeLogHistoryWorker::getHistory(QSqlQuery &query) const
         data.startTime = QDateTime::fromTime_t(query.value(1).toUInt());
         data.category = query.value(2).toString();
         data.comment = query.value(3).toString();
+        data.durationTime = query.value(4).toInt();
 
         result.append(data);
     }
