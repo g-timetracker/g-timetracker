@@ -35,18 +35,7 @@ bool TimeLogHistoryWorker::init()
         return false;
     }
 
-    QSqlQuery query(db);
-    QString queryString("CREATE TABLE IF NOT EXISTS timelog"
-                        " (uuid BLOB UNIQUE, start INTEGER PRIMARY KEY, category TEXT, comment TEXT, duration INTEGER, mtime INTEGER);");
-    if (!query.prepare(queryString)) {
-        qCCritical(HISTORY_WORKER_CATEGORY) << "Fail to prepare query:" << query.lastError().text()
-                                            << query.lastQuery();
-        return false;
-    }
-
-    if (!query.exec()) {
-        qCCritical(HISTORY_WORKER_CATEGORY) << "Fail to execute query:" << query.lastError().text()
-                                            << query.executedQuery();
+    if (!setupTable()) {
         return false;
     }
 
@@ -264,6 +253,28 @@ void TimeLogHistoryWorker::getHistory(const uint limit, const QDateTime &until) 
         std::reverse(result.begin(), result.end());
         emit dataAvailable(result);
     }
+}
+
+bool TimeLogHistoryWorker::setupTable()
+{
+    QSqlDatabase db = QSqlDatabase::database("timelog");
+    QSqlQuery query(db);
+    QString queryString("CREATE TABLE IF NOT EXISTS timelog"
+                        " (uuid BLOB UNIQUE, start INTEGER PRIMARY KEY, category TEXT, comment TEXT,"
+                        " duration INTEGER, mtime INTEGER);");
+    if (!query.prepare(queryString)) {
+        qCCritical(HISTORY_WORKER_CATEGORY) << "Fail to prepare query:" << query.lastError().text()
+                                            << query.lastQuery();
+        return false;
+    }
+
+    if (!query.exec()) {
+        qCCritical(HISTORY_WORKER_CATEGORY) << "Fail to execute query:" << query.lastError().text()
+                                            << query.executedQuery();
+        return false;
+    }
+
+    return true;
 }
 
 bool TimeLogHistoryWorker::setupTriggers()
