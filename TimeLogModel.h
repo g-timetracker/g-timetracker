@@ -44,8 +44,6 @@ public slots:
 
 
 private slots:
-    void processRowsInserted(const QModelIndex &parent, int first, int last);
-    void processRowsRemoved(const QModelIndex &parent, int first, int last);
     void historyError(const QString &errorText);
     void historyDataAvailable(QVector<TimeLogEntry> data);
 

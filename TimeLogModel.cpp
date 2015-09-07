@@ -16,10 +16,6 @@ TimeLogModel::TimeLogModel(TimeLogHistory *history, QObject *parent) :
     SUPER(parent),
     m_history(history)
 {
-    connect(this, SIGNAL(rowsInserted(QModelIndex,int,int)),
-            SLOT(processRowsInserted(QModelIndex,int,int)), Qt::QueuedConnection);
-    connect(this, SIGNAL(rowsRemoved(QModelIndex,int,int)),
-            SLOT(processRowsRemoved(QModelIndex,int,int)), Qt::QueuedConnection);
     connect(m_history, SIGNAL(error(QString)),
             this, SLOT(historyError(QString)));
     connect(m_history, SIGNAL(dataAvailable(QVector<TimeLogEntry>)),
@@ -154,6 +150,10 @@ bool TimeLogModel::removeRows(int row, int count, const QModelIndex &parent)
     m_timeLog.remove(row, count);
     endRemoveRows();
 
+    if (row != 0) {   // No need to recalculate, if items removed at the beginning
+        recalcDuration(parent, row-1, row-1);
+    }
+
     foreach (const TimeLogEntry &entry, removed) {
         m_history->remove(entry.uuid);
     }
@@ -179,6 +179,8 @@ void TimeLogModel::appendItem(TimeLogData data)
     m_timeLog.append(entry);
     endInsertRows();
 
+    recalcDuration(QModelIndex(), itemIndex, itemIndex);
+
     m_history->insert(entry);
 }
 
@@ -190,21 +192,9 @@ void TimeLogModel::insertItem(const QModelIndex &index, TimeLogData data)
     m_timeLog.insert(index.row(), entry);
     endInsertRows();
 
+    recalcDuration(index.parent(), index.row(), index.row());
+
     m_history->insert(entry);
-}
-
-void TimeLogModel::processRowsInserted(const QModelIndex &parent, int first, int last)
-{
-    recalcDuration(parent, first, last);
-}
-
-void TimeLogModel::processRowsRemoved(const QModelIndex &parent, int first, int last)
-{
-    Q_UNUSED(last)
-
-    if (first != 0) {   // No need to recalculate, if items removed at the beginning
-        recalcDuration(parent, first-1, first-1);
-    }
 }
 
 void TimeLogModel::historyError(const QString &errorText)
