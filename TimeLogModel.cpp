@@ -250,7 +250,7 @@ void TimeLogModel::recalcDuration(const QModelIndex &parent, int first, int last
 
     // Duration for most recent item calculated up to current time
     if (last == m_timeLog.size() - 1) {
-        m_timeLog[last].durationTime = m_timeLog.at(last).startTime.secsTo(QDateTime::currentDateTimeUtc());
+        m_timeLog[last].durationTime = -1;
     }
 
     emit dataChanged(index(start, 0, parent), index(last, 0, parent),
