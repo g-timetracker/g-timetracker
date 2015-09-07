@@ -166,26 +166,47 @@ void TimeLogHistoryWorker::remove(const QUuid &uuid)
     setSize(m_size - query.numRowsAffected());
 }
 
-void TimeLogHistoryWorker::edit(const TimeLogEntry &data)
+void TimeLogHistoryWorker::edit(const TimeLogEntry &data, TimeLogHistory::Fields fields)
 {
     if (!m_isInitialized) {
         qCCritical(HISTORY_WORKER_CATEGORY) << "db is not initialized";
         return;
     }
 
+    if (fields == TimeLogHistory::NoFields) {
+        qCWarning(HISTORY_WORKER_CATEGORY) << "No fields specified";
+        return;
+    }
+
     QSqlDatabase db = QSqlDatabase::database("timelog");
     QSqlQuery query(db);
-    QString queryString("UPDATE timelog SET start=?, category=?, comment=?, mtime=strftime('%s','now')"
-                        " WHERE uuid=?;");
+    QStringList fieldNames;
+    if (fields & TimeLogHistory::StartTime) {
+        fieldNames.append("start=?");
+    }
+    if (fields & TimeLogHistory::Category) {
+        fieldNames.append("category=?");
+    }
+    if (fields & TimeLogHistory::Comment) {
+        fieldNames.append("comment=?");
+    }
+    QString queryString = QString("UPDATE timelog SET %1, mtime=strftime('%s','now')"
+                                  " WHERE uuid=?;").arg(fieldNames.join(", "));
     if (!query.prepare(queryString)) {
         qCCritical(HISTORY_WORKER_CATEGORY) << "Fail to prepare query:" << query.lastError().text()
                                             << query.lastQuery();
         emit error(query.lastError().text());
         return;
     }
-    query.addBindValue(data.startTime.toTime_t());
-    query.addBindValue(data.category);
-    query.addBindValue(data.comment);
+    if (fields & TimeLogHistory::StartTime) {
+        query.addBindValue(data.startTime.toTime_t());
+    }
+    if (fields & TimeLogHistory::Category) {
+        query.addBindValue(data.category);
+    }
+    if (fields & TimeLogHistory::Comment) {
+        query.addBindValue(data.comment);
+    }
     query.addBindValue(data.uuid.toRfc4122());
 
     if (!query.exec()) {
@@ -195,7 +216,9 @@ void TimeLogHistoryWorker::edit(const TimeLogEntry &data)
         return;
     }
 
-    addToCategories(data.category);
+    if (fields & TimeLogHistory::Category) {
+        addToCategories(data.category);
+    }
 }
 
 void TimeLogHistoryWorker::getHistory(const QDateTime &begin, const QDateTime &end, const QString &category) const

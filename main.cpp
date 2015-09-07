@@ -51,6 +51,7 @@ int main(int argc, char *argv[])
     qRegisterMetaType<TimeLogEntry>();
     qRegisterMetaType<QVector<TimeLogEntry> >();
     qRegisterMetaType<QSet<QString> >();
+    qRegisterMetaType<TimeLogHistory::Fields>();
     history.madeAsync();
     TimeLogSingleton singleton;
     qRegisterMetaType<TimeLogData>();

@@ -14,6 +14,15 @@ class TimeLogHistory : public QObject
 {
     Q_OBJECT
 public:
+    enum Fields {
+        NoFields        = 0,
+        StartTime       = 0x1,
+        DurationTime    = 0x2,
+        Category        = 0x4,
+        Comment         = 0x8
+    };
+    Q_FLAG(Fields)
+
     explicit TimeLogHistory(QObject *parent = 0);
     ~TimeLogHistory();
 
@@ -27,7 +36,7 @@ public slots:
     void insert(const TimeLogEntry &data);
     bool insert(const QVector<TimeLogEntry> &data);
     void remove(const QUuid &uuid);
-    void edit(const TimeLogEntry &data);
+    void edit(const TimeLogEntry &data, Fields fields);
 
     void getHistory(const QDateTime &begin = QDateTime::fromTime_t(0),
                     const QDateTime &end = QDateTime::currentDateTime(),

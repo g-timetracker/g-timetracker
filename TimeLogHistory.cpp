@@ -81,9 +81,10 @@ void TimeLogHistory::remove(const QUuid &uuid)
     QMetaObject::invokeMethod(m_worker, "remove", Qt::AutoConnection, Q_ARG(QUuid, uuid));
 }
 
-void TimeLogHistory::edit(const TimeLogEntry &data)
+void TimeLogHistory::edit(const TimeLogEntry &data, Fields fields)
 {
-    QMetaObject::invokeMethod(m_worker, "edit", Qt::AutoConnection, Q_ARG(TimeLogEntry, data));
+    QMetaObject::invokeMethod(m_worker, "edit", Qt::AutoConnection, Q_ARG(TimeLogEntry, data),
+                              Q_ARG(TimeLogHistory::Fields, fields));
 }
 
 void TimeLogHistory::getHistory(const QDateTime &begin, const QDateTime &end, const QString &category) const

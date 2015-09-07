@@ -116,18 +116,18 @@ bool TimeLogModel::setData(const QModelIndex &index, const QVariant &value, int 
         }
         m_timeLog[index.row()].startTime = time;
         recalcDuration(index.parent(), index.row(), index.row());
-        m_history->edit(m_timeLog.at(index.row()));
+        m_history->edit(m_timeLog.at(index.row()), TimeLogHistory::StartTime);
         break;
     }
     case DurationTimeRole:
         return false;   // This property can only be calculated
     case CategoryRole:
         m_timeLog[index.row()].category = value.toString();
-        m_history->edit(m_timeLog.at(index.row()));
+        m_history->edit(m_timeLog.at(index.row()), TimeLogHistory::Category);
         break;
     case CommentRole:
         m_timeLog[index.row()].comment = value.toString();
-        m_history->edit(m_timeLog.at(index.row()));
+        m_history->edit(m_timeLog.at(index.row()), TimeLogHistory::Comment);
         break;
     default:
         return false;

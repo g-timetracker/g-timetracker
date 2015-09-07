@@ -6,6 +6,7 @@
 #include <QSet>
 
 #include "TimeLogEntry.h"
+#include "TimeLogHistory.h"
 
 class TimeLogHistoryWorker : public QObject
 {
@@ -22,7 +23,7 @@ public slots:
     bool insert(const TimeLogEntry &data);
     bool insert(const QVector<TimeLogEntry> &data);
     void remove(const QUuid &uuid);
-    void edit(const TimeLogEntry &data);
+    void edit(const TimeLogEntry &data, TimeLogHistory::Fields fields);
 
     void getHistory(const QDateTime &begin = QDateTime::fromTime_t(0),
                     const QDateTime &end = QDateTime::currentDateTime(),
