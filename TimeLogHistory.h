@@ -46,7 +46,7 @@ public slots:
 
 signals:
     void error(const QString &errorText) const;
-    void dataAvailable(QVector<TimeLogEntry> data) const;
+    void dataAvailable(QVector<TimeLogEntry> data, QDateTime until) const;
 
 private slots:
     void workerSizeChanged(qlonglong size);

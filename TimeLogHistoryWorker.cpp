@@ -247,7 +247,7 @@ void TimeLogHistoryWorker::getHistory(const QDateTime &begin, const QDateTime &e
 
     QVector<TimeLogEntry> result = getHistory(query);
     if (!result.isEmpty()) {
-        emit dataAvailable(result);
+        emit dataAvailable(result, end);
     }
 }
 
@@ -274,7 +274,7 @@ void TimeLogHistoryWorker::getHistory(const uint limit, const QDateTime &until) 
     QVector<TimeLogEntry> result = getHistory(query);
     if (!result.isEmpty()) {
         std::reverse(result.begin(), result.end());
-        emit dataAvailable(result);
+        emit dataAvailable(result, until);
     }
 }
 

@@ -18,8 +18,8 @@ TimeLogModel::TimeLogModel(TimeLogHistory *history, QObject *parent) :
 {
     connect(m_history, SIGNAL(error(QString)),
             this, SLOT(historyError(QString)));
-    connect(m_history, SIGNAL(dataAvailable(QVector<TimeLogEntry>)),
-            this, SLOT(historyDataAvailable(QVector<TimeLogEntry>)));
+    connect(m_history, SIGNAL(dataAvailable(QVector<TimeLogEntry>,QDateTime)),
+            this, SLOT(historyDataAvailable(QVector<TimeLogEntry>,QDateTime)));
 }
 
 int TimeLogModel::rowCount(const QModelIndex &parent) const
@@ -202,11 +202,18 @@ void TimeLogModel::historyError(const QString &errorText)
     emit error(QString("Database error: %1").arg(errorText));
     beginResetModel();
     m_timeLog.clear();
+    m_requestedData.clear();
     endResetModel();
 }
 
-void TimeLogModel::historyDataAvailable(QVector<TimeLogEntry> data)
+void TimeLogModel::historyDataAvailable(QVector<TimeLogEntry> data, QDateTime until)
 {
+    if (!m_requestedData.contains(until)) {
+        qCDebug(TIME_LOG_MODEL_CATEGORY) << "Discarding received but not requested data for time"
+                                         << until;
+        return;
+    }
+
     int index = 0;
 
     if (!m_timeLog.isEmpty() && !startTimeCompare(data.last(), m_timeLog.first())) {
@@ -220,22 +227,29 @@ void TimeLogModel::historyDataAvailable(QVector<TimeLogEntry> data)
         data.append(m_timeLog);
         m_timeLog.swap(data);
     } else {
-        qCWarning(TIME_LOG_MODEL_CATEGORY) << "Inserting data not into beginning,"
-                                           << "size:" << m_timeLog.size()
-                                           << "index:" << index
-                                           << "data size:" << data.size();
+        qCWarning(TIME_LOG_MODEL_CATEGORY) << "Inserting data not into beginning, current data:\n"
+                                           << m_timeLog.first().startTime << "-" << m_timeLog.last().startTime
+                                           << "\nnew data:\n"
+                                           << data.first().startTime << "-" << data.last().startTime;
         m_timeLog.insert(index, data.size(), TimeLogEntry());
         for (int i = 0; i < data.size(); i++) {
             m_timeLog[index+i] = data.at(i);
         }
     }
     endInsertRows();
+
+    m_requestedData.remove(until);
 }
 
 void TimeLogModel::getMoreHistory()
 {
-    QDateTime limit = m_timeLog.size() ? m_timeLog.at(0).startTime : QDateTime::currentDateTime();
-    m_history->getHistory(defaultPopulateCount, limit);
+    QDateTime until = m_timeLog.size() ? m_timeLog.at(0).startTime : QDateTime::currentDateTime();
+    if (m_requestedData.contains(until)) {
+        qCDebug(TIME_LOG_MODEL_CATEGORY) << "Alredy requested data for time" << until;
+        return;
+    }
+    m_requestedData.insert(until);
+    m_history->getHistory(defaultPopulateCount, until);
 }
 
 void TimeLogModel::recalcDuration(const QModelIndex &parent, int first, int last)

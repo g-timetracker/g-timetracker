@@ -2,6 +2,7 @@
 #define TIMELOGMODEL_H
 
 #include <QAbstractListModel>
+#include <QSet>
 
 #include "TimeLogEntry.h"
 
@@ -45,7 +46,7 @@ public slots:
 
 private slots:
     void historyError(const QString &errorText);
-    void historyDataAvailable(QVector<TimeLogEntry> data);
+    void historyDataAvailable(QVector<TimeLogEntry> data, QDateTime limit);
 
 private:
     void getMoreHistory();
@@ -53,6 +54,7 @@ private:
 
     TimeLogHistory *m_history;
     QVector<TimeLogEntry> m_timeLog;
+    QSet<QDateTime> m_requestedData;
 };
 
 #endif // TIMELOGMODEL_H

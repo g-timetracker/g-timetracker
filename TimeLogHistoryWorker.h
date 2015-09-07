@@ -33,7 +33,7 @@ public slots:
 
 signals:
     void error(const QString &errorText) const;
-    void dataAvailable(QVector<TimeLogEntry> data) const;
+    void dataAvailable(QVector<TimeLogEntry> data, QDateTime until) const;
 
     void sizeChanged(qlonglong size) const;
     void categoriesChanged(QSet<QString> categories) const;
