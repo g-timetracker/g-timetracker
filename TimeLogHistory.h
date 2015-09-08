@@ -35,8 +35,8 @@ public:
 public slots:
     void insert(const TimeLogEntry &data);
     bool insert(const QVector<TimeLogEntry> &data);
-    void remove(const QUuid &uuid);
-    void edit(const TimeLogEntry &data, Fields fields);
+    void remove(const TimeLogEntry &data);
+    void edit(const TimeLogEntry &data, TimeLogHistory::Fields fields);
 
     void getHistory(const QDateTime &begin = QDateTime::fromTime_t(0),
                     const QDateTime &end = QDateTime::currentDateTime(),
@@ -47,6 +47,7 @@ public slots:
 signals:
     void error(const QString &errorText) const;
     void dataAvailable(QVector<TimeLogEntry> data, QDateTime until) const;
+    void dataUpdated(QVector<TimeLogEntry> data, QVector<TimeLogHistory::Fields>) const;
 
 private slots:
     void workerSizeChanged(qlonglong size);

@@ -1,7 +1,6 @@
 #include <QLoggingCategory>
 
 #include "TimeLogModel.h"
-#include "TimeLogHistory.h"
 
 Q_LOGGING_CATEGORY(TIME_LOG_MODEL_CATEGORY, "TimeLogModel", QtInfoMsg)
 
@@ -20,6 +19,8 @@ TimeLogModel::TimeLogModel(TimeLogHistory *history, QObject *parent) :
             this, SLOT(historyError(QString)));
     connect(m_history, SIGNAL(dataAvailable(QVector<TimeLogEntry>,QDateTime)),
             this, SLOT(historyDataAvailable(QVector<TimeLogEntry>,QDateTime)));
+    connect(m_history, SIGNAL(dataUpdated(QVector<TimeLogEntry>,QVector<TimeLogHistory::Fields>)),
+            this, SLOT(historyDataUpdated(QVector<TimeLogEntry>,QVector<TimeLogHistory::Fields>)));
 }
 
 int TimeLogModel::rowCount(const QModelIndex &parent) const
@@ -115,7 +116,6 @@ bool TimeLogModel::setData(const QModelIndex &index, const QVariant &value, int 
             return false;
         }
         m_timeLog[index.row()].startTime = time;
-        recalcDuration(index.parent(), index.row(), index.row());
         m_history->edit(m_timeLog.at(index.row()), TimeLogHistory::StartTime);
         break;
     }
@@ -150,12 +150,8 @@ bool TimeLogModel::removeRows(int row, int count, const QModelIndex &parent)
     m_timeLog.remove(row, count);
     endRemoveRows();
 
-    if (row != 0) {   // No need to recalculate, if items removed at the beginning
-        recalcDuration(parent, row-1, row-1);
-    }
-
     foreach (const TimeLogEntry &entry, removed) {
-        m_history->remove(entry.uuid);
+        m_history->remove(entry);
     }
 
     return true;
@@ -179,8 +175,6 @@ void TimeLogModel::appendItem(TimeLogData data)
     m_timeLog.append(entry);
     endInsertRows();
 
-    recalcDuration(QModelIndex(), itemIndex, itemIndex);
-
     m_history->insert(entry);
 }
 
@@ -191,8 +185,6 @@ void TimeLogModel::insertItem(const QModelIndex &index, TimeLogData data)
     beginInsertRows(index.parent(), index.row(), index.row());
     m_timeLog.insert(index.row(), entry);
     endInsertRows();
-
-    recalcDuration(index.parent(), index.row(), index.row());
 
     m_history->insert(entry);
 }
@@ -241,6 +233,43 @@ void TimeLogModel::historyDataAvailable(QVector<TimeLogEntry> data, QDateTime un
     m_requestedData.remove(until);
 }
 
+void TimeLogModel::historyDataUpdated(QVector<TimeLogEntry> data, QVector<TimeLogHistory::Fields> fields)
+{
+    Q_ASSERT(data.size() == fields.size());
+
+    for (int i = 0; i < data.size(); i++) {
+        const TimeLogEntry &entry = data.at(i);
+        QVector<TimeLogEntry>::iterator it = std::lower_bound(m_timeLog.begin(), m_timeLog.end(),
+                                                              entry, startTimeCompare);
+        if (it == m_timeLog.end() || it->uuid != entry.uuid) {
+            qCWarning(TIME_LOG_MODEL_CATEGORY) << "Item absent or start time changed:\n"
+                                               << entry.startTime << entry.category
+                                               << entry.uuid;
+            continue;
+        }
+
+        QVector<int> roles;
+        if (fields.at(i) & TimeLogHistory::DurationTime) {
+            it->durationTime = entry.durationTime;
+            roles.append(DurationTimeRole);
+        }
+        if (fields.at(i) & TimeLogHistory::StartTime) {
+            it->startTime = entry.startTime;
+            roles.append(StartTimeRole);
+        }
+        if (fields.at(i) & TimeLogHistory::Category) {
+            it->category = entry.category;
+            roles.append(CategoryRole);
+        }
+        if (fields.at(i) & TimeLogHistory::Comment) {
+            it->comment = entry.comment;
+            roles.append(CommentRole);
+        }
+        QModelIndex itemIndex = index(it - m_timeLog.begin(), 0, QModelIndex());
+        emit dataChanged(itemIndex, itemIndex, roles);
+    }
+}
+
 void TimeLogModel::getMoreHistory()
 {
     QDateTime until = m_timeLog.size() ? m_timeLog.at(0).startTime : QDateTime::currentDateTime();
@@ -250,23 +279,4 @@ void TimeLogModel::getMoreHistory()
     }
     m_requestedData.insert(until);
     m_history->getHistory(defaultPopulateCount, until);
-}
-
-void TimeLogModel::recalcDuration(const QModelIndex &parent, int first, int last)
-{
-    // Update duration time for preceeding item, if it exists
-    int start = (first == 0) ? first : first - 1;
-    int end = (last == m_timeLog.size() - 1) ? last - 1 : last;
-
-    for (int i = start; i <= end; i++) {
-        m_timeLog[i].durationTime = m_timeLog.at(i).startTime.secsTo(m_timeLog.at(i+1).startTime);
-    }
-
-    // Duration for most recent item calculated up to current time
-    if (last == m_timeLog.size() - 1) {
-        m_timeLog[last].durationTime = -1;
-    }
-
-    emit dataChanged(index(start, 0, parent), index(last, 0, parent),
-                     QVector<int>() << DurationTimeRole);
 }

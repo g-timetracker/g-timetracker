@@ -5,6 +5,7 @@
 #include <QSet>
 
 #include "TimeLogEntry.h"
+#include "TimeLogHistory.h"
 
 class TimeLogHistory;
 
@@ -47,10 +48,10 @@ public slots:
 private slots:
     void historyError(const QString &errorText);
     void historyDataAvailable(QVector<TimeLogEntry> data, QDateTime limit);
+    void historyDataUpdated(QVector<TimeLogEntry> data, QVector<TimeLogHistory::Fields> fields);
 
 private:
     void getMoreHistory();
-    void recalcDuration(const QModelIndex &parent, int first, int last);
 
     TimeLogHistory *m_history;
     QVector<TimeLogEntry> m_timeLog;
