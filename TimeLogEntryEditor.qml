@@ -17,7 +17,7 @@ Item {
     QtObject {
         id: d
 
-        property int durationTime: (startTimeBefore - startTime) / 1000 |0
+        property int durationTime: Math.ceil((startTimeBefore - startTime) / 1000)
     }
 
     implicitWidth: 600
