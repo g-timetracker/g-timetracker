@@ -61,19 +61,22 @@ Row {
     Tumbler {
         id: hoursTumbler
 
-        model: Util.rangeList(d.minHours, d.maxHours + 1)
+        model: (d.minHours < d.maxHours) ? Util.rangeList(d.minHours, d.maxHours + 1)
+                                         : [ d.minHours ]
     }
 
     Tumbler {
         id: minutesTumbler
 
-        model: Util.rangeList(d.minMinutes, d.maxMinutes + 1)
+        model: (d.minMinutes < d.maxMinutes) ? Util.rangeList(d.minMinutes, d.maxMinutes + 1)
+                                             : [ d.minMinutes ]
     }
 
     Tumbler {
         id: secondsTumbler
 
-        model: Util.rangeList(d.minSeconds, d.maxSeconds + 1)
+        model: (d.minSeconds < d.maxSeconds) ? Util.rangeList(d.minSeconds, d.maxSeconds + 1)
+                                             : [ d.minSeconds ]
     }
 
     onStartTimeCurrentChanged: {
