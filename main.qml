@@ -5,6 +5,7 @@ import QtQuick.Dialogs 1.2
 import QtQuick.Window 2.2
 import QtQml.Models 2.2
 import Qt.labs.settings 1.0
+import TimeLog 1.0
 import "Util.js" as Util
 
 ApplicationWindow {
@@ -50,6 +51,12 @@ ApplicationWindow {
         }
     }
 
+    ReverseProxyModel {
+        id: timeLogModel
+
+        sourceModel: TimeLogModel { }
+    }
+
     MessageDialog {
         id: errorDialog
 
@@ -67,9 +74,9 @@ ApplicationWindow {
 
         onDataAccepted: {
             if (newDialog.indexBefore === -1) {
-                TimeLogModel.appendItem(newData)
+                timeLogModel.appendItem(newData)
             } else {
-                TimeLogModel.insertItem(delegateModel.modelIndex(newDialog.indexBefore), newData)
+                timeLogModel.insertItem(delegateModel.modelIndex(newDialog.indexBefore), newData)
             }
         }
     }
@@ -81,7 +88,7 @@ ApplicationWindow {
             if (indexAfter === -1) {
                 return new Date(0)
             } else {
-                return TimeLogModel.timeLogData(delegateModel.modelIndex(indexAfter)).startTime
+                return timeLogModel.timeLogData(delegateModel.modelIndex(indexAfter)).startTime
             }
         }
 
@@ -89,7 +96,7 @@ ApplicationWindow {
             if (indexBefore === -1) {
                 return new Date()
             } else {
-                return TimeLogModel.timeLogData(delegateModel.modelIndex(indexBefore)).startTime
+                return timeLogModel.timeLogData(delegateModel.modelIndex(indexBefore)).startTime
             }
         }
 
@@ -102,7 +109,7 @@ ApplicationWindow {
             }
         }
 
-        model: TimeLogModel
+        model: timeLogModel
         delegate: TimeLogDelegate {
             id: delegateItem
 
@@ -181,7 +188,7 @@ ApplicationWindow {
         id: removeAction
 
         function deleteItemUnderCursor() {
-            TimeLogModel.removeItem(delegateModel.modelIndex(listView.indexAt(mouseArea.mouseX + listView.contentX,
+            timeLogModel.removeItem(delegateModel.modelIndex(listView.indexAt(mouseArea.mouseX + listView.contentX,
                                                                               mouseArea.mouseY + listView.contentY)))
         }
 

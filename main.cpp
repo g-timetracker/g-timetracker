@@ -1,6 +1,7 @@
 #include <QApplication>
 #include <QCommandLineParser>
 #include <QQmlApplicationEngine>
+#include <QtQml>
 #include <QtQml/QQmlContext>
 
 #include <QLoggingCategory>
@@ -47,20 +48,19 @@ int main(int argc, char *argv[])
         return (importer.import(parser.value(importOption)) ? EXIT_SUCCESS : EXIT_FAILURE);
     }
 
+    qRegisterMetaType<TimeLogData>();
     qRegisterMetaType<TimeLogEntry>();
     qRegisterMetaType<QVector<TimeLogEntry> >();
     qRegisterMetaType<QSet<QString> >();
     qRegisterMetaType<TimeLogHistory::Fields>();
     qRegisterMetaType<QVector<TimeLogHistory::Fields> >();
 
+    qmlRegisterType<TimeLogModel>("TimeLog", 1, 0, "TimeLogModel");
+    qmlRegisterType<ReverseProxyModel>("TimeLog", 1, 0, "ReverseProxyModel");
+
     TimeLogHistory::instance()->madeAsync();
-    qRegisterMetaType<TimeLogData>();
-    TimeLogModel model;
-    ReverseProxyModel proxy;
-    proxy.setSourceModel(&model);
 
     QQmlApplicationEngine engine;
-    engine.rootContext()->setContextProperty("TimeLogModel", &proxy);
     engine.rootContext()->setContextProperty("TimeLog", TimeLog::instance());
     engine.load(QUrl(QStringLiteral("qrc:/main.qml")));
 
