@@ -61,8 +61,15 @@ Item {
 
                 property alias origDate: delegateEditor.startTimeCurrent
 
-                minimumDate: startTimeAfter
-                maximumDate: startTimeBefore
+                property bool dayAfterFit: !(startTimeAfter.getHours() === 23
+                                             && startTimeAfter.getMinutes() === 59
+                                             && startTimeAfter.getSeconds() === 59)
+                property bool dayBeforeFit: !(startTimeBefore.getHours() === 0
+                                              && startTimeBefore.getMinutes() === 0
+                                              && startTimeBefore.getSeconds() === 0)
+
+                minimumDate: (dayAfterFit ? startTimeAfter : new Date(startTimeAfter.valueOf() + 1000))
+                maximumDate: (dayBeforeFit ? startTimeBefore : new Date(startTimeBefore.valueOf() - 1000))
 
                 onSelectedDateChanged: {
                     var newDate = new Date(selectedDate)

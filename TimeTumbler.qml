@@ -21,14 +21,14 @@ Row {
         property int minutes: minutesTumbler.currentIndex + minMinutes
         property int seconds: secondsTumbler.currentIndex + minSeconds
 
-        property int minHours: (currentDayAfter ? startTimeAfter.getHours() : 0)
-        property int maxHours: (currentDayBefore ? startTimeBefore.getHours() : 23)
+        property int minHours: (currentDayAfter ? startTimeAfter.getHours() + (hoursAfterFit ? 0 : 1) : 0)
+        property int maxHours: (currentDayBefore ? startTimeBefore.getHours() - (hoursBeforeFit ? 0 : 1) : 23)
 
-        property int minMinutes: (currentHourAfter ? startTimeAfter.getMinutes() : 0)
-        property int maxMinutes: (currentHourBefore ? startTimeBefore.getMinutes() : 59)
+        property int minMinutes: (currentHourAfter ? startTimeAfter.getMinutes() + (minutesAfterFit ? 0 : 1) : 0)
+        property int maxMinutes: (currentHourBefore ? startTimeBefore.getMinutes() - (minutesBeforeFit ? 0 : 1) : 59)
 
-        property int minSeconds: (currentMinuteAfter ? startTimeAfter.getSeconds() + 1 : 0)
-        property int maxSeconds: (currentMinuteBefore ? startTimeBefore.getSeconds() - 1 : 59)
+        property int minSeconds: (currentMinuteAfter && minutesAfterFit ? startTimeAfter.getSeconds() + 1 : 0)
+        property int maxSeconds: (currentMinuteBefore && minutesBeforeFit ? startTimeBefore.getSeconds() - 1 : 59)
 
         property bool currentDayBefore: (startDateCurrent.getFullYear() === startTimeBefore.getFullYear()
                                          && startDateCurrent.getMonth() === startTimeBefore.getMonth()
@@ -44,6 +44,13 @@ Row {
                                             && minutes === startTimeBefore.getMinutes())
         property bool currentMinuteAfter: (currentHourAfter
                                            && startTimeAfter.getMinutes() === minutes)
+
+        property bool minutesBeforeFit: (startTimeBefore.getSeconds() > 0)
+        property bool minutesAfterFit: (startTimeAfter.getSeconds() < 59)
+        property bool hoursBeforeFit: (startTimeBefore.getMinutes() > 0
+                                       || minutesBeforeFit)
+        property bool hoursAfterFit: (startTimeAfter.getMinutes() < 59
+                                      || minutesAfterFit)
     }
 
     function setHours(newHours) {
