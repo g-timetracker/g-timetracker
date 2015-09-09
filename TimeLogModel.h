@@ -21,7 +21,7 @@ public:
         CommentRole
     };
 
-    explicit TimeLogModel(TimeLogHistory *history, QObject *parent = 0);
+    explicit TimeLogModel(QObject *parent = 0);
 
     virtual int rowCount(const QModelIndex &parent) const;
     virtual bool canFetchMore(const QModelIndex &parent) const;

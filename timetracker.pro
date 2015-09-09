@@ -28,4 +28,5 @@ HEADERS += \
     ReverseProxyModel.h \
     DataImporter.h \
     TimeLogHistoryWorker.h \
-    TimeLogHistory.h
+    TimeLogHistory.h \
+    TimeLogHistory_p.h

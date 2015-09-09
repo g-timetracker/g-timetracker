@@ -10,8 +10,8 @@
 
 Q_LOGGING_CATEGORY(DATA_IMPORTER_CATEGORY, "DataImporter", QtInfoMsg)
 
-DataImporter::DataImporter(TimeLogHistory *history) :
-    m_db(history),
+DataImporter::DataImporter() :
+    m_db(TimeLogHistory::instance()),
     m_sep(";")
 {
 

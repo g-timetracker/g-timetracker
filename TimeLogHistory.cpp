@@ -3,9 +3,12 @@
 #include <QLoggingCategory>
 
 #include "TimeLogHistory.h"
+#include "TimeLogHistory_p.h"
 #include "TimeLogHistoryWorker.h"
 
 Q_LOGGING_CATEGORY(TIME_LOG_HISTORY_CATEGORY, "TimeLogHistory", QtInfoMsg)
+
+Q_GLOBAL_STATIC(TimeLogHistorySingleton, timeLogHistory)
 
 TimeLogHistory::TimeLogHistory(QObject *parent) :
     QObject(parent),
@@ -30,6 +33,11 @@ TimeLogHistory::~TimeLogHistory()
     if (m_thread->isRunning()) {
         m_thread->quit();
     }
+}
+
+TimeLogHistory *TimeLogHistory::instance()
+{
+    return static_cast<TimeLogHistory*>(timeLogHistory);
 }
 
 bool TimeLogHistory::init()

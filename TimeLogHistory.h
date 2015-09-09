@@ -13,6 +13,8 @@ class TimeLogHistoryWorker;
 class TimeLogHistory : public QObject
 {
     Q_OBJECT
+protected:
+    explicit TimeLogHistory(QObject *parent = 0);
 public:
     enum Fields {
         NoFields        = 0,
@@ -23,8 +25,9 @@ public:
     };
     Q_FLAG(Fields)
 
-    explicit TimeLogHistory(QObject *parent = 0);
-    ~TimeLogHistory();
+    virtual ~TimeLogHistory();
+
+    static TimeLogHistory *instance();
 
     bool init();
     void madeAsync();

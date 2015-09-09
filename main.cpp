@@ -36,14 +36,13 @@ int main(int argc, char *argv[])
 
     parser.process(app);
 
-    TimeLogHistory history;
-    if (!history.init()) {
+    if (!TimeLogHistory::instance()->init()) {
         qCCritical(MAIN_CATEGORY) << "Fail to initialize db";
         return EXIT_FAILURE;
     }
 
     if (parser.isSet(importOption)) {
-        DataImporter importer(&history);
+        DataImporter importer;
         importer.setSeparator(parser.value(separatorOption));
         return (importer.import(parser.value(importOption)) ? EXIT_SUCCESS : EXIT_FAILURE);
     }
@@ -54,10 +53,10 @@ int main(int argc, char *argv[])
     qRegisterMetaType<TimeLogHistory::Fields>();
     qRegisterMetaType<QVector<TimeLogHistory::Fields> >();
 
-    history.madeAsync();
+    TimeLogHistory::instance()->madeAsync();
     TimeLogSingleton singleton;
     qRegisterMetaType<TimeLogData>();
-    TimeLogModel model(&history);
+    TimeLogModel model;
     QObject::connect(&model, SIGNAL(error(QString)), &singleton, SIGNAL(error(QString)));
     ReverseProxyModel proxy;
     proxy.setSourceModel(&model);

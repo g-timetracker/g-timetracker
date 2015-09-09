@@ -8,7 +8,7 @@ class TimeLogHistory;
 class DataImporter
 {
 public:
-    explicit DataImporter(TimeLogHistory *history);
+    explicit DataImporter();
     ~DataImporter();
 
     bool import(const QString &path) const;

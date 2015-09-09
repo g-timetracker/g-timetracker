@@ -11,9 +11,9 @@ bool startTimeCompare(const TimeLogEntry &a, const TimeLogEntry &b)
     return a.startTime < b.startTime;
 }
 
-TimeLogModel::TimeLogModel(TimeLogHistory *history, QObject *parent) :
+TimeLogModel::TimeLogModel(QObject *parent) :
     SUPER(parent),
-    m_history(history)
+    m_history(TimeLogHistory::instance())
 {
     connect(m_history, SIGNAL(error(QString)),
             this, SLOT(historyError(QString)));
