@@ -6,11 +6,11 @@ SOURCES += main.cpp \
     TimeLogEntry.cpp \
     TimeLogModel.cpp \
     TimeLogData.cpp \
-    TimeLogSingleton.cpp \
     ReverseProxyModel.cpp \
     DataImporter.cpp \
     TimeLogHistoryWorker.cpp \
-    TimeLogHistory.cpp
+    TimeLogHistory.cpp \
+    TimeLog.cpp
 
 RESOURCES += qml.qrc
 
@@ -24,9 +24,10 @@ HEADERS += \
     TimeLogEntry.h \
     TimeLogModel.h \
     TimeLogData.h \
-    TimeLogSingleton.h \
     ReverseProxyModel.h \
     DataImporter.h \
     TimeLogHistoryWorker.h \
     TimeLogHistory.h \
-    TimeLogHistory_p.h
+    TimeLogHistory_p.h \
+    TimeLog.h \
+    TimeLog_p.h

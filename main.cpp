@@ -8,7 +8,7 @@
 #include "TimeLogHistory.h"
 #include "TimeLogModel.h"
 #include "ReverseProxyModel.h"
-#include "TimeLogSingleton.h"
+#include "TimeLog.h"
 #include "DataImporter.h"
 
 Q_LOGGING_CATEGORY(MAIN_CATEGORY, "main", QtInfoMsg)
@@ -54,16 +54,14 @@ int main(int argc, char *argv[])
     qRegisterMetaType<QVector<TimeLogHistory::Fields> >();
 
     TimeLogHistory::instance()->madeAsync();
-    TimeLogSingleton singleton;
     qRegisterMetaType<TimeLogData>();
     TimeLogModel model;
-    QObject::connect(&model, SIGNAL(error(QString)), &singleton, SIGNAL(error(QString)));
     ReverseProxyModel proxy;
     proxy.setSourceModel(&model);
 
     QQmlApplicationEngine engine;
     engine.rootContext()->setContextProperty("TimeLogModel", &proxy);
-    engine.rootContext()->setContextProperty("TimeLog", &singleton);
+    engine.rootContext()->setContextProperty("TimeLog", TimeLog::instance());
     engine.load(QUrl(QStringLiteral("qrc:/main.qml")));
 
     return app.exec();

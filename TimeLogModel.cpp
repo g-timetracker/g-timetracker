@@ -1,6 +1,7 @@
 #include <QLoggingCategory>
 
 #include "TimeLogModel.h"
+#include "TimeLog.h"
 
 Q_LOGGING_CATEGORY(TIME_LOG_MODEL_CATEGORY, "TimeLogModel", QtInfoMsg)
 
@@ -21,6 +22,8 @@ TimeLogModel::TimeLogModel(QObject *parent) :
             this, SLOT(historyDataAvailable(QVector<TimeLogEntry>,QDateTime)));
     connect(m_history, SIGNAL(dataUpdated(QVector<TimeLogEntry>,QVector<TimeLogHistory::Fields>)),
             this, SLOT(historyDataUpdated(QVector<TimeLogEntry>,QVector<TimeLogHistory::Fields>)));
+    connect(this, SIGNAL(error(QString)),
+            TimeLog::instance(), SIGNAL(error(QString)));
 }
 
 int TimeLogModel::rowCount(const QModelIndex &parent) const
