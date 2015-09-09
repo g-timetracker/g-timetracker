@@ -7,7 +7,7 @@
 #include <QLoggingCategory>
 
 #include "TimeLogHistory.h"
-#include "TimeLogModel.h"
+#include "TimeLogRecentModel.h"
 #include "ReverseProxyModel.h"
 #include "TimeLog.h"
 #include "DataImporter.h"
@@ -56,6 +56,7 @@ int main(int argc, char *argv[])
     qRegisterMetaType<QVector<TimeLogHistory::Fields> >();
 
     qmlRegisterType<TimeLogModel>("TimeLog", 1, 0, "TimeLogModel");
+    qmlRegisterType<TimeLogRecentModel>("TimeLog", 1, 0, "TimeLogRecentModel");
     qmlRegisterType<ReverseProxyModel>("TimeLog", 1, 0, "ReverseProxyModel");
 
     TimeLogHistory::instance()->madeAsync();

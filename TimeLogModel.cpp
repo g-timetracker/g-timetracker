@@ -1,16 +1,21 @@
-#include <QLoggingCategory>
-
 #include "TimeLogModel.h"
 #include "TimeLog.h"
 
 Q_LOGGING_CATEGORY(TIME_LOG_MODEL_CATEGORY, "TimeLogModel", QtInfoMsg)
 
-static const int defaultPopulateCount(5);
-
-bool startTimeCompare(const TimeLogEntry &a, const TimeLogEntry &b)
+class uuidEquals
 {
-    return a.startTime < b.startTime;
-}
+public:
+    uuidEquals(const QUuid &uuid) : m_uuid(uuid) { }
+
+    bool operator ()(const TimeLogEntry &entry) const
+    {
+        return m_uuid == entry.uuid;
+    }
+
+private:
+    QUuid m_uuid;
+};
 
 TimeLogModel::TimeLogModel(QObject *parent) :
     SUPER(parent),
@@ -31,24 +36,6 @@ int TimeLogModel::rowCount(const QModelIndex &parent) const
     Q_UNUSED(parent)
 
     return m_timeLog.size();
-}
-
-bool TimeLogModel::canFetchMore(const QModelIndex &parent) const
-{
-    if (parent != QModelIndex()) {
-        return false;
-    }
-
-    return m_history->size() > m_timeLog.size();
-}
-
-void TimeLogModel::fetchMore(const QModelIndex &parent)
-{
-    if (parent != QModelIndex()) {
-        return;
-    }
-
-    getMoreHistory();
 }
 
 QVariant TimeLogModel::data(const QModelIndex &index, int role) const
@@ -195,10 +182,7 @@ void TimeLogModel::insertItem(const QModelIndex &index, TimeLogData data)
 void TimeLogModel::historyError(const QString &errorText)
 {
     emit error(QString("Database error: %1").arg(errorText));
-    beginResetModel();
-    m_timeLog.clear();
-    m_requestedData.clear();
-    endResetModel();
+    clear();
 }
 
 void TimeLogModel::historyDataAvailable(QVector<TimeLogEntry> data, QDateTime until)
@@ -209,29 +193,7 @@ void TimeLogModel::historyDataAvailable(QVector<TimeLogEntry> data, QDateTime un
         return;
     }
 
-    int index = 0;
-
-    if (!m_timeLog.isEmpty() && !startTimeCompare(data.last(), m_timeLog.first())) {
-        QVector<TimeLogEntry>::iterator it = std::lower_bound(m_timeLog.begin(), m_timeLog.end(),
-                                                              data.last(), startTimeCompare);
-        index = it - m_timeLog.begin();
-    }
-
-    beginInsertRows(QModelIndex(), index, index + data.size() - 1);
-    if (index == 0) {
-        data.append(m_timeLog);
-        m_timeLog.swap(data);
-    } else {
-        qCWarning(TIME_LOG_MODEL_CATEGORY) << "Inserting data not into beginning, current data:\n"
-                                           << m_timeLog.first().startTime << "-" << m_timeLog.last().startTime
-                                           << "\nnew data:\n"
-                                           << data.first().startTime << "-" << data.last().startTime;
-        m_timeLog.insert(index, data.size(), TimeLogEntry());
-        for (int i = 0; i < data.size(); i++) {
-            m_timeLog[index+i] = data.at(i);
-        }
-    }
-    endInsertRows();
+    processHistoryData(data);
 
     m_requestedData.remove(until);
 }
@@ -242,44 +204,59 @@ void TimeLogModel::historyDataUpdated(QVector<TimeLogEntry> data, QVector<TimeLo
 
     for (int i = 0; i < data.size(); i++) {
         const TimeLogEntry &entry = data.at(i);
-        QVector<TimeLogEntry>::iterator it = std::lower_bound(m_timeLog.begin(), m_timeLog.end(),
-                                                              entry, startTimeCompare);
-        if (it == m_timeLog.end() || it->uuid != entry.uuid) {
-            qCWarning(TIME_LOG_MODEL_CATEGORY) << "Item absent or start time changed:\n"
-                                               << entry.startTime << entry.category
-                                               << entry.uuid;
+        int dataIndex = findData(entry);
+        if (dataIndex == -1) {
             continue;
         }
 
         QVector<int> roles;
         if (fields.at(i) & TimeLogHistory::DurationTime) {
-            it->durationTime = entry.durationTime;
+            m_timeLog[dataIndex].durationTime = entry.durationTime;
             roles.append(DurationTimeRole);
         }
         if (fields.at(i) & TimeLogHistory::StartTime) {
-            it->startTime = entry.startTime;
+            m_timeLog[dataIndex].startTime = entry.startTime;
             roles.append(StartTimeRole);
         }
         if (fields.at(i) & TimeLogHistory::Category) {
-            it->category = entry.category;
+            m_timeLog[dataIndex].category = entry.category;
             roles.append(CategoryRole);
         }
         if (fields.at(i) & TimeLogHistory::Comment) {
-            it->comment = entry.comment;
+            m_timeLog[dataIndex].comment = entry.comment;
             roles.append(CommentRole);
         }
-        QModelIndex itemIndex = index(it - m_timeLog.begin(), 0, QModelIndex());
+        QModelIndex itemIndex = index(dataIndex, 0, QModelIndex());
         emit dataChanged(itemIndex, itemIndex, roles);
     }
 }
 
-void TimeLogModel::getMoreHistory()
+void TimeLogModel::clear()
 {
-    QDateTime until = m_timeLog.size() ? m_timeLog.at(0).startTime : QDateTime::currentDateTime();
-    if (m_requestedData.contains(until)) {
-        qCDebug(TIME_LOG_MODEL_CATEGORY) << "Alredy requested data for time" << until;
-        return;
+    beginResetModel();
+    m_timeLog.clear();
+    m_requestedData.clear();
+    endResetModel();
+}
+
+void TimeLogModel::processHistoryData(QVector<TimeLogEntry> data)
+{
+    int index = m_timeLog.size();
+
+    beginInsertRows(QModelIndex(), index, index + data.size() - 1);
+    m_timeLog.append(data);
+    endInsertRows();
+}
+
+int TimeLogModel::findData(const TimeLogEntry &entry) const
+{
+    QVector<TimeLogEntry>::const_iterator it = std::find_if(m_timeLog.begin(), m_timeLog.end(),
+                                                            uuidEquals(entry.uuid));
+    if (it == m_timeLog.end()) {
+        qCWarning(TIME_LOG_MODEL_CATEGORY) << "Item not found:\n"
+                                           << entry.startTime << entry.category << entry.uuid;
+        return -1;
+    } else {
+        return (it - m_timeLog.begin());
     }
-    m_requestedData.insert(until);
-    m_history->getHistory(defaultPopulateCount, until);
 }

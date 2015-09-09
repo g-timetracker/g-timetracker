@@ -4,6 +4,8 @@
 #include <QAbstractListModel>
 #include <QSet>
 
+#include <QLoggingCategory>
+
 #include "TimeLogEntry.h"
 #include "TimeLogHistory.h"
 
@@ -24,8 +26,6 @@ public:
     explicit TimeLogModel(QObject *parent = 0);
 
     virtual int rowCount(const QModelIndex &parent) const;
-    virtual bool canFetchMore(const QModelIndex &parent) const;
-    virtual void fetchMore(const QModelIndex & parent);
 
     virtual QVariant data(const QModelIndex &index, int role) const;
     virtual QVariant headerData(int section, Qt::Orientation orientation, int role) const;
@@ -42,20 +42,21 @@ public:
 signals:
     void error(const QString &errorText) const;
 
-public slots:
-
-
 private slots:
     void historyError(const QString &errorText);
     void historyDataAvailable(QVector<TimeLogEntry> data, QDateTime limit);
     void historyDataUpdated(QVector<TimeLogEntry> data, QVector<TimeLogHistory::Fields> fields);
 
-private:
-    void getMoreHistory();
+protected:
+    void clear();
+    virtual void processHistoryData(QVector<TimeLogEntry> data);
+    virtual int findData(const TimeLogEntry &entry) const;
 
     TimeLogHistory *m_history;
     QVector<TimeLogEntry> m_timeLog;
     QSet<QDateTime> m_requestedData;
 };
+
+Q_DECLARE_LOGGING_CATEGORY(TIME_LOG_MODEL_CATEGORY)
 
 #endif // TIMELOGMODEL_H

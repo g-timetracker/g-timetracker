@@ -54,7 +54,7 @@ ApplicationWindow {
     ReverseProxyModel {
         id: timeLogModel
 
-        sourceModel: TimeLogModel { }
+        sourceModel: TimeLogRecentModel { }
     }
 
     MessageDialog {
