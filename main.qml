@@ -5,6 +5,7 @@ import QtQuick.Dialogs 1.2
 import QtQuick.Window 2.2
 import QtQml.Models 2.2
 import Qt.labs.settings 1.0
+import "Util.js" as Util
 
 ApplicationWindow {
     id: main
@@ -92,6 +93,15 @@ ApplicationWindow {
             }
         }
 
+        function insert(indexBefore, timeAfter, timeBefore) {
+            if (Util.calcDuration(timeAfter, timeBefore) > 1) {
+                newDialog.openDialog(indexBefore, timeAfter, timeBefore)
+            } else {
+                errorDialog.text = "Cannot insert between %1 and %2".arg(timeAfter).arg(timeBefore)
+                errorDialog.open()
+            }
+        }
+
         model: TimeLogModel
         delegate: TimeLogDelegate {
             id: delegateItem
@@ -145,7 +155,7 @@ ApplicationWindow {
             var indexBefore = listView.indexAt(mouseArea.mouseX + listView.contentX,
                                                mouseArea.mouseY + listView.contentY)
             var indexAfter = (indexBefore + 1 === listView.count) ? -1 : indexBefore + 1
-            newDialog.openDialog(indexBefore,
+            delegateModel.insert(indexBefore,
                                  delegateModel.timeAfterFromIndex(indexAfter),
                                  delegateModel.timeBeforeFromIndex(indexBefore))
         }
@@ -161,7 +171,7 @@ ApplicationWindow {
             var indexAfter = listView.indexAt(mouseArea.mouseX + listView.contentX,
                                               mouseArea.mouseY + listView.contentY)
             var indexBefore = indexAfter - 1
-            newDialog.openDialog(indexBefore,
+            delegateModel.insert(indexBefore,
                                  delegateModel.timeAfterFromIndex(indexAfter),
                                  delegateModel.timeBeforeFromIndex(indexBefore))
         }
@@ -271,7 +281,7 @@ ApplicationWindow {
                 onClicked: {
                     var indexAfter = (listView.count === 0) ? -1 : 0
                     var indexBefore = -1
-                    newDialog.openDialog(indexBefore,
+                    delegateModel.insert(indexBefore,
                                          delegateModel.timeAfterFromIndex(indexAfter),
                                          delegateModel.timeBeforeFromIndex(indexBefore))
                 }
