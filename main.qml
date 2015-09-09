@@ -60,6 +60,22 @@ ApplicationWindow {
     DelegateModel {
         id: delegateModel
 
+        function timeAfterFromIndex(indexAfter) {
+            if (indexAfter === -1) {
+                return new Date(0)
+            } else {
+                return TimeLogModel.timeLogData(delegateModel.modelIndex(indexAfter)).startTime
+            }
+        }
+
+        function timeBeforeFromIndex(indexBefore) {
+            if (indexBefore === -1) {
+                return new Date()
+            } else {
+                return TimeLogModel.timeLogData(delegateModel.modelIndex(indexBefore)).startTime
+            }
+        }
+
         model: TimeLogModel
         delegate: TimeLogDelegate {
             id: delegateItem
@@ -96,20 +112,10 @@ ApplicationWindow {
             var delegateItem = listView.itemAt(mouseArea.mouseX + listView.contentX,
                                                mouseArea.mouseY + listView.contentY)
             var indexAfter = (indexCurrent + 1 === listView.count) ? -1 : indexCurrent + 1
-            var startTimeAfter
-            if (indexAfter === -1) {
-                startTimeAfter = new Date(0)
-            } else {
-                startTimeAfter = TimeLogModel.timeLogData(delegateModel.modelIndex(indexAfter)).startTime
-            }
             var indexBefore = indexCurrent - 1
-            var startTimeBefore
-            if (indexBefore === -1) {
-                startTimeBefore = new Date()
-            } else {
-                startTimeBefore = TimeLogModel.timeLogData(delegateModel.modelIndex(indexBefore)).startTime
-            }
-            editDialog.openDialog(delegateItem, startTimeAfter, startTimeBefore)
+            editDialog.openDialog(delegateItem,
+                                  delegateModel.timeAfterFromIndex(indexAfter),
+                                  delegateModel.timeBeforeFromIndex(indexBefore))
         }
     }
 
@@ -122,15 +128,10 @@ ApplicationWindow {
         onTriggered: {
             var indexBefore = listView.indexAt(mouseArea.mouseX + listView.contentX,
                                                mouseArea.mouseY + listView.contentY)
-            var startTimeBefore = TimeLogModel.timeLogData(delegateModel.modelIndex(indexBefore)).startTime
             var indexAfter = (indexBefore + 1 === listView.count) ? -1 : indexBefore + 1
-            var startTimeAfter
-            if (indexAfter === -1) {
-                startTimeAfter = new Date(0)
-            } else {
-                startTimeAfter = TimeLogModel.timeLogData(delegateModel.modelIndex(indexAfter)).startTime
-            }
-            newDialog.openDialog(indexBefore, startTimeAfter, startTimeBefore)
+            newDialog.openDialog(indexBefore,
+                                 delegateModel.timeAfterFromIndex(indexAfter),
+                                 delegateModel.timeBeforeFromIndex(indexBefore))
         }
     }
 
@@ -143,15 +144,10 @@ ApplicationWindow {
         onTriggered: {
             var indexAfter = listView.indexAt(mouseArea.mouseX + listView.contentX,
                                               mouseArea.mouseY + listView.contentY)
-            var startTimeAfter = TimeLogModel.timeLogData(delegateModel.modelIndex(indexAfter)).startTime
             var indexBefore = indexAfter - 1
-            var startTimeBefore
-            if (indexBefore === -1) {
-                startTimeBefore = new Date()
-            } else {
-                startTimeBefore = TimeLogModel.timeLogData(delegateModel.modelIndex(indexBefore)).startTime
-            }
-            newDialog.openDialog(indexBefore, startTimeAfter, startTimeBefore)
+            newDialog.openDialog(indexBefore,
+                                 delegateModel.timeAfterFromIndex(indexAfter),
+                                 delegateModel.timeBeforeFromIndex(indexBefore))
         }
     }
 
@@ -249,14 +245,10 @@ ApplicationWindow {
                 tooltip: "Adds item into model"
                 onClicked: {
                     var indexAfter = (listView.count === 0) ? -1 : 0
-                    var startTimeAfter
-                    if (indexAfter === -1) {
-                        startTimeAfter = new Date(0)
-                    } else {
-                        startTimeAfter = TimeLogModel.timeLogData(delegateModel.modelIndex(indexAfter)).startTime
-                    }
-                    var startTimeBefore = new Date()
-                    newDialog.openDialog(-1, startTimeAfter, startTimeBefore)
+                    var indexBefore = -1
+                    newDialog.openDialog(indexBefore,
+                                         delegateModel.timeAfterFromIndex(indexAfter),
+                                         delegateModel.timeBeforeFromIndex(indexBefore))
                 }
             }
         }
