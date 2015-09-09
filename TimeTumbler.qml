@@ -27,8 +27,8 @@ Row {
         property int minMinutes: (currentHourAfter ? startTimeAfter.getMinutes() : 0)
         property int maxMinutes: (currentHourBefore ? startTimeBefore.getMinutes() : 59)
 
-        property int minSeconds: (currentMinuteAfter ? startTimeAfter.getSeconds() : 0)
-        property int maxSeconds: (currentMinuteBefore ? startTimeBefore.getSeconds() : 59)
+        property int minSeconds: (currentMinuteAfter ? startTimeAfter.getSeconds() + 1 : 0)
+        property int maxSeconds: (currentMinuteBefore ? startTimeBefore.getSeconds() - 1 : 59)
 
         property bool currentDayBefore: (startDateCurrent.getFullYear() === startTimeBefore.getFullYear()
                                          && startDateCurrent.getMonth() === startTimeBefore.getMonth()
