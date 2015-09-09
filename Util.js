@@ -1,5 +1,9 @@
 .pragma library
 
+function calcDuration(timeCurrent, timeBefore) {
+    return Math.ceil((timeBefore.valueOf() - timeCurrent.valueOf()) / 1000)
+}
+
 function durationText(duration) {
     var seconds, minutes, hours, days, weeks, months, years
 

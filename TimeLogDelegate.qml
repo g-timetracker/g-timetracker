@@ -14,7 +14,7 @@ Item {
     QtObject {
         id: d
 
-        property int durationTime: (timeLogDelegate.durationTime === -1 ? (new Date() - startTime) / 1000 |0
+        property int durationTime: (timeLogDelegate.durationTime === -1 ? Util.calcDuration(startTime, new Date())
                                                                         : timeLogDelegate.durationTime)
     }
 
