@@ -8,5 +8,7 @@
         <file>Util.js</file>
         <file>TimeTumbler.qml</file>
         <file>RecentView.qml</file>
+        <file>SearchView.qml</file>
+        <file>DateField.qml</file>
     </qresource>
 </RCC>
