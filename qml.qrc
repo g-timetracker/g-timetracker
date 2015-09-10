@@ -7,5 +7,6 @@
         <file>TimeLogNewDialog.qml</file>
         <file>Util.js</file>
         <file>TimeTumbler.qml</file>
+        <file>RecentView.qml</file>
     </qresource>
 </RCC>
