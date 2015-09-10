@@ -11,7 +11,8 @@ SOURCES += main.cpp \
     TimeLogHistoryWorker.cpp \
     TimeLogHistory.cpp \
     TimeLog.cpp \
-    TimeLogRecentModel.cpp
+    TimeLogRecentModel.cpp \
+    TimeLogSearchModel.cpp
 
 RESOURCES += qml.qrc
 
@@ -32,4 +33,5 @@ HEADERS += \
     TimeLogHistory_p.h \
     TimeLog.h \
     TimeLog_p.h \
-    TimeLogRecentModel.h
+    TimeLogRecentModel.h \
+    TimeLogSearchModel.h

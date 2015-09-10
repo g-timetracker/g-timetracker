@@ -8,6 +8,7 @@
 
 #include "TimeLogHistory.h"
 #include "TimeLogRecentModel.h"
+#include "TimeLogSearchModel.h"
 #include "ReverseProxyModel.h"
 #include "TimeLog.h"
 #include "DataImporter.h"
@@ -57,6 +58,7 @@ int main(int argc, char *argv[])
 
     qmlRegisterType<TimeLogModel>("TimeLog", 1, 0, "TimeLogModel");
     qmlRegisterType<TimeLogRecentModel>("TimeLog", 1, 0, "TimeLogRecentModel");
+    qmlRegisterType<TimeLogSearchModel>("TimeLog", 1, 0, "TimeLogSearchModel");
     qmlRegisterType<ReverseProxyModel>("TimeLog", 1, 0, "ReverseProxyModel");
 
     TimeLogHistory::instance()->madeAsync();
