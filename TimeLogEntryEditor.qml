@@ -56,7 +56,7 @@ Item {
                 text: "Start:"
             }
 
-            Calendar {
+            DatePicker {
                 id: calendar
 
                 property alias origDate: delegateEditor.startTimeCurrent

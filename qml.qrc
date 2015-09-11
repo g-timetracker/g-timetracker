@@ -9,6 +9,7 @@
         <file>TimeTumbler.qml</file>
         <file>RecentView.qml</file>
         <file>SearchView.qml</file>
-        <file>DateField.qml</file>
+        <file>DatePicker.qml</file>
+        <file>CalendarPopup.qml</file>
     </qresource>
 </RCC>

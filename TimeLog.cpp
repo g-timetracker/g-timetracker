@@ -1,3 +1,6 @@
+#include <QtQuick/QQuickItem>
+#include <QtQuick/QQuickWindow>
+
 #include "TimeLog.h"
 #include "TimeLog_p.h"
 
@@ -22,4 +25,13 @@ TimeLogData TimeLog::createTimeLogData(QDateTime startTime, int durationTime,
                                        QString category, QString comment)
 {
     return TimeLogData(startTime, durationTime, category, comment);
+}
+
+QPointF TimeLog::mapToGlobal(QQuickItem *item)
+{
+    if (!item) {
+        return QPointF();
+    }
+
+    return (item->window()->mapToGlobal(QPoint()) + item->mapToScene(QPointF()));
 }

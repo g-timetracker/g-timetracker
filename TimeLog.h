@@ -2,8 +2,11 @@
 #define TIMELOG_H
 
 #include <QObject>
+#include <QPointF>
 
 #include "TimeLogData.h"
+
+class QQuickItem;
 
 class TimeLog : public QObject
 {
@@ -18,6 +21,7 @@ public:
 
     Q_INVOKABLE static TimeLogData createTimeLogData(QDateTime startTime, int durationTime,
                                                      QString category, QString comment);
+    Q_INVOKABLE static QPointF mapToGlobal(QQuickItem *item);
 
 signals:
     void error(const QString &errorText) const;

@@ -35,16 +35,22 @@ Item {
                     text: "From:"
                 }
 
-                DateField {
+                DatePicker {
                     id: fromField
+
+                    minimumDate: new Date(0)
+                    maximumDate: toField.selectedDate
                 }
 
                 Label {
                     text: "To:"
                 }
 
-                DateField {
+                DatePicker {
                     id: toField
+
+                    minimumDate: fromField.selectedDate
+                    maximumDate: new Date()
                 }
 
                 Label {
