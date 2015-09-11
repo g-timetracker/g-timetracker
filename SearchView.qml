@@ -10,7 +10,7 @@ Item {
 
         begin: new Date(fromField.text)
         end: new Date(toField.text)
-        category: categoryField.text
+        category: categoryField.currentText
     }
 
     ColumnLayout {
@@ -58,8 +58,10 @@ Item {
                     text: "Category:"
                 }
 
-                TextField {
+                ComboBox {
                     id: categoryField
+
+                    model: TimeLog.categories()
                 }
             }
         }

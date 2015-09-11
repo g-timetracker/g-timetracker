@@ -37,14 +37,19 @@ Item {
                 text: "Category:"
             }
 
-            TextField {
+            ComboBox {
                 property alias origCategory: delegateEditor.category
 
-                placeholderText: "Enter category"
+                editable: true
+                model: TimeLog.categories()
 
-                onTextChanged: delegateEditor.category = text
+                onEditTextChanged: delegateEditor.category = editText
 
-                onOrigCategoryChanged: text = origCategory
+                onOrigCategoryChanged: {
+                    if (editText !== origCategory) {
+                        currentIndex = find(origCategory)
+                    }
+                }
             }
         }
 

@@ -32,6 +32,14 @@ TimeLogData TimeLog::createTimeLogData(QDateTime startTime, int durationTime,
     return TimeLogData(startTime, durationTime, category, comment);
 }
 
+QStringList TimeLog::categories()
+{
+    QStringList result = TimeLogHistory::instance()->categories().toList();
+    std::sort(result.begin(), result.end());
+
+    return result;
+}
+
 QPointF TimeLog::mapToGlobal(QQuickItem *item)
 {
     if (!item) {

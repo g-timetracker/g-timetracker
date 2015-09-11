@@ -21,6 +21,7 @@ public:
 
     Q_INVOKABLE static TimeLogData createTimeLogData(QDateTime startTime, int durationTime,
                                                      QString category, QString comment);
+    Q_INVOKABLE static QStringList categories();
     Q_INVOKABLE static QPointF mapToGlobal(QQuickItem *item);
 
 signals:
