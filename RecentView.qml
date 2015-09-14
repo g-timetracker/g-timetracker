@@ -199,6 +199,7 @@ Item {
                 Layout.fillHeight: true
                 Layout.fillWidth: true
                 verticalLayoutDirection: ListView.BottomToTop
+                clip: true
                 model: delegateModel
 
                 MouseArea {
