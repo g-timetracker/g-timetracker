@@ -2,6 +2,7 @@ import QtQuick 2.4
 import QtQuick.Layouts 1.1
 import QtQuick.Controls 1.4
 import TimeLog 1.0
+import "Util.js" as Util
 
 Item {
     TimeLogSearchModel {
@@ -63,19 +64,42 @@ Item {
             }
         }
 
-        ListView {
-            id: listView
-
+        TableView {
             Layout.fillHeight: true
             Layout.fillWidth: true
             clip: true
             model: timeLogModel
-            delegate: TimeLogDelegate {
-                width: listView.width
-                category: model.category
-                startTime: model.startTime
-                durationTime: model.durationTime
-                comment: model.comment
+
+            TableViewColumn {
+                title: "Start time"
+                role: "startTime"
+                delegate: Text {
+                    color: styleData.textColor
+                    elide: styleData.elideMode
+                    text: Qt.formatDateTime(styleData.value)
+                    renderType: Text.NativeRendering
+                }
+            }
+
+            TableViewColumn {
+                title: "Category"
+                role: "category"
+            }
+
+            TableViewColumn {
+                title: "Duration"
+                role: "durationTime"
+                delegate: Text {
+                    color: styleData.textColor
+                    elide: styleData.elideMode
+                    text: Util.durationText(styleData.value)
+                    renderType: Text.NativeRendering
+                }
+            }
+
+            TableViewColumn {
+                title: "Comment"
+                role: "comment"
             }
         }
     }
