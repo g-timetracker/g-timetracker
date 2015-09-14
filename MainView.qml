@@ -5,8 +5,6 @@ import QtQuick.Layouts 1.3
 Item {
     id: mainView
 
-    property bool isConfirmationsEnabled
-
     ColumnLayout {
         anchors.fill: parent
 
@@ -29,9 +27,7 @@ Item {
             Layout.fillWidth: true
             currentIndex: tabBar.currentIndex
 
-            RecentView {
-                isConfirmationsEnabled: mainView.isConfirmationsEnabled
-            }
+            RecentView { }
         }
     }
 }

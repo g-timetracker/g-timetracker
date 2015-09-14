@@ -7,10 +7,6 @@ import TimeLog 1.0
 import "Util.js" as Util
 
 Item {
-    id: recentView
-
-    property bool isConfirmationsEnabled: true
-
     ReverseProxyModel {
         id: timeLogModel
 
@@ -147,7 +143,7 @@ Item {
         tooltip: "Remove item"
 
         onTriggered: {
-            if (recentView.isConfirmationsEnabled) {
+            if (Settings.isConfirmationsEnabled) {
                 removeConfirmationDialog.open()
             } else {
                 removeAction.deleteItemUnderCursor()

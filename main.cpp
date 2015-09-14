@@ -60,6 +60,7 @@ int main(int argc, char *argv[])
     qmlRegisterType<TimeLogRecentModel>("TimeLog", 1, 0, "TimeLogRecentModel");
     qmlRegisterType<TimeLogSearchModel>("TimeLog", 1, 0, "TimeLogSearchModel");
     qmlRegisterType<ReverseProxyModel>("TimeLog", 1, 0, "ReverseProxyModel");
+    qmlRegisterSingletonType(QUrl("qrc:/Settings.qml"), "TimeLog", 1, 0, "Settings");
 
     TimeLogHistory::instance()->madeAsync();
 

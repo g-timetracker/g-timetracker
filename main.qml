@@ -1,12 +1,10 @@
 import QtQuick 2.4
 import QtQuick.Controls 1.4
 import QtQuick.Dialogs 1.2
-import Qt.labs.settings 1.0
+import TimeLog 1.0
 
 ApplicationWindow {
     id: main
-
-    property bool isConfirmationsEnabled: true
 
     title: qsTr("Hello World")
     width: 640
@@ -26,16 +24,10 @@ ApplicationWindow {
             MenuItem {
                 text: "Confirmations"
                 checkable: true
-                checked: main.isConfirmationsEnabled
-                onCheckedChanged: main.isConfirmationsEnabled = checked
+                checked: Settings.isConfirmationsEnabled
+                onCheckedChanged: Settings.isConfirmationsEnabled = checked
             }
         }
-    }
-
-    Settings {
-        property alias confirmationsEnabled: main.isConfirmationsEnabled
-
-        category: "main"
     }
 
     Connections {
@@ -56,6 +48,5 @@ ApplicationWindow {
 
     MainView {
         anchors.fill: parent
-        isConfirmationsEnabled: main.isConfirmationsEnabled
     }
 }
