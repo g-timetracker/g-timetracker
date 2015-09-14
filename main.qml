@@ -54,7 +54,7 @@ ApplicationWindow {
         standardButtons: StandardButton.Ok
     }
 
-    RecentView {
+    MainView {
         anchors.fill: parent
         isConfirmationsEnabled: main.isConfirmationsEnabled
     }

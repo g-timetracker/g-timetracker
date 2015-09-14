@@ -11,5 +11,6 @@
         <file>SearchView.qml</file>
         <file>DatePicker.qml</file>
         <file>CalendarPopup.qml</file>
+        <file>MainView.qml</file>
     </qresource>
 </RCC>
