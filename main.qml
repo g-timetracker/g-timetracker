@@ -15,6 +15,10 @@ ApplicationWindow {
         Menu {
             title: qsTr("&File")
             MenuItem {
+                text: "Search"
+                onTriggered: mainView.showSearch();
+            }
+            MenuItem {
                 text: qsTr("E&xit")
                 onTriggered: Qt.quit();
             }
@@ -47,6 +51,8 @@ ApplicationWindow {
     }
 
     MainView {
+        id: mainView
+
         anchors.fill: parent
     }
 }

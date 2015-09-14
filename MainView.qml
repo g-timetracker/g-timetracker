@@ -5,12 +5,28 @@ import QtQuick.Layouts 1.3
 Item {
     id: mainView
 
+    function showSearch() {
+        if (d.searchIndex === -1) {
+            d.searchIndex = tabModel.count
+            tabModel.append({ "text": "Search", "source": "SearchView.qml",
+                                "hasCloseButton": true })
+        }
+        tabBar.setCurrentIndex(d.searchIndex)
+    }
+
+    QtObject {
+        id: d
+
+        property int searchIndex: -1
+    }
+
     ListModel {
         id: tabModel
 
         ListElement {
             text: "Recent entries"
             source: "RecentView.qml"
+            hasCloseButton: false
         }
     }
 
@@ -28,6 +44,13 @@ Item {
                 model: tabModel
                 delegate: TabButton {
                     text: model.text
+
+                    ToolButton {
+                        anchors.right: parent.right
+                        visible: model.hasCloseButton
+                        text: "x"
+                        onClicked: tabModel.remove(model.index)
+                    }
                 }
             }
         }

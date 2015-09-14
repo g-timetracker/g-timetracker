@@ -68,6 +68,7 @@ Item {
 
             Layout.fillHeight: true
             Layout.fillWidth: true
+            clip: true
             model: timeLogModel
             delegate: TimeLogDelegate {
                 width: listView.width
