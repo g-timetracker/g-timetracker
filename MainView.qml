@@ -5,6 +5,15 @@ import QtQuick.Layouts 1.3
 Item {
     id: mainView
 
+    ListModel {
+        id: tabModel
+
+        ListElement {
+            text: "Recent entries"
+            source: "RecentView.qml"
+        }
+    }
+
     ColumnLayout {
         anchors.fill: parent
 
@@ -15,8 +24,11 @@ Item {
             Layout.fillWidth: true
             visible: count > 1
 
-            TabButton {
-                text: "Recent entries"
+            Repeater {
+                model: tabModel
+                delegate: TabButton {
+                    text: model.text
+                }
             }
         }
 
@@ -27,7 +39,12 @@ Item {
             Layout.fillWidth: true
             currentIndex: tabBar.currentIndex
 
-            RecentView { }
+            Repeater {
+                model: tabModel
+                delegate: Loader {
+                    source: model.source
+                }
+            }
         }
     }
 }
