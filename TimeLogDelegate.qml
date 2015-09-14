@@ -11,13 +11,6 @@ Item {
     property int durationTime
     property string comment
 
-    QtObject {
-        id: d
-
-        property int durationTime: (timeLogDelegate.durationTime === -1 ? Util.calcDuration(startTime, new Date())
-                                                                        : timeLogDelegate.durationTime)
-    }
-
     width: 400
     implicitHeight: elementsColumn.implicitHeight
 
@@ -59,7 +52,7 @@ Item {
                 Layout.alignment: Qt.AlignRight
                 Layout.fillWidth: true
                 horizontalAlignment: Text.AlignRight
-                text: "Duration: %1".arg(Util.durationText(d.durationTime))
+                text: "Duration: %1".arg(Util.durationText(timeLogDelegate.durationTime))
             }
         }
 

@@ -48,7 +48,11 @@ QVariant TimeLogModel::data(const QModelIndex &index, int role) const
     case StartTimeRole:
         return QVariant::fromValue(m_timeLog[index.row()].startTime);
     case DurationTimeRole:
-        return QVariant::fromValue(m_timeLog[index.row()].durationTime);
+        if (m_timeLog[index.row()].durationTime == -1) {
+            return QVariant::fromValue(m_timeLog[index.row()].startTime.secsTo(QDateTime::currentDateTime()));
+        } else {
+            return QVariant::fromValue(m_timeLog[index.row()].durationTime);
+        }
     case CategoryRole:
         return QVariant::fromValue(m_timeLog[index.row()].category);
     case CommentRole:
