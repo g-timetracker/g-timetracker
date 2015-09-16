@@ -2,6 +2,7 @@
 #include <QFile>
 #include <QDir>
 #include <QTextStream>
+#include <QCoreApplication>
 
 #include <QLoggingCategory>
 
@@ -10,37 +11,62 @@
 
 Q_LOGGING_CATEGORY(DATA_IMPORTER_CATEGORY, "DataImporter", QtInfoMsg)
 
-DataImporter::DataImporter() :
+DataImporter::DataImporter(QObject *parent) :
+    QObject(parent),
     m_db(TimeLogHistory::instance()),
     m_sep(";")
 {
-
+    connect(m_db, SIGNAL(error(QString)),
+            this, SLOT(historyError(QString)));
+    connect(m_db, SIGNAL(dataInserted(QVector<TimeLogEntry>)),
+            this, SLOT(historyDataInserted(QVector<TimeLogEntry>)));
 }
 
-DataImporter::~DataImporter()
+void DataImporter::import(const QString &path)
 {
-
-}
-
-bool DataImporter::import(const QString &path)
-{
-    if (!processPath(path)) {
-        return false;
-    }
-
-    for (int i = 0; i < m_fileList.size(); i++) {
-        qCInfo(DATA_IMPORTER_CATEGORY) << QString("Importing file %1 of %2").arg(i).arg(m_fileList.size());
-        if (!importFile(m_fileList.at(i))) {
-            return false;
-        }
-    }
-
-    return true;
+    QMetaObject::invokeMethod(this, "startImport", Qt::QueuedConnection, Q_ARG(QString, path));
 }
 
 void DataImporter::setSeparator(const QString &sep)
 {
     m_sep = sep;
+}
+
+void DataImporter::startImport(const QString &path)
+{
+    if (!processPath(path)) {
+        QCoreApplication::exit(EXIT_FAILURE);
+        return;
+    }
+
+    if (m_fileList.isEmpty()) {
+        qCInfo(DATA_IMPORTER_CATEGORY) << "No files to import";
+        QCoreApplication::quit();
+        return;
+    }
+
+    m_currentIndex = 0;
+    importCurrentFile();
+}
+
+void DataImporter::historyError(const QString &errorText)
+{
+    qCCritical(DATA_IMPORTER_CATEGORY) << "Failed to import file" << m_fileList.first() << errorText;
+    QCoreApplication::exit(EXIT_FAILURE);
+}
+
+void DataImporter::historyDataInserted(QVector<TimeLogEntry> data)
+{
+    Q_UNUSED(data)
+
+    qCInfo(DATA_IMPORTER_CATEGORY) << "Successfully imported file" << m_fileList.at(m_currentIndex);
+
+    ++m_currentIndex;
+    if (m_currentIndex == m_fileList.size()) {
+        QCoreApplication::quit();
+    } else {
+        importCurrentFile();
+    }
 }
 
 bool DataImporter::processPath(const QString &path)
@@ -77,19 +103,22 @@ bool DataImporter::processDirectory(const QString &path)
     return true;
 }
 
-bool DataImporter::importFile(const QString &path) const
+void DataImporter::importCurrentFile()
+{
+    qCInfo(DATA_IMPORTER_CATEGORY) << QString("Importing file %1 of %2")
+                                      .arg(m_currentIndex).arg(m_fileList.size());
+    importFile(m_fileList.at(m_currentIndex));
+}
+
+void DataImporter::importFile(const QString &path)
 {
     QVector<TimeLogEntry> data = parseFile(path);
 
     if (data.size()) {
-        if (m_db->insert(data)) {
-            qCInfo(DATA_IMPORTER_CATEGORY) << "Successfully imported file" << path;
-        } else {
-            qCWarning(DATA_IMPORTER_CATEGORY) << "Failed to import file" << path;
-        }
+        m_db->insert(data);
+    } else {
+        historyDataInserted(data);
     }
-
-    return !data.isEmpty();
 }
 
 QVector<TimeLogEntry> DataImporter::parseFile(const QString &path) const
@@ -119,7 +148,7 @@ QVector<TimeLogEntry> DataImporter::parseFile(const QString &path) const
     }
 
     if (!result.size()) {
-        qCCritical(DATA_IMPORTER_CATEGORY) << "No data in file" << path;
+        qCWarning(DATA_IMPORTER_CATEGORY) << "No data in file" << path;
     }
 
     return result;

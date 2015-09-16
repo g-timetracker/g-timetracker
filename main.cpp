@@ -43,12 +43,6 @@ int main(int argc, char *argv[])
         return EXIT_FAILURE;
     }
 
-    if (parser.isSet(importOption)) {
-        DataImporter importer;
-        importer.setSeparator(parser.value(separatorOption));
-        return (importer.import(parser.value(importOption)) ? EXIT_SUCCESS : EXIT_FAILURE);
-    }
-
     qRegisterMetaType<TimeLogData>();
     qRegisterMetaType<TimeLogEntry>();
     qRegisterMetaType<QVector<TimeLogEntry> >();
@@ -56,17 +50,23 @@ int main(int argc, char *argv[])
     qRegisterMetaType<TimeLogHistory::Fields>();
     qRegisterMetaType<QVector<TimeLogHistory::Fields> >();
 
-    qmlRegisterType<TimeLogModel>("TimeLog", 1, 0, "TimeLogModel");
-    qmlRegisterType<TimeLogRecentModel>("TimeLog", 1, 0, "TimeLogRecentModel");
-    qmlRegisterType<TimeLogSearchModel>("TimeLog", 1, 0, "TimeLogSearchModel");
-    qmlRegisterType<ReverseProxyModel>("TimeLog", 1, 0, "ReverseProxyModel");
-    qmlRegisterSingletonType(QUrl("qrc:/Settings.qml"), "TimeLog", 1, 0, "Settings");
-
     TimeLogHistory::instance()->madeAsync();
 
-    QQmlApplicationEngine engine;
-    engine.rootContext()->setContextProperty("TimeLog", TimeLog::instance());
-    engine.load(QUrl(QStringLiteral("qrc:/main.qml")));
+    if (parser.isSet(importOption)) {
+        DataImporter importer;
+        importer.setSeparator(parser.value(separatorOption));
+        importer.import(parser.value(importOption));
+        return app.exec();
+    } else {
+        qmlRegisterType<TimeLogModel>("TimeLog", 1, 0, "TimeLogModel");
+        qmlRegisterType<TimeLogRecentModel>("TimeLog", 1, 0, "TimeLogRecentModel");
+        qmlRegisterType<TimeLogSearchModel>("TimeLog", 1, 0, "TimeLogSearchModel");
+        qmlRegisterType<ReverseProxyModel>("TimeLog", 1, 0, "ReverseProxyModel");
+        qmlRegisterSingletonType(QUrl("qrc:/Settings.qml"), "TimeLog", 1, 0, "Settings");
 
-    return app.exec();
+        QQmlApplicationEngine engine;
+        engine.rootContext()->setContextProperty("TimeLog", TimeLog::instance());
+        engine.load(QUrl(QStringLiteral("qrc:/main.qml")));
+        return app.exec();
+    }
 }

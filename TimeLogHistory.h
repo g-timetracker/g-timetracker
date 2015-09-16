@@ -37,7 +37,7 @@ public:
 
 public slots:
     void insert(const TimeLogEntry &data);
-    bool insert(const QVector<TimeLogEntry> &data);
+    void insert(const QVector<TimeLogEntry> &data);
     void remove(const TimeLogEntry &data);
     void edit(const TimeLogEntry &data, TimeLogHistory::Fields fields);
 
@@ -51,6 +51,7 @@ signals:
     void error(const QString &errorText) const;
     void dataAvailable(QVector<TimeLogEntry> data, QDateTime until) const;
     void dataUpdated(QVector<TimeLogEntry> data, QVector<TimeLogHistory::Fields>) const;
+    void dataInserted(QVector<TimeLogEntry> data) const;
 
 private slots:
     void workerSizeChanged(qlonglong size);

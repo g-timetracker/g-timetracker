@@ -20,8 +20,8 @@ public:
     QSet<QString> categories() const;
 
 public slots:
-    bool insert(const TimeLogEntry &data);
-    bool insert(const QVector<TimeLogEntry> &data);
+    void insert(const TimeLogEntry &data);
+    void insert(const QVector<TimeLogEntry> &data);
     void remove(const TimeLogEntry &data);
     void edit(const TimeLogEntry &data, TimeLogHistory::Fields fields);
 
@@ -35,6 +35,7 @@ signals:
     void error(const QString &errorText) const;
     void dataAvailable(QVector<TimeLogEntry> data, QDateTime until) const;
     void dataUpdated(QVector<TimeLogEntry> data, QVector<TimeLogHistory::Fields> fields) const;
+    void dataInserted(QVector<TimeLogEntry> data) const;
 
     void sizeChanged(qlonglong size) const;
     void categoriesChanged(QSet<QString> categories) const;
@@ -49,6 +50,7 @@ private:
     void setSize(qlonglong size);
     void addToCategories(QString category);
 
+    bool insertData(const TimeLogEntry &data);
     QVector<TimeLogEntry> getHistory(QSqlQuery &query) const;
     bool notifyUpdates(const QString &queryString, const QVector<QDateTime> &values) const;
     bool updateSize();

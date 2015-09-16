@@ -66,66 +66,42 @@ QSet<QString> TimeLogHistoryWorker::categories() const
     return m_categories;
 }
 
-bool TimeLogHistoryWorker::insert(const TimeLogEntry &data)
+void TimeLogHistoryWorker::insert(const TimeLogEntry &data)
 {
-    Q_ASSERT(data.isValid());
-
     if (!m_isInitialized) {
         qCCritical(HISTORY_WORKER_CATEGORY) << "db is not initialized";
-        return false;
+        return;
     }
 
-    QSqlDatabase db = QSqlDatabase::database("timelog");
-    QSqlQuery query(db);
-    QString queryString("INSERT INTO timelog (uuid, start, category, comment, mtime)"
-                        " VALUES (?,?,?,?,strftime('%s','now'));");
-    if (!query.prepare(queryString)) {
-        qCCritical(HISTORY_WORKER_CATEGORY) << "Fail to prepare query:" << query.lastError().text()
-                                            << query.lastQuery();
-        emit error(query.lastError().text());
-        return false;
-    }
-    query.addBindValue(data.uuid.toRfc4122());
-    query.addBindValue(data.startTime.toTime_t());
-    query.addBindValue(data.category);
-    query.addBindValue(data.comment);
-
-    if (!query.exec()) {
-        qCCritical(HISTORY_WORKER_CATEGORY) << "Fail to execute query:" << query.lastError().text()
-                                            << query.executedQuery() << query.boundValues();
-        emit error(query.lastError().text());
-        return false;
+    if (insertData(data)) {
+        emit dataInserted(QVector<TimeLogEntry>() << data);
     }
 
-    setSize(m_size + query.numRowsAffected());
-    addToCategories(data.category);
-
-    queryString = "SELECT uuid, start, category, comment, duration FROM timelog"
-                  " WHERE start <= ? ORDER BY start DESC LIMIT 2";
-    if (!notifyUpdates(queryString, QVector<QDateTime>() << data.startTime)) {
-        return false;
-    }
-
-    return true;
+    return;
 }
 
-bool TimeLogHistoryWorker::insert(const QVector<TimeLogEntry> &data)
+void TimeLogHistoryWorker::insert(const QVector<TimeLogEntry> &data)
 {
+    if (!m_isInitialized) {
+        qCCritical(HISTORY_WORKER_CATEGORY) << "db is not initialized";
+        return;
+    }
+
     QSqlDatabase db = QSqlDatabase::database("timelog");
     if (!db.transaction()) {
         qCCritical(HISTORY_WORKER_CATEGORY) << "Fail to start transaction:" << db.lastError().text();
         emit error(db.lastError().text());
-        return false;
+        return;
     }
 
     foreach (const TimeLogEntry &entry, data) {
-        if (!insert(entry)) {
+        if (!insertData(entry)) {
             if (!db.rollback()) {
                 qCCritical(HISTORY_WORKER_CATEGORY) << "Fail to rollback transaction:" << db.lastError().text();
                 emit error(db.lastError().text());
             }
 
-            return false;
+            return;
         }
     }
 
@@ -136,10 +112,10 @@ bool TimeLogHistoryWorker::insert(const QVector<TimeLogEntry> &data)
             qCCritical(HISTORY_WORKER_CATEGORY) << "Fail to rollback transaction:" << db.lastError().text();
             emit error(db.lastError().text());
         }
-        return false;
+        return;
     }
 
-    return true;
+    emit dataInserted(data);
 }
 
 void TimeLogHistoryWorker::remove(const TimeLogEntry &data)
@@ -454,6 +430,44 @@ void TimeLogHistoryWorker::addToCategories(QString category)
     m_categories.insert(category);
 
     emit categoriesChanged(m_categories);
+}
+
+bool TimeLogHistoryWorker::insertData(const TimeLogEntry &data)
+{
+    Q_ASSERT(data.isValid());
+
+    QSqlDatabase db = QSqlDatabase::database("timelog");
+    QSqlQuery query(db);
+    QString queryString("INSERT INTO timelog (uuid, start, category, comment, mtime)"
+                        " VALUES (?,?,?,?,strftime('%s','now'));");
+    if (!query.prepare(queryString)) {
+        qCCritical(HISTORY_WORKER_CATEGORY) << "Fail to prepare query:" << query.lastError().text()
+                                            << query.lastQuery();
+        emit error(query.lastError().text());
+        return false;
+    }
+    query.addBindValue(data.uuid.toRfc4122());
+    query.addBindValue(data.startTime.toTime_t());
+    query.addBindValue(data.category);
+    query.addBindValue(data.comment);
+
+    if (!query.exec()) {
+        qCCritical(HISTORY_WORKER_CATEGORY) << "Fail to execute query:" << query.lastError().text()
+                                            << query.executedQuery() << query.boundValues();
+        emit error(query.lastError().text());
+        return false;
+    }
+
+    setSize(m_size + query.numRowsAffected());
+    addToCategories(data.category);
+
+    queryString = "SELECT uuid, start, category, comment, duration FROM timelog"
+                  " WHERE start <= ? ORDER BY start DESC LIMIT 2";
+    if (!notifyUpdates(queryString, QVector<QDateTime>() << data.startTime)) {
+        return false;
+    }
+
+    return true;
 }
 
 QVector<TimeLogEntry> TimeLogHistoryWorker::getHistory(QSqlQuery &query) const

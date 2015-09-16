@@ -22,6 +22,8 @@ TimeLogHistory::TimeLogHistory(QObject *parent) :
             this, SIGNAL(dataAvailable(QVector<TimeLogEntry>,QDateTime)));
     connect(m_worker, SIGNAL(dataUpdated(QVector<TimeLogEntry>,QVector<TimeLogHistory::Fields>)),
             this, SIGNAL(dataUpdated(QVector<TimeLogEntry>,QVector<TimeLogHistory::Fields>)));
+    connect(m_worker, SIGNAL(dataInserted(QVector<TimeLogEntry>)),
+            this, SIGNAL(dataInserted(QVector<TimeLogEntry>)));
     connect(m_worker, SIGNAL(sizeChanged(qlonglong)),
             this, SLOT(workerSizeChanged(qlonglong)));
     connect(m_worker, SIGNAL(categoriesChanged(QSet<QString>)),
@@ -77,13 +79,10 @@ void TimeLogHistory::insert(const TimeLogEntry &data)
     QMetaObject::invokeMethod(m_worker, "insert", Qt::AutoConnection, Q_ARG(TimeLogEntry, data));
 }
 
-bool TimeLogHistory::insert(const QVector<TimeLogEntry> &data)
+void TimeLogHistory::insert(const QVector<TimeLogEntry> &data)
 {
-    bool result;
-    QMetaObject::invokeMethod(m_worker, "insert", Qt::AutoConnection, Q_RETURN_ARG(bool, result),
+    QMetaObject::invokeMethod(m_worker, "insert", Qt::AutoConnection,
                               Q_ARG(QVector<TimeLogEntry>, data));
-
-    return result;
 }
 
 void TimeLogHistory::remove(const TimeLogEntry &data)
