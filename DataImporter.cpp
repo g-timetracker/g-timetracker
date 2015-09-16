@@ -22,9 +22,20 @@ DataImporter::~DataImporter()
 
 }
 
-bool DataImporter::import(const QString &path) const
+bool DataImporter::import(const QString &path)
 {
-    return processPath(path);
+    if (!processPath(path)) {
+        return false;
+    }
+
+    for (int i = 0; i < m_fileList.size(); i++) {
+        qCInfo(DATA_IMPORTER_CATEGORY) << QString("Importing file %1 of %2").arg(i).arg(m_fileList.size());
+        if (!importFile(m_fileList.at(i))) {
+            return false;
+        }
+    }
+
+    return true;
 }
 
 void DataImporter::setSeparator(const QString &sep)
@@ -32,7 +43,7 @@ void DataImporter::setSeparator(const QString &sep)
     m_sep = sep;
 }
 
-bool DataImporter::processPath(const QString &path) const
+bool DataImporter::processPath(const QString &path)
 {
     QFileInfo fileInfo(path);
     if (!fileInfo.exists()) {
@@ -41,7 +52,8 @@ bool DataImporter::processPath(const QString &path) const
     }
 
     if (fileInfo.isFile()) {
-        return processFile(path);
+        m_fileList.append(path);
+        return true;
     } else if (fileInfo.isDir()) {
         return processDirectory(path);
     } else {
@@ -50,7 +62,7 @@ bool DataImporter::processPath(const QString &path) const
     }
 }
 
-bool DataImporter::processDirectory(const QString &path) const
+bool DataImporter::processDirectory(const QString &path)
 {
     QDir dir(path);
 
@@ -65,7 +77,7 @@ bool DataImporter::processDirectory(const QString &path) const
     return true;
 }
 
-bool DataImporter::processFile(const QString &path) const
+bool DataImporter::importFile(const QString &path) const
 {
     QVector<TimeLogEntry> data = parseFile(path);
 
