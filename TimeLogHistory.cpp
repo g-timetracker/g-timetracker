@@ -46,24 +46,13 @@ TimeLogHistory *TimeLogHistory::instance()
 
 bool TimeLogHistory::init()
 {
-    return m_worker->init();
-}
-
-void TimeLogHistory::madeAsync()
-{
-    if (m_worker->thread() != thread()) {
-        return;
+    if (!m_worker->init()) {
+        return false;
     }
 
-    m_thread->setParent(0);
-    m_worker->setParent(0);
+    makeAsync();
 
-    connect (m_thread, SIGNAL(finished()), m_worker, SLOT(deleteLater()));
-    connect (m_worker, SIGNAL(destroyed()), m_thread, SLOT(deleteLater()));
-
-    m_worker->moveToThread(m_thread);
-
-    m_thread->start();
+    return true;
 }
 
 qlonglong TimeLogHistory::size() const
@@ -124,4 +113,21 @@ void TimeLogHistory::workerSizeChanged(qlonglong size)
 void TimeLogHistory::workerCategoriesChanged(QSet<QString> categories)
 {
     m_categories.swap(categories);
+}
+
+void TimeLogHistory::makeAsync()
+{
+    if (m_worker->thread() != thread()) {
+        return;
+    }
+
+    m_thread->setParent(0);
+    m_worker->setParent(0);
+
+    connect (m_thread, SIGNAL(finished()), m_worker, SLOT(deleteLater()));
+    connect (m_worker, SIGNAL(destroyed()), m_thread, SLOT(deleteLater()));
+
+    m_worker->moveToThread(m_thread);
+
+    m_thread->start();
 }

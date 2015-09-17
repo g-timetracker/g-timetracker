@@ -30,7 +30,6 @@ public:
     static TimeLogHistory *instance();
 
     bool init();
-    void madeAsync();
 
     qlonglong size() const;
     QSet<QString> categories() const;
@@ -61,6 +60,8 @@ private slots:
     void workerCategoriesChanged(QSet<QString> categories);
 
 private:
+    void madeAsync();
+
     QThread *m_thread;
     TimeLogHistoryWorker *m_worker;
 

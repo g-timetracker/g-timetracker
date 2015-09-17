@@ -54,8 +54,6 @@ int main(int argc, char *argv[])
     qRegisterMetaType<TimeLogHistory::Fields>();
     qRegisterMetaType<QVector<TimeLogHistory::Fields> >();
 
-    TimeLogHistory::instance()->madeAsync();
-
     if (parser.isSet(importOption)) {
         DataImporter importer;
         importer.setSeparator(parser.value(separatorOption));
