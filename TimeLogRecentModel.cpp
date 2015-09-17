@@ -33,6 +33,10 @@ void TimeLogRecentModel::fetchMore(const QModelIndex &parent)
 
 void TimeLogRecentModel::processHistoryData(QVector<TimeLogEntry> data)
 {
+    if (!data.size()) {
+        return;
+    }
+
     int index = 0;
 
     if (!m_timeLog.isEmpty() && !startTimeCompare(data.last(), m_timeLog.first())) {
@@ -79,5 +83,5 @@ void TimeLogRecentModel::getMoreHistory()
         return;
     }
     m_requestedData.insert(until);
-    m_history->getHistory(defaultPopulateCount, until);
+    m_history->getHistoryBefore(defaultPopulateCount, until);
 }

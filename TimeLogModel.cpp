@@ -245,6 +245,10 @@ void TimeLogModel::clear()
 
 void TimeLogModel::processHistoryData(QVector<TimeLogEntry> data)
 {
+    if (!data.size()) {
+        return;
+    }
+
     int index = m_timeLog.size();
 
     beginInsertRows(QModelIndex(), index, index + data.size() - 1);

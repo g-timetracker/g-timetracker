@@ -13,7 +13,7 @@ class DataImporter: public QObject
 public:
     explicit DataImporter(QObject *parent = 0);
 
-    void import(const QString &path);
+    void importData(const QString &path);
     void setSeparator(const QString &sep);
 
 private slots:

@@ -41,14 +41,17 @@ public slots:
     void remove(const TimeLogEntry &data);
     void edit(const TimeLogEntry &data, TimeLogHistory::Fields fields);
 
-    void getHistory(const QDateTime &begin = QDateTime::fromTime_t(0),
-                    const QDateTime &end = QDateTime::currentDateTime(),
-                    const QString &category = QString()) const;
-    void getHistory(const uint limit,
-                    const QDateTime &until = QDateTime::currentDateTime()) const;
+    void getHistoryBetween(const QDateTime &begin = QDateTime::fromTime_t(0),
+                           const QDateTime &end = QDateTime::currentDateTime(),
+                           const QString &category = QString()) const;
+    void getHistoryAfter(const uint limit,
+                         const QDateTime &from = QDateTime::fromTime_t(0)) const;
+    void getHistoryBefore(const uint limit,
+                          const QDateTime &until = QDateTime::currentDateTime()) const;
 
 signals:
     void error(const QString &errorText) const;
+    void dataAvailable(QDateTime from, QVector<TimeLogEntry> data) const;
     void dataAvailable(QVector<TimeLogEntry> data, QDateTime until) const;
     void dataUpdated(QVector<TimeLogEntry> data, QVector<TimeLogHistory::Fields>) const;
     void dataInserted(QVector<TimeLogEntry> data) const;

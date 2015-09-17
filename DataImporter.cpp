@@ -22,7 +22,7 @@ DataImporter::DataImporter(QObject *parent) :
             this, SLOT(historyDataInserted(QVector<TimeLogEntry>)));
 }
 
-void DataImporter::import(const QString &path)
+void DataImporter::importData(const QString &path)
 {
     QMetaObject::invokeMethod(this, "startImport", Qt::QueuedConnection, Q_ARG(QString, path));
 }

@@ -44,7 +44,7 @@ signals:
 
 private slots:
     void historyError(const QString &errorText);
-    void historyDataAvailable(QVector<TimeLogEntry> data, QDateTime limit);
+    void historyDataAvailable(QVector<TimeLogEntry> data, QDateTime until);
     void historyDataUpdated(QVector<TimeLogEntry> data, QVector<TimeLogHistory::Fields> fields);
 
 protected:

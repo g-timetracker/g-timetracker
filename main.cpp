@@ -12,6 +12,7 @@
 #include "ReverseProxyModel.h"
 #include "TimeLog.h"
 #include "DataImporter.h"
+#include "DataExporter.h"
 
 Q_LOGGING_CATEGORY(MAIN_CATEGORY, "main", QtInfoMsg)
 
@@ -33,7 +34,10 @@ int main(int argc, char *argv[])
     QCommandLineOption importOption(QStringList() << "i" << "import", "Import a CSV file(s)",
                                     "file or directory");
     parser.addOption(importOption);
-    QCommandLineOption separatorOption("separator", "Separator for import", "string", ";");
+    QCommandLineOption exportOption(QStringList() << "e" << "export", "Export to a CSV file(s)",
+                                    "target directory");
+    parser.addOption(exportOption);
+    QCommandLineOption separatorOption("separator", "Separator for import/export", "string", ";");
     parser.addOption(separatorOption);
 
     parser.process(app);
@@ -55,7 +59,12 @@ int main(int argc, char *argv[])
     if (parser.isSet(importOption)) {
         DataImporter importer;
         importer.setSeparator(parser.value(separatorOption));
-        importer.import(parser.value(importOption));
+        importer.importData(parser.value(importOption));
+        return app.exec();
+    } else if (parser.isSet(exportOption)) {
+        DataExporter exporter;
+        exporter.setSeparator(parser.value(separatorOption));
+        exporter.exportData(parser.value(exportOption));
         return app.exec();
     } else {
         qmlRegisterType<TimeLogModel>("TimeLog", 1, 0, "TimeLogModel");

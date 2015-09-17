@@ -17,5 +17,5 @@ void TimeLogSearchModel::updateData()
 {
     clear();
     m_requestedData.insert(m_end);
-    m_history->getHistory(m_begin, m_end, m_category);
+    m_history->getHistoryBetween(m_begin, m_end, m_category);
 }

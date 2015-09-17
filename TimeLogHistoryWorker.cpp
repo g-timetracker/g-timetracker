@@ -248,7 +248,7 @@ void TimeLogHistoryWorker::edit(const TimeLogEntry &data, TimeLogHistory::Fields
     }
 }
 
-void TimeLogHistoryWorker::getHistory(const QDateTime &begin, const QDateTime &end, const QString &category) const
+void TimeLogHistoryWorker::getHistoryBetween(const QDateTime &begin, const QDateTime &end, const QString &category) const
 {
     if (!m_isInitialized) {
         qCCritical(HISTORY_WORKER_CATEGORY) << "db is not initialized";
@@ -272,13 +272,33 @@ void TimeLogHistoryWorker::getHistory(const QDateTime &begin, const QDateTime &e
         query.addBindValue(category);
     }
 
-    QVector<TimeLogEntry> result = getHistory(query);
-    if (!result.isEmpty()) {
-        emit dataAvailable(result, end);
-    }
+    emit dataAvailable(getHistory(query), end);
 }
 
-void TimeLogHistoryWorker::getHistory(const uint limit, const QDateTime &until) const
+void TimeLogHistoryWorker::getHistoryAfter(const uint limit, const QDateTime &from) const
+{
+    if (!m_isInitialized) {
+        qCCritical(HISTORY_WORKER_CATEGORY) << "db is not initialized";
+        return;
+    }
+
+    QSqlDatabase db = QSqlDatabase::database("timelog");
+    QSqlQuery query(db);
+    QString queryString("SELECT uuid, start, category, comment, duration FROM timelog"
+                        " WHERE start > ? ORDER BY start ASC LIMIT ?");
+    if (!query.prepare(queryString)) {
+        qCCritical(HISTORY_WORKER_CATEGORY) << "Fail to prepare query:" << query.lastError().text()
+                                            << query.lastQuery();
+        emit error(query.lastError().text());
+        return;
+    }
+    query.addBindValue(from.toTime_t());
+    query.addBindValue(limit);
+
+    emit dataAvailable(from, getHistory(query));
+}
+
+void TimeLogHistoryWorker::getHistoryBefore(const uint limit, const QDateTime &until) const
 {
     if (!m_isInitialized) {
         qCCritical(HISTORY_WORKER_CATEGORY) << "db is not initialized";
@@ -301,8 +321,8 @@ void TimeLogHistoryWorker::getHistory(const uint limit, const QDateTime &until) 
     QVector<TimeLogEntry> result = getHistory(query);
     if (!result.isEmpty()) {
         std::reverse(result.begin(), result.end());
-        emit dataAvailable(result, until);
     }
+    emit dataAvailable(result, until);
 }
 
 bool TimeLogHistoryWorker::setupTable()
