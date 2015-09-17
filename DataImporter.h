@@ -1,24 +1,20 @@
 #ifndef DATAIMPORTER_H
 #define DATAIMPORTER_H
 
-#include <QObject>
-
+#include "AbstractDataInOut.h"
 #include "TimeLogEntry.h"
 
-class TimeLogHistory;
-
-class DataImporter: public QObject
+class DataImporter: public AbstractDataInOut
 {
     Q_OBJECT
 public:
     explicit DataImporter(QObject *parent = 0);
 
-    void importData(const QString &path);
-    void setSeparator(const QString &sep);
+protected slots:
+    virtual void startIO(const QString &path);
+    virtual void historyError(const QString &errorText);
 
 private slots:
-    void startImport(const QString &path);
-    void historyError(const QString &errorText);
     void historyDataInserted(QVector<TimeLogEntry> data);
 
 private:
@@ -29,8 +25,6 @@ private:
     QVector<TimeLogEntry> parseFile(const QString &path) const;
     TimeLogEntry parseLine(const QString &line) const;
 
-    TimeLogHistory *m_db;
-    QString m_sep;
     QStringList m_fileList;
     int m_currentIndex;
 };

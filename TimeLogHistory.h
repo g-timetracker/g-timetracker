@@ -60,7 +60,7 @@ private slots:
     void workerCategoriesChanged(QSet<QString> categories);
 
 private:
-    void madeAsync();
+    void makeAsync();
 
     QThread *m_thread;
     TimeLogHistoryWorker *m_worker;

@@ -57,12 +57,12 @@ int main(int argc, char *argv[])
     if (parser.isSet(importOption)) {
         DataImporter importer;
         importer.setSeparator(parser.value(separatorOption));
-        importer.importData(parser.value(importOption));
+        importer.start(parser.value(importOption));
         return app.exec();
     } else if (parser.isSet(exportOption)) {
         DataExporter exporter;
         exporter.setSeparator(parser.value(separatorOption));
-        exporter.exportData(parser.value(exportOption));
+        exporter.start(parser.value(exportOption));
         return app.exec();
     } else {
         qmlRegisterType<TimeLogModel>("TimeLog", 1, 0, "TimeLogModel");
