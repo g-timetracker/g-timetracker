@@ -11,8 +11,12 @@ class QStateMachine;
 class DataSyncer : public AbstractDataInOut
 {
     Q_OBJECT
-public:
+protected:
     explicit DataSyncer(QObject *parent = 0);
+
+public:
+    static DataSyncer *instance();
+    virtual ~DataSyncer();
 
 signals:
     void error(const QString &errorText) const;

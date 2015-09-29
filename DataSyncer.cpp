@@ -8,6 +8,7 @@
 #include <QLoggingCategory>
 
 #include "DataSyncer.h"
+#include "DataSyncer_p.h"
 #include "TimeLogHistory.h"
 
 #define fail(message) \
@@ -17,6 +18,8 @@
     } while (0)
 
 Q_LOGGING_CATEGORY(DATA_SYNC_CATEGORY, "DataSync", QtInfoMsg)
+
+Q_GLOBAL_STATIC(DataSyncerSingleton, dataSyncer)
 
 const qint32 syncFileFormatVersion = 1;
 const qint32 syncFileStreamVersion = QDataStream::Qt_5_6;
@@ -59,6 +62,16 @@ DataSyncer::DataSyncer(QObject *parent) :
             this, SLOT(syncDataSynced(QVector<TimeLogSyncData>,QVector<TimeLogSyncData>)));
 }
 
+DataSyncer *DataSyncer::instance()
+{
+    return static_cast<DataSyncer*>(dataSyncer);
+}
+
+DataSyncer::~DataSyncer()
+{
+
+}
+
 void DataSyncer::startIO(const QString &path)
 {
     if (m_sm->isRunning()) {
@@ -81,10 +94,6 @@ void DataSyncer::syncDataAvailable(QVector<TimeLogSyncData> data, QDateTime unti
 {
     Q_UNUSED(until)
 
-    if (!m_sm->isRunning()) {   // HACK: all instances receive signal from db
-        return;
-    }
-
     if (!data.isEmpty()) {
         if (!exportData(data)) {
             return;
@@ -100,10 +109,6 @@ void DataSyncer::syncDataSynced(QVector<TimeLogSyncData> updatedData, QVector<Ti
 {
     Q_UNUSED(updatedData)
     Q_UNUSED(removedData)
-
-    if (!m_sm->isRunning()) {   // HACK: all instances receive signal from db
-        return;
-    }
 
     qCInfo(DATA_SYNC_CATEGORY) << "Successfully imported file" << m_fileList.at(m_currentIndex);
 

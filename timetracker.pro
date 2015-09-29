@@ -42,4 +42,5 @@ HEADERS += \
     DataExporter.h \
     AbstractDataInOut.h \
     TimeLogSyncData.h \
-    DataSyncer.h
+    DataSyncer.h \
+    DataSyncer_p.h
