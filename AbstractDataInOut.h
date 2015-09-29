@@ -16,7 +16,7 @@ public:
     explicit AbstractDataInOut(QObject *parent = 0);
 
     void setSeparator(const QString &sep);
-    void start(const QString &path);
+    Q_INVOKABLE void start(const QString &path);
 
     static QString formatFileError(const QString &message, const QFile &file);
 

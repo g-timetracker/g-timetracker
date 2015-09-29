@@ -19,6 +19,10 @@ ApplicationWindow {
                 onTriggered: mainView.showSearch();
             }
             MenuItem {
+                text: "Sync"
+                onTriggered: DataSyncer.start(Settings.syncPath);
+            }
+            MenuItem {
                 text: qsTr("E&xit")
                 onTriggered: Qt.quit();
             }
@@ -31,6 +35,10 @@ ApplicationWindow {
                 checked: Settings.isConfirmationsEnabled
                 onCheckedChanged: Settings.isConfirmationsEnabled = checked
             }
+            MenuItem {
+                text: "Sync path"
+                onTriggered: syncPathDialog.open()
+            }
         }
     }
 
@@ -42,12 +50,41 @@ ApplicationWindow {
         }
     }
 
+    Connections {
+        target: DataSyncer
+        onError: {
+            errorDialog.text = errorText
+            errorDialog.open()
+        }
+        onSynced: {
+            messageDialog.text = "Sync complete"
+            messageDialog.open()
+        }
+    }
+
+    MessageDialog {
+        id: messageDialog
+
+        title: "Message"
+        icon: StandardIcon.Information
+        standardButtons: StandardButton.Ok
+    }
+
     MessageDialog {
         id: errorDialog
 
         title: "Error"
         icon: StandardIcon.Critical
         standardButtons: StandardButton.Ok
+    }
+
+    FileDialog {
+        id: syncPathDialog
+
+        title: "Select folder for sync"
+        selectFolder: true
+
+        onAccepted: Settings.syncPath = folder
     }
 
     MainView {

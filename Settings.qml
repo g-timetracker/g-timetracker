@@ -6,9 +6,11 @@ Item {
     id: settings
 
     property bool isConfirmationsEnabled: true
+    property url syncPath
 
     Settings {
         property alias confirmationsEnabled: settings.isConfirmationsEnabled
+        property alias syncPath: settings.syncPath
 
         category: "main"
     }

@@ -1,5 +1,6 @@
 #include <QCoreApplication>
 #include <QStandardPaths>
+#include <QUrl>
 #include <QDataStream>
 #include <QRegularExpression>
 #include <QStateMachine>
@@ -54,7 +55,6 @@ DataSyncer::DataSyncer(QObject *parent) :
     connect(this, SIGNAL(started()), SLOT(startExport()), Qt::QueuedConnection);
     connect(this, SIGNAL(exported()), SLOT(syncFolders()), Qt::QueuedConnection);
     connect(this, SIGNAL(foldersSynced()), SLOT(startImport()), Qt::QueuedConnection);
-    connect(this, SIGNAL(synced()), QCoreApplication::instance(), SLOT(quit()));
 
     connect(m_db, SIGNAL(syncDataAvailable(QVector<TimeLogSyncData>,QDateTime)),
             this, SLOT(syncDataAvailable(QVector<TimeLogSyncData>,QDateTime)));
@@ -77,9 +77,12 @@ void DataSyncer::startIO(const QString &path)
     if (m_sm->isRunning()) {
         qCWarning(DATA_SYNC_CATEGORY) << "Sync already running";
         return;
+    } else if (path.isEmpty()) {
+        fail("Empty sync path");
+        return;
     }
 
-    m_syncPath = path;
+    m_syncPath = QUrl(path).path(); // FIXME: use QUrl as path function parameter
     qCInfo(DATA_SYNC_CATEGORY) << "Syncing with folder" << m_syncPath;
 
     emit started(QPrivateSignal());

@@ -13,6 +13,7 @@
 #include "TimeLog.h"
 #include "DataImporter.h"
 #include "DataExporter.h"
+#include "DataSyncer.h"
 
 Q_LOGGING_CATEGORY(MAIN_CATEGORY, "main", QtInfoMsg)
 
@@ -74,6 +75,7 @@ int main(int argc, char *argv[])
 
         QQmlApplicationEngine engine;
         engine.rootContext()->setContextProperty("TimeLog", TimeLog::instance());
+        engine.rootContext()->setContextProperty("DataSyncer", DataSyncer::instance());
         engine.load(QUrl(QStringLiteral("qrc:/main.qml")));
         return app.exec();
     }
