@@ -8,6 +8,12 @@
 #include "DataSyncer.h"
 #include "TimeLogHistory.h"
 
+#define fail(message) \
+    do {    \
+        qCCritical(DATA_SYNC_CATEGORY) << message;    \
+        emit error(message);;   \
+    } while (0)
+
 Q_LOGGING_CATEGORY(DATA_SYNC_CATEGORY, "DataSync", QtInfoMsg)
 
 const qint32 syncFileFormatVersion = 1;
@@ -20,6 +26,13 @@ const QRegularExpression fileNameRegexp(fileNamePattern);
 DataSyncer::DataSyncer(QObject *parent) :
     AbstractDataInOut(parent)
 {
+    m_intPath = QString("%1/sync").arg(QStandardPaths::writableLocation(QStandardPaths::DataLocation));
+
+    connect(this, SIGNAL(started()), SLOT(startExport()));
+    connect(this, SIGNAL(exported()), SLOT(syncFolders()));
+    connect(this, SIGNAL(foldersSynced()), SLOT(startImport()));
+    connect(this, SIGNAL(synced()), QCoreApplication::instance(), SLOT(quit()));
+
     connect(m_db, SIGNAL(syncDataAvailable(QVector<TimeLogSyncData>,QDateTime)),
             this, SLOT(syncDataAvailable(QVector<TimeLogSyncData>,QDateTime)));
     connect(m_db, SIGNAL(dataSynced(QVector<TimeLogSyncData>,QVector<TimeLogSyncData>)),
@@ -28,12 +41,15 @@ DataSyncer::DataSyncer(QObject *parent) :
 
 void DataSyncer::startIO(const QString &path)
 {
-    startSync(path);
+    m_syncPath = path;
+    qCInfo(DATA_SYNC_CATEGORY) << "Syncing with folder" << m_syncPath;
+
+    emit started(QPrivateSignal());
 }
 
 void DataSyncer::historyError(const QString &errorText)
 {
-    qCCritical(DATA_SYNC_CATEGORY) << "Fail to get data from db:" << errorText;
+    fail(QString("Fail to get data from db: %1").arg(errorText));
 }
 
 void DataSyncer::syncDataAvailable(QVector<TimeLogSyncData> data, QDateTime until)
@@ -42,14 +58,13 @@ void DataSyncer::syncDataAvailable(QVector<TimeLogSyncData> data, QDateTime unti
 
     if (!data.isEmpty()) {
         if (!exportData(data)) {
-            QCoreApplication::exit(EXIT_FAILURE);
             return;
         }
     } else {
         qCInfo(DATA_SYNC_CATEGORY) << "No data to export";
     }
 
-    syncFolders(m_syncPath);
+    emit exported(QPrivateSignal());
 }
 
 void DataSyncer::syncDataSynced(QVector<TimeLogSyncData> updatedData, QVector<TimeLogSyncData> removedData)
@@ -61,37 +76,20 @@ void DataSyncer::syncDataSynced(QVector<TimeLogSyncData> updatedData, QVector<Ti
 
     ++m_currentIndex;
     if (m_currentIndex == m_fileList.size()) {
-        if (!copyFiles(m_dir.filePath("incoming"), m_dir.path(), m_inFiles, true)) {
-            QCoreApplication::exit(EXIT_FAILURE);
-        } else {
-            QCoreApplication::quit();
+        if (copyFiles(m_dir.filePath("incoming"), m_dir.path(), m_inFiles, true)) {
+            emit synced(QPrivateSignal());
         }
     } else {
         importCurrentFile();
     }
 }
 
-void DataSyncer::startSync(const QString &path)
+void DataSyncer::startImport()
 {
-    m_syncPath = path;
-
-    QString intPath(QString("%1/sync")
-                    .arg(QStandardPaths::writableLocation(QStandardPaths::DataLocation)));
-
-    startExport(intPath);
-}
-
-void DataSyncer::startImport(const QString &path)
-{
-    m_fileList.clear();
-    if (!buildFileList(path, m_fileList)) {
-        QCoreApplication::exit(EXIT_FAILURE);
-        return;
-    }
-
+    m_fileList = buildFileList(m_dir.filePath("incoming"));
     if (m_fileList.isEmpty()) {
         qCInfo(DATA_SYNC_CATEGORY) << "No files to import";
-        QCoreApplication::quit();
+        emit synced(QPrivateSignal());
         return;
     }
 
@@ -100,19 +98,14 @@ void DataSyncer::startImport(const QString &path)
     importCurrentFile();
 }
 
-void DataSyncer::startExport(const QString &path)
+void DataSyncer::startExport()
 {
-    if (!prepareDir(path, m_dir)) {
-        QCoreApplication::exit(EXIT_FAILURE);
+    if (!prepareDir(m_intPath, m_dir)) {
+        fail(QString("Fail to prepare directory %1").arg(m_intPath));
         return;
     }
 
-    QStringList fileList;
-    if (!buildFileList(path, fileList)) {
-        QCoreApplication::exit(EXIT_FAILURE);
-        return;
-    }
-
+    QStringList fileList = buildFileList(m_intPath);
     QString mTimeString;
     std::sort(fileList.begin(), fileList.end());
     for (QList<QString>::const_reverse_iterator it = fileList.crbegin(); it != fileList.crend(); it++) {
@@ -132,22 +125,21 @@ void DataSyncer::startExport(const QString &path)
     m_db->getSyncData(mFrom);
 }
 
-void DataSyncer::syncFolders(const QString &path)
+void DataSyncer::syncFolders()
 {
-    compareWithDir(path);
+    compareWithDir(m_syncPath);
 
     qCDebug(DATA_SYNC_CATEGORY) << "Out files:" << m_outFiles;
     qCDebug(DATA_SYNC_CATEGORY) << "In files:" << m_inFiles;
 
-    if (!copyFiles(m_dir.path(), path, m_outFiles, false)
-        || !copyFiles(path, m_dir.filePath("incoming"), m_inFiles, false)) {
-        QCoreApplication::exit(EXIT_FAILURE);
+    if (!copyFiles(m_dir.path(), m_syncPath, m_outFiles, false)
+        || !copyFiles(m_syncPath, m_dir.filePath("incoming"), m_inFiles, false)) {
         return;
     }
 
     qCInfo(DATA_SYNC_CATEGORY) << "Folders synced";
 
-    startImport(m_dir.filePath("incoming"));
+    emit foldersSynced(QPrivateSignal());
 }
 
 void DataSyncer::compareWithDir(const QString &path)
@@ -165,6 +157,7 @@ bool DataSyncer::copyFiles(const QString &from, const QString &to, const QSet<QS
     QDir sourceDir(from);
     QDir destinationDir;
     if (!prepareDir(to, destinationDir)) {
+        fail(QString("Fail to prepare directory %1").arg(to));
         return false;
     }
 
@@ -185,16 +178,16 @@ bool DataSyncer::copyFile(const QString &source, const QString &destination, boo
         qCInfo(DATA_SYNC_CATEGORY) << QString("File %1 already exists, removing")
                                       .arg(destinationFile.fileName());
         if (!destinationFile.remove()) {
-            qCCritical(DATA_SYNC_CATEGORY) << formatFileError("Fail to remove file", destinationFile);
+            fail(formatFileError("Fail to remove file", destinationFile));
             return false;
         }
     }
     if (!(isRemoveSource ? sourceFile.rename(destinationFile.fileName())
                          : sourceFile.copy(destinationFile.fileName()))) {
-        qCCritical(DATA_SYNC_CATEGORY) << formatFileError(QString("Fail to %1 file to %2 from")
-                                                          .arg(isRemoveSource ? "move" : "copy")
-                                                          .arg(destinationFile.fileName()),
-                                                          sourceFile);
+        fail(formatFileError(QString("Fail to %1 file to %2 from")
+                             .arg(isRemoveSource ? "move" : "copy")
+                             .arg(destinationFile.fileName()),
+                             sourceFile));
         return false;
     }
 
@@ -205,6 +198,7 @@ bool DataSyncer::exportData(const QVector<TimeLogSyncData> &data)
 {
     QDir exportDir;
     if (!prepareDir(m_dir.filePath("export"), exportDir)) {
+        fail(QString("Fail to prepare directory %1").arg(m_dir.filePath("export")));
         return false;
     }
 
@@ -213,12 +207,12 @@ bool DataSyncer::exportData(const QVector<TimeLogSyncData> &data)
     QString filePath = exportDir.filePath(fileName);
     QFile file(filePath);
     if (file.exists()) {
-        qCCritical(DATA_SYNC_CATEGORY) << "File already exists, overwriting" << filePath;
+        qCWarning(DATA_SYNC_CATEGORY) << "File already exists, overwriting" << filePath;
         return false;
     }
 
     if (!file.open(QIODevice::WriteOnly | QIODevice::Truncate)) {
-        qCCritical(DATA_SYNC_CATEGORY) << formatFileError("Fail to open file", file);
+        fail(formatFileError("Fail to open file", file));
         return false;
     }
 
@@ -236,7 +230,7 @@ bool DataSyncer::exportData(const QVector<TimeLogSyncData> &data)
     }
 
     if (stream.status() != QDataStream::Ok || file.error() != QFileDevice::NoError) {
-        qCCritical(DATA_SYNC_CATEGORY) << formatFileError("Error writing to file", file);
+        fail(formatFileError("Error writing to file", file));
         return false;
     }
 
@@ -263,7 +257,6 @@ void DataSyncer::importFile(const QString &path)
     QVector<TimeLogSyncData> updatedData, removedData;
 
     if (!parseFile(path, updatedData, removedData)) {
-        QCoreApplication::exit(EXIT_FAILURE);
         return;
     }
 
@@ -278,36 +271,36 @@ bool DataSyncer::parseFile(const QString &path, QVector<TimeLogSyncData> &update
 {
     QFile file(path);
     if (!file.exists()) {
-        qCCritical(DATA_SYNC_CATEGORY) << "File does not exists" << path;
+        fail(QString("File %1 does not exists").arg(path));
         return false;
     }
 
     if (!file.open(QIODevice::ReadOnly)) {
-        qCCritical(DATA_SYNC_CATEGORY) << formatFileError("Fail to open file", file);
+        fail(formatFileError("Fail to open file", file));
         return false;
     }
 
     QDataStream stream(&file);
     if (stream.atEnd()) {
-        qCCritical(DATA_SYNC_CATEGORY) << "Invalid file, no format version" << path;
+        fail(QString("Invalid file %1, no format version").arg(path));
         return false;
     }
     qint32 formatVersion;
     stream >> formatVersion;
     if (formatVersion != syncFileFormatVersion) {
-        qCCritical(DATA_SYNC_CATEGORY) << QString("File format version %1 instead of %2")
-                                          .arg(formatVersion).arg(syncFileFormatVersion);
+        fail(QString("File format version %1 instead of %2")
+             .arg(formatVersion).arg(syncFileFormatVersion));
         return false;
     }
     if (stream.atEnd()) {
-        qCCritical(DATA_SYNC_CATEGORY) << "Invalid file, no stream version" << path;
+        fail(QString("Invalid file %1, no stream version").arg(path));
         return false;
     }
     qint32 streamVersion;
     stream >> streamVersion;
     if (streamVersion > syncFileStreamVersion) {
-        qCCritical(DATA_SYNC_CATEGORY) << QString("Stream format version too new: %1 > %2")
-                                          .arg(streamVersion).arg(syncFileStreamVersion);
+        fail(QString("Stream format version too new: %1 > %2")
+             .arg(streamVersion).arg(syncFileStreamVersion));
         return false;
     }
     stream.setVersion(streamVersion);
@@ -317,8 +310,9 @@ bool DataSyncer::parseFile(const QString &path, QVector<TimeLogSyncData> &update
         stream >> entry;
 
             if (stream.status() != QDataStream::Ok || file.error() != QFileDevice::NoError) {
-                qCCritical(DATA_SYNC_CATEGORY) << formatFileError(QString("Error reading from file, stream status %1")
-                                                                  .arg(stream.status()), file);
+                fail(formatFileError(QString("Error reading from file, stream status %1")
+                                     .arg(stream.status()),
+                                     file));
                 break;
             }
 

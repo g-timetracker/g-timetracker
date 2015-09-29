@@ -12,6 +12,14 @@ class DataSyncer : public AbstractDataInOut
 public:
     explicit DataSyncer(QObject *parent = 0);
 
+signals:
+    void error(const QString &errorText) const;
+
+    void started(QPrivateSignal);
+    void exported(QPrivateSignal);
+    void foldersSynced(QPrivateSignal);
+    void synced(QPrivateSignal);
+
 protected slots:
     virtual void startIO(const QString &path);
     virtual void historyError(const QString &errorText);
@@ -21,12 +29,11 @@ private slots:
     void syncDataSynced(QVector<TimeLogSyncData> updatedData,
                         QVector<TimeLogSyncData> removedData);
 
-private:
-    void startSync(const QString &path);
-    void startImport(const QString &path);
-    void startExport(const QString &path);
+    void startImport();
+    void startExport();
+    void syncFolders();
 
-    void syncFolders(const QString &path);
+private:
     void compareWithDir(const QString &path);
     bool copyFiles(const QString &from, const QString &to, const QSet<QString> fileList,
                    bool isRemoveSource);
@@ -41,6 +48,7 @@ private:
 
     QStringList m_fileList;
     int m_currentIndex;
+    QString m_intPath;
     QDir m_dir;
     QString m_syncPath;
     QSet<QString> m_outFiles;

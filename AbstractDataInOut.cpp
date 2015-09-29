@@ -30,44 +30,40 @@ QString AbstractDataInOut::formatFileError(const QString &message, const QFile &
                                          .arg(file.errorString()).arg(file.error());
 }
 
-bool AbstractDataInOut::buildFileList(const QString &path, QStringList &fileList)
+QStringList AbstractDataInOut::buildFileList(const QString &path) const
 {
+    QStringList result;
+
     QFileInfo fileInfo(path);
     if (!fileInfo.exists()) {
-        qCCritical(DATA_IO_CATEGORY) << "Path does not exists" << path;;
-        return false;
+        qCWarning(DATA_IO_CATEGORY) << QString("Path %1 does not exists").arg(path);
+        return result;
     }
 
     if (fileInfo.isFile()) {
-        fileList.append(path);
+        result.append(path);
     } else if (fileInfo.isDir()) {
         QDir dir(path);
         QStringList entries;
         entries = dir.entryList(QDir::Files);
         foreach (const QString &entry, entries) {
-            fileList.append(dir.filePath(entry));
+            result.append(dir.filePath(entry));
         }
         entries = dir.entryList(QDir::Dirs | QDir::NoDotAndDotDot);
         foreach (const QString &entry, entries) {
-            if (!buildFileList(dir.filePath(entry), fileList)) {
-                return false;
-            }
+            result.append(buildFileList(dir.filePath(entry)));
         }
-    } else {
-        qCCritical(DATA_IO_CATEGORY) << "Not file or directory" << path;
-        return false;
     }
 
-    return true;
+    return result;
 }
 
-bool AbstractDataInOut::prepareDir(const QString &path, QDir &dir)
+bool AbstractDataInOut::prepareDir(const QString &path, QDir &dir) const
 {
     dir.setPath(path);
     if (!dir.exists()) {
         qCDebug(DATA_IO_CATEGORY) << QString("Path %1 does not exists, creating").arg(path);
         if (!dir.mkpath(path)) {
-            qCCritical(DATA_IO_CATEGORY) << "Fail create destination directory";
             return false;
         }
     }

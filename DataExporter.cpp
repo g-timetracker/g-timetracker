@@ -5,6 +5,13 @@
 #include "DataExporter.h"
 #include "TimeLogHistory.h"
 
+
+#define fail(message) \
+    do {    \
+        qCCritical(DATA_IO_CATEGORY) << message;    \
+        QCoreApplication::exit(EXIT_FAILURE);   \
+    } while (0)
+
 DataExporter::DataExporter(QObject *parent) :
     AbstractDataInOut(parent)
 {
@@ -17,11 +24,10 @@ DataExporter::DataExporter(QObject *parent) :
 void DataExporter::startIO(const QString &path)
 {
     if (!prepareDir(path, m_dir)) {
-        QCoreApplication::exit(EXIT_FAILURE);
+        fail(QString("Fail to prepare directory %1").arg(path));
         return;
     } else if (!m_dir.entryList(QDir::AllEntries | QDir::NoDotAndDotDot).isEmpty()) {
-        qCCritical(DATA_IO_CATEGORY) << QString("Target directory is not empty");
-        QCoreApplication::exit(EXIT_FAILURE);
+        fail(QString("Target directory %1 is not empty").arg(m_dir.path()));
         return;
     }
 
@@ -36,8 +42,7 @@ void DataExporter::startIO(const QString &path)
 
 void DataExporter::historyError(const QString &errorText)
 {
-    qCCritical(DATA_IO_CATEGORY) << "Fail to get data from db:" << errorText;
-    QCoreApplication::exit(EXIT_FAILURE);
+    fail(QString("Fail to get data from db: %1").arg(errorText));
 }
 
 void DataExporter::historyDataAvailable(QDateTime from, QVector<TimeLogEntry> data)
@@ -62,7 +67,6 @@ void DataExporter::historyDataAvailable(QVector<TimeLogEntry> data, QDateTime un
         m_lastDate = data.last().startTime.date();
     } else {
         if (!exportDay(data)) {
-            QCoreApplication::exit(EXIT_FAILURE);
             return;
         }
         m_currentDate = m_currentDate.addDays(1);
@@ -90,12 +94,12 @@ bool DataExporter::exportDay(QVector<TimeLogEntry> data)
     QString filePath = m_dir.filePath(fileName);
     QFile file(filePath);
     if (file.exists()) {
-        qCCritical(DATA_IO_CATEGORY) << "File already exists" << filePath;
+        fail(QString("File %1 already exists").arg(filePath));
         return false;
     }
 
     if (!file.open(QIODevice::WriteOnly | QIODevice::Text)) {
-        qCCritical(DATA_IO_CATEGORY) << formatFileError("Fail to open file", file);
+        fail(formatFileError("Fail to open file", file));
         return false;
     }
 
@@ -112,7 +116,7 @@ bool DataExporter::exportDay(QVector<TimeLogEntry> data)
     QTextStream stream(&file);
     stream << strings.join('\n') << endl;
     if (stream.status() != QTextStream::Ok || file.error() != QFileDevice::NoError) {
-        qCCritical(DATA_IO_CATEGORY) << formatFileError("Error writing to file", file);
+        fail(formatFileError("Error writing to file", file));
         return false;
     }
 

@@ -7,6 +7,12 @@
 #include "DataImporter.h"
 #include "TimeLogHistory.h"
 
+#define fail(message) \
+    do {    \
+        qCCritical(DATA_IO_CATEGORY) << message;    \
+        QCoreApplication::exit(EXIT_FAILURE);   \
+    } while (0)
+
 DataImporter::DataImporter(QObject *parent) :
     AbstractDataInOut(parent)
 {
@@ -16,11 +22,7 @@ DataImporter::DataImporter(QObject *parent) :
 
 void DataImporter::startIO(const QString &path)
 {
-    if (!buildFileList(path, m_fileList)) {
-        QCoreApplication::exit(EXIT_FAILURE);
-        return;
-    }
-
+    m_fileList = buildFileList(path);
     if (m_fileList.isEmpty()) {
         qCInfo(DATA_IO_CATEGORY) << "No files to import";
         QCoreApplication::quit();
@@ -33,10 +35,7 @@ void DataImporter::startIO(const QString &path)
 
 void DataImporter::historyError(const QString &errorText)
 {
-    Q_UNUSED(errorText)
-
-    qCCritical(DATA_IO_CATEGORY) << "DB error while importing file" << m_fileList.at(m_currentIndex);
-    QCoreApplication::exit(EXIT_FAILURE);
+    fail(QString("DB error while importing file %1: %2").arg(m_fileList.at(m_currentIndex)).arg(errorText));
 }
 
 void DataImporter::historyDataInserted(QVector<TimeLogEntry> data)
@@ -77,12 +76,12 @@ QVector<TimeLogEntry> DataImporter::parseFile(const QString &path) const
 
     QFile file(path);
     if (!file.exists()) {
-        qCCritical(DATA_IO_CATEGORY) << "File does not exists" << path;
+        fail(QString("File %1 does not exists").arg(path));
         return result;
     }
 
     if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
-        qCCritical(DATA_IO_CATEGORY) << formatFileError("Fail to open file", file);
+        fail(formatFileError("Fail to open file", file));
         return result;
     }
 
