@@ -6,6 +6,8 @@
 #include "AbstractDataInOut.h"
 #include "TimeLogSyncData.h"
 
+class QStateMachine;
+
 class DataSyncer : public AbstractDataInOut
 {
     Q_OBJECT
@@ -53,6 +55,7 @@ private:
     QString m_syncPath;
     QSet<QString> m_outFiles;
     QSet<QString> m_inFiles;
+    QStateMachine *m_sm;
 };
 
 #endif // DATASYNCER_H

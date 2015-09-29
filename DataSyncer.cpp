@@ -2,6 +2,8 @@
 #include <QStandardPaths>
 #include <QDataStream>
 #include <QRegularExpression>
+#include <QStateMachine>
+#include <QFinalState>
 
 #include <QLoggingCategory>
 
@@ -24,13 +26,31 @@ const QString fileNamePattern = QString("^(?<mTime>\\d{%1})-\\{[\\w-]+\\}$").arg
 const QRegularExpression fileNameRegexp(fileNamePattern);
 
 DataSyncer::DataSyncer(QObject *parent) :
-    AbstractDataInOut(parent)
+    AbstractDataInOut(parent),
+    m_sm(new QStateMachine(this))
 {
     m_intPath = QString("%1/sync").arg(QStandardPaths::writableLocation(QStandardPaths::DataLocation));
 
-    connect(this, SIGNAL(started()), SLOT(startExport()));
-    connect(this, SIGNAL(exported()), SLOT(syncFolders()));
-    connect(this, SIGNAL(foldersSynced()), SLOT(startImport()));
+    QState *exportState = new QState();
+    QState *syncFoldersState = new QState();
+    QState *importState = new QState();
+    QFinalState *finalState = new QFinalState();
+
+    exportState->addTransition(this, SIGNAL(exported()), syncFoldersState);
+    syncFoldersState->addTransition(this, SIGNAL(foldersSynced()), importState);
+    importState->addTransition(this, SIGNAL(synced()), finalState);
+
+    m_sm->addState(exportState);
+    m_sm->addState(syncFoldersState);
+    m_sm->addState(importState);
+    m_sm->addState(finalState);
+    m_sm->setInitialState(exportState);
+
+    connect(this, SIGNAL(started()), m_sm, SLOT(start()));
+    connect(this, SIGNAL(error(QString)), m_sm, SLOT(stop()));
+    connect(this, SIGNAL(started()), SLOT(startExport()), Qt::QueuedConnection);
+    connect(this, SIGNAL(exported()), SLOT(syncFolders()), Qt::QueuedConnection);
+    connect(this, SIGNAL(foldersSynced()), SLOT(startImport()), Qt::QueuedConnection);
     connect(this, SIGNAL(synced()), QCoreApplication::instance(), SLOT(quit()));
 
     connect(m_db, SIGNAL(syncDataAvailable(QVector<TimeLogSyncData>,QDateTime)),
@@ -41,6 +61,11 @@ DataSyncer::DataSyncer(QObject *parent) :
 
 void DataSyncer::startIO(const QString &path)
 {
+    if (m_sm->isRunning()) {
+        qCWarning(DATA_SYNC_CATEGORY) << "Sync already running";
+        return;
+    }
+
     m_syncPath = path;
     qCInfo(DATA_SYNC_CATEGORY) << "Syncing with folder" << m_syncPath;
 
@@ -55,6 +80,10 @@ void DataSyncer::historyError(const QString &errorText)
 void DataSyncer::syncDataAvailable(QVector<TimeLogSyncData> data, QDateTime until)
 {
     Q_UNUSED(until)
+
+    if (!m_sm->isRunning()) {   // HACK: all instances receive signal from db
+        return;
+    }
 
     if (!data.isEmpty()) {
         if (!exportData(data)) {
@@ -71,6 +100,10 @@ void DataSyncer::syncDataSynced(QVector<TimeLogSyncData> updatedData, QVector<Ti
 {
     Q_UNUSED(updatedData)
     Q_UNUSED(removedData)
+
+    if (!m_sm->isRunning()) {   // HACK: all instances receive signal from db
+        return;
+    }
 
     qCInfo(DATA_SYNC_CATEGORY) << "Successfully imported file" << m_fileList.at(m_currentIndex);
 
