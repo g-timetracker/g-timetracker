@@ -4,7 +4,7 @@
 #include <QObject>
 #include <QSet>
 
-#include "TimeLogEntry.h"
+#include "TimeLogSyncData.h"
 
 class QThread;
 
@@ -21,7 +21,8 @@ public:
         StartTime       = 0x1,
         DurationTime    = 0x2,
         Category        = 0x4,
-        Comment         = 0x8
+        Comment         = 0x8,
+        AllFieldsMask   = StartTime | Category | Comment
     };
     Q_FLAG(Fields)
 
@@ -39,6 +40,8 @@ public slots:
     void insert(const QVector<TimeLogEntry> &data);
     void remove(const TimeLogEntry &data);
     void edit(const TimeLogEntry &data, TimeLogHistory::Fields fields);
+    void sync(const QVector<TimeLogSyncData> &updatedData,
+              const QVector<TimeLogSyncData> &removedData);
 
     void getHistoryBetween(const QDateTime &begin = QDateTime::fromTime_t(0),
                            const QDateTime &end = QDateTime::currentDateTime(),
@@ -48,12 +51,17 @@ public slots:
     void getHistoryBefore(const uint limit,
                           const QDateTime &until = QDateTime::currentDateTime()) const;
 
+    void getSyncData(const QDateTime &mBegin = QDateTime::fromMSecsSinceEpoch(0),
+                     const QDateTime &mEnd = QDateTime::currentDateTime()) const;
+
 signals:
     void error(const QString &errorText) const;
     void dataAvailable(QDateTime from, QVector<TimeLogEntry> data) const;
     void dataAvailable(QVector<TimeLogEntry> data, QDateTime until) const;
     void dataUpdated(QVector<TimeLogEntry> data, QVector<TimeLogHistory::Fields>) const;
     void dataInserted(QVector<TimeLogEntry> data) const;
+    void syncDataAvailable(QVector<TimeLogSyncData> data, QDateTime until) const;
+    void dataSynced(QVector<TimeLogSyncData> updatedData, QVector<TimeLogSyncData> removedData);
 
 private slots:
     void workerSizeChanged(qlonglong size);

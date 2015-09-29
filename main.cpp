@@ -50,6 +50,7 @@ int main(int argc, char *argv[])
     qRegisterMetaType<TimeLogData>();
     qRegisterMetaType<TimeLogEntry>();
     qRegisterMetaType<QVector<TimeLogEntry> >();
+    qRegisterMetaType<QVector<TimeLogSyncData> >();
     qRegisterMetaType<QSet<QString> >();
     qRegisterMetaType<TimeLogHistory::Fields>();
     qRegisterMetaType<QVector<TimeLogHistory::Fields> >();

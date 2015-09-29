@@ -2,6 +2,8 @@
 #define ABSTRACTDATAINOUT_H
 
 #include <QObject>
+#include <QFile>
+#include <QDir>
 
 #include <QLoggingCategory>
 
@@ -16,9 +18,13 @@ public:
     void setSeparator(const QString &sep);
     void start(const QString &path);
 
+    static QString formatFileError(const QString &message, const QFile &file);
+    static bool buildFileList(const QString &path, QStringList &fileList);
+    static bool prepareDir(const QString &path, QDir &dir);
+
 protected slots:
     virtual void startIO(const QString &path) = 0;
-    virtual void historyError(const QString &errorText);
+    virtual void historyError(const QString &errorText) = 0;
 
 protected:
     TimeLogHistory *m_db;

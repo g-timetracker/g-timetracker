@@ -16,7 +16,7 @@ DataImporter::DataImporter(QObject *parent) :
 
 void DataImporter::startIO(const QString &path)
 {
-    if (!processPath(path)) {
+    if (!buildFileList(path, m_fileList)) {
         QCoreApplication::exit(EXIT_FAILURE);
         return;
     }
@@ -33,7 +33,9 @@ void DataImporter::startIO(const QString &path)
 
 void DataImporter::historyError(const QString &errorText)
 {
-    qCCritical(DATA_IO_CATEGORY) << "Failed to import file" << m_fileList.first() << errorText;
+    Q_UNUSED(errorText)
+
+    qCCritical(DATA_IO_CATEGORY) << "DB error while importing file" << m_fileList.at(m_currentIndex);
     QCoreApplication::exit(EXIT_FAILURE);
 }
 
@@ -51,44 +53,10 @@ void DataImporter::historyDataInserted(QVector<TimeLogEntry> data)
     }
 }
 
-bool DataImporter::processPath(const QString &path)
-{
-    QFileInfo fileInfo(path);
-    if (!fileInfo.exists()) {
-        qCCritical(DATA_IO_CATEGORY) << "Path does not exists" << path;
-        return false;
-    }
-
-    if (fileInfo.isFile()) {
-        m_fileList.append(path);
-        return true;
-    } else if (fileInfo.isDir()) {
-        return processDirectory(path);
-    } else {
-        qCCritical(DATA_IO_CATEGORY) << "Not file or directory" << path;
-        return false;
-    }
-}
-
-bool DataImporter::processDirectory(const QString &path)
-{
-    QDir dir(path);
-
-    QStringList entries = dir.entryList(QDir::AllEntries | QDir::NoDotAndDotDot, QDir::DirsFirst);
-    foreach (const QString &file, entries) {
-        QString filePath = dir.filePath(file);
-        if (!processPath(filePath)) {
-            return false;
-        }
-    }
-
-    return true;
-}
-
 void DataImporter::importCurrentFile()
 {
     qCInfo(DATA_IO_CATEGORY) << QString("Importing file %1 of %2")
-                                .arg(m_currentIndex).arg(m_fileList.size());
+                                .arg(m_currentIndex+1).arg(m_fileList.size());
     importFile(m_fileList.at(m_currentIndex));
 }
 
@@ -114,7 +82,7 @@ QVector<TimeLogEntry> DataImporter::parseFile(const QString &path) const
     }
 
     if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
-        qCCritical(DATA_IO_CATEGORY) << "Fail to open file" << path << file.errorString();
+        qCCritical(DATA_IO_CATEGORY) << formatFileError("Fail to open file", file);
         return result;
     }
 

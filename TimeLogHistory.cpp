@@ -30,6 +30,10 @@ TimeLogHistory::TimeLogHistory(QObject *parent) :
             this, SLOT(workerSizeChanged(qlonglong)));
     connect(m_worker, SIGNAL(categoriesChanged(QSet<QString>)),
             this, SLOT(workerCategoriesChanged(QSet<QString>)));
+    connect(m_worker, SIGNAL(syncDataAvailable(QVector<TimeLogSyncData>,QDateTime)),
+            this, SIGNAL(syncDataAvailable(QVector<TimeLogSyncData>,QDateTime)));
+    connect(m_worker, SIGNAL(dataSynced(QVector<TimeLogSyncData>,QVector<TimeLogSyncData>)),
+            this, SIGNAL(dataSynced(QVector<TimeLogSyncData>,QVector<TimeLogSyncData>)));
 }
 
 TimeLogHistory::~TimeLogHistory()
@@ -87,6 +91,13 @@ void TimeLogHistory::edit(const TimeLogEntry &data, TimeLogHistory::Fields field
                               Q_ARG(TimeLogHistory::Fields, fields));
 }
 
+void TimeLogHistory::sync(const QVector<TimeLogSyncData> &updatedData, const QVector<TimeLogSyncData> &removedData)
+{
+    QMetaObject::invokeMethod(m_worker, "sync", Qt::AutoConnection,
+                              Q_ARG(QVector<TimeLogSyncData>, updatedData),
+                              Q_ARG(QVector<TimeLogSyncData>, removedData));
+}
+
 void TimeLogHistory::getHistoryBetween(const QDateTime &begin, const QDateTime &end, const QString &category) const
 {
     QMetaObject::invokeMethod(m_worker, "getHistoryBetween", Qt::AutoConnection, Q_ARG(QDateTime, begin),
@@ -103,6 +114,12 @@ void TimeLogHistory::getHistoryBefore(const uint limit, const QDateTime &until) 
 {
     QMetaObject::invokeMethod(m_worker, "getHistoryBefore", Qt::AutoConnection, Q_ARG(uint, limit),
                               Q_ARG(QDateTime, until));
+}
+
+void TimeLogHistory::getSyncData(const QDateTime &mBegin, const QDateTime &mEnd) const
+{
+    QMetaObject::invokeMethod(m_worker, "getSyncData", Qt::AutoConnection,
+                              Q_ARG(QDateTime, mBegin), Q_ARG(QDateTime, mEnd));
 }
 
 void TimeLogHistory::workerSizeChanged(qlonglong size)

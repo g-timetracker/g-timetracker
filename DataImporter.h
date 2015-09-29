@@ -18,8 +18,6 @@ private slots:
     void historyDataInserted(QVector<TimeLogEntry> data);
 
 private:
-    bool processPath(const QString &path);
-    bool processDirectory(const QString &path);
     void importCurrentFile();
     void importFile(const QString &path);
     QVector<TimeLogEntry> parseFile(const QString &path) const;

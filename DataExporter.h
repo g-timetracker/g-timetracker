@@ -1,8 +1,6 @@
 #ifndef DATAEXPORTER_H
 #define DATAEXPORTER_H
 
-#include <QDir>
-
 #include "AbstractDataInOut.h"
 #include "TimeLogEntry.h"
 
@@ -14,13 +12,13 @@ public:
 
 protected slots:
     virtual void startIO(const QString &path);
+    virtual void historyError(const QString &errorText);
 
 private slots:
     void historyDataAvailable(QDateTime from, QVector<TimeLogEntry> data);
     void historyDataAvailable(QVector<TimeLogEntry> data, QDateTime until);
 
 private:
-    bool prepareDir(const QString &path);
     void exportCurrentDate();
     bool exportDay(QVector<TimeLogEntry> data);
 

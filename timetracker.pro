@@ -14,7 +14,9 @@ SOURCES += main.cpp \
     TimeLogRecentModel.cpp \
     TimeLogSearchModel.cpp \
     DataExporter.cpp \
-    AbstractDataInOut.cpp
+    AbstractDataInOut.cpp \
+    TimeLogSyncData.cpp \
+    DataSyncer.cpp
 
 RESOURCES += qml.qrc
 
@@ -38,4 +40,6 @@ HEADERS += \
     TimeLogRecentModel.h \
     TimeLogSearchModel.h \
     DataExporter.h \
-    AbstractDataInOut.h
+    AbstractDataInOut.h \
+    TimeLogSyncData.h \
+    DataSyncer.h
