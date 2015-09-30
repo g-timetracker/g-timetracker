@@ -6,10 +6,7 @@
 
 #include <QLoggingCategory>
 
-#include "TimeLogEntry.h"
 #include "TimeLogHistory.h"
-
-class TimeLogHistory;
 
 class TimeLogModel : public QAbstractListModel
 {
@@ -43,6 +40,7 @@ private slots:
     void historyError(const QString &errorText);
     void historyDataAvailable(QVector<TimeLogEntry> data, QDateTime until);
     void historyDataUpdated(QVector<TimeLogEntry> data, QVector<TimeLogHistory::Fields> fields);
+    void historyDataSynced(QVector<TimeLogSyncData> updatedData, QVector<TimeLogSyncData> removedData);
 
 protected:
     void clear();
