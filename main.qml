@@ -52,10 +52,6 @@ ApplicationWindow {
 
     Connections {
         target: DataSyncer
-        onError: {
-            errorDialog.text = errorText
-            errorDialog.open()
-        }
         onSynced: {
             messageDialog.text = "Sync complete"
             messageDialog.open()

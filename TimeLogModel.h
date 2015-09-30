@@ -39,9 +39,6 @@ public:
     void appendItem(TimeLogData data = TimeLogData());
     void insertItem(const QModelIndex &index, TimeLogData data = TimeLogData());
 
-signals:
-    void error(const QString &errorText) const;
-
 private slots:
     void historyError(const QString &errorText);
     void historyDataAvailable(QVector<TimeLogEntry> data, QDateTime until);

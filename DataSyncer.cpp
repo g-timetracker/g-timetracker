@@ -90,7 +90,9 @@ void DataSyncer::startIO(const QString &path)
 
 void DataSyncer::historyError(const QString &errorText)
 {
-    fail(QString("Fail to get data from db: %1").arg(errorText));
+    Q_UNUSED(errorText);
+
+    m_sm->stop();
 }
 
 void DataSyncer::syncDataAvailable(QVector<TimeLogSyncData> data, QDateTime until)

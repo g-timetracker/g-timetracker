@@ -3,12 +3,17 @@
 
 #include "TimeLog.h"
 #include "TimeLog_p.h"
+#include "TimeLogHistory.h"
+#include "DataSyncer.h"
 
 Q_GLOBAL_STATIC(TimeLogSingleton, timeLog)
 
 TimeLog::TimeLog(QObject *parent) : QObject(parent)
 {
-
+    connect(TimeLogHistory::instance(), SIGNAL(error(QString)),
+            this, SIGNAL(error(QString)));
+    connect(DataSyncer::instance(), SIGNAL(error(QString)),
+            this, SIGNAL(error(QString)));
 }
 
 TimeLog::~TimeLog()

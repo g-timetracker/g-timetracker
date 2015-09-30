@@ -1,5 +1,4 @@
 #include "TimeLogModel.h"
-#include "TimeLog.h"
 
 Q_LOGGING_CATEGORY(TIME_LOG_MODEL_CATEGORY, "TimeLogModel", QtInfoMsg)
 
@@ -27,8 +26,6 @@ TimeLogModel::TimeLogModel(QObject *parent) :
             this, SLOT(historyDataAvailable(QVector<TimeLogEntry>,QDateTime)));
     connect(m_history, SIGNAL(dataUpdated(QVector<TimeLogEntry>,QVector<TimeLogHistory::Fields>)),
             this, SLOT(historyDataUpdated(QVector<TimeLogEntry>,QVector<TimeLogHistory::Fields>)));
-    connect(this, SIGNAL(error(QString)),
-            TimeLog::instance(), SIGNAL(error(QString)));
 }
 
 int TimeLogModel::rowCount(const QModelIndex &parent) const
@@ -185,7 +182,8 @@ void TimeLogModel::insertItem(const QModelIndex &index, TimeLogData data)
 
 void TimeLogModel::historyError(const QString &errorText)
 {
-    emit error(QString("Database error: %1").arg(errorText));
+    Q_UNUSED(errorText)
+
     clear();
 }
 
