@@ -47,6 +47,7 @@ int main(int argc, char *argv[])
         qCCritical(MAIN_CATEGORY) << "Fail to initialize db";
         return EXIT_FAILURE;
     }
+    DataSyncer::instance()->init();
 
     qRegisterMetaType<TimeLogData>();
     qRegisterMetaType<TimeLogEntry>();

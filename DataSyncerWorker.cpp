@@ -27,10 +27,9 @@ const QRegularExpression fileNameRegexp(fileNamePattern);
 
 DataSyncerWorker::DataSyncerWorker(QObject *parent) :
     AbstractDataInOut(parent),
+    m_isInitialized(false),
     m_sm(new QStateMachine(this))
 {
-    m_intPath = QString("%1/sync").arg(QStandardPaths::writableLocation(QStandardPaths::AppDataLocation));
-
     QState *exportState = new QState();
     QState *syncFoldersState = new QState();
     QState *importState = new QState();
@@ -58,8 +57,20 @@ DataSyncerWorker::DataSyncerWorker(QObject *parent) :
             this, SLOT(syncDataSynced(QVector<TimeLogSyncData>,QVector<TimeLogSyncData>)));
 }
 
+void DataSyncerWorker::init()
+{
+    m_intPath = QString("%1/sync").arg(QStandardPaths::writableLocation(QStandardPaths::AppDataLocation));
+
+    m_isInitialized = true;
+}
+
 void DataSyncerWorker::startIO(const QString &path)
 {
+    if (!m_isInitialized) {
+        qCCritical(SYNC_WORKER_CATEGORY) << "Syncer is not initialized";
+        return;
+    }
+
     if (m_sm->isRunning()) {
         qCWarning(SYNC_WORKER_CATEGORY) << "Sync already running";
         return;

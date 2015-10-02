@@ -46,6 +46,10 @@ TimeLogHistory *TimeLogHistory::instance()
 
 bool TimeLogHistory::init()
 {
+    if (m_worker->thread() != thread()) {
+        return false;
+    }
+
     if (!m_worker->init()) {
         return false;
     }

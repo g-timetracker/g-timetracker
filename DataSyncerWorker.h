@@ -14,6 +14,8 @@ class DataSyncerWorker : public AbstractDataInOut
 public:
     explicit DataSyncerWorker(QObject *parent = 0);
 
+    void init();
+
 signals:
     void error(const QString &errorText) const;
 
@@ -48,6 +50,7 @@ private:
                    QVector<TimeLogSyncData> &updatedData,
                    QVector<TimeLogSyncData> &removedData) const;
 
+    bool m_isInitialized;
     QStringList m_fileList;
     int m_currentIndex;
     QString m_intPath;

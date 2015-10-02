@@ -15,7 +15,10 @@ protected:
     explicit DataSyncer(QObject *parent = 0);
 public:
     virtual ~DataSyncer();
+
     static DataSyncer *instance();
+
+    void init();
 
 signals:
     void error(const QString &errorText) const;
@@ -25,6 +28,8 @@ public slots:
     void sync(const QUrl &pathUrl);
 
 private:
+    void makeAsync();
+
     QThread *m_thread;
     DataSyncerWorker *m_worker;
 };
