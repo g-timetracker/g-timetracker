@@ -57,9 +57,10 @@ DataSyncerWorker::DataSyncerWorker(QObject *parent) :
             this, SLOT(syncDataSynced(QVector<TimeLogSyncData>,QVector<TimeLogSyncData>)));
 }
 
-void DataSyncerWorker::init()
+void DataSyncerWorker::init(const QString &dataPath)
 {
-    m_intPath = QString("%1/sync").arg(QStandardPaths::writableLocation(QStandardPaths::AppDataLocation));
+    m_intPath = QString("%1/sync").arg(!dataPath.isEmpty() ? dataPath
+                                                           : QStandardPaths::writableLocation(QStandardPaths::AppDataLocation));
 
     m_isInitialized = true;
 }

@@ -27,13 +27,13 @@ DataSyncer *DataSyncer::instance()
     return static_cast<DataSyncer*>(dataSyncer);
 }
 
-void DataSyncer::init()
+void DataSyncer::init(const QString &dataPath)
 {
     if (m_worker->thread() != thread()) {
         return;
     }
 
-    m_worker->init();
+    m_worker->init(dataPath);
 
     makeAsync();
 }

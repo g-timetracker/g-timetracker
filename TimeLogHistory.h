@@ -30,7 +30,7 @@ public:
 
     static TimeLogHistory *instance();
 
-    bool init();
+    bool init(const QString &dataPath);
 
     qlonglong size() const;
     QSet<QString> categories() const;

@@ -18,7 +18,7 @@ public:
 
     static DataSyncer *instance();
 
-    void init();
+    void init(const QString &dataPath);
 
 signals:
     void error(const QString &errorText) const;

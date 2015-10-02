@@ -15,7 +15,7 @@ public:
     explicit TimeLogHistoryWorker(QObject *parent = 0);
     ~TimeLogHistoryWorker();
 
-    bool init();
+    bool init(const QString &dataPath);
     qlonglong size() const;
     QSet<QString> categories() const;
 

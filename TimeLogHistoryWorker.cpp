@@ -22,10 +22,11 @@ TimeLogHistoryWorker::~TimeLogHistoryWorker()
     QSqlDatabase::removeDatabase("timelog");
 }
 
-bool TimeLogHistoryWorker::init()
+bool TimeLogHistoryWorker::init(const QString &dataPath)
 {
     QString path(QString("%1/timelog")
-                 .arg(QStandardPaths::writableLocation(QStandardPaths::AppDataLocation)));
+                 .arg(!dataPath.isEmpty() ? dataPath
+                                          : QStandardPaths::writableLocation(QStandardPaths::AppDataLocation)));
     QDir().mkpath(path);
     QSqlDatabase db = QSqlDatabase::addDatabase("QSQLITE", "timelog");
     db.setDatabaseName(QString("%1/%2.sqlite").arg(path).arg("db"));

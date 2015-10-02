@@ -44,13 +44,13 @@ TimeLogHistory *TimeLogHistory::instance()
     return static_cast<TimeLogHistory*>(timeLogHistory);
 }
 
-bool TimeLogHistory::init()
+bool TimeLogHistory::init(const QString &dataPath)
 {
     if (m_worker->thread() != thread()) {
         return false;
     }
 
-    if (!m_worker->init()) {
+    if (!m_worker->init(dataPath)) {
         return false;
     }
 

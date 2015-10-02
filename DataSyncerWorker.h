@@ -14,7 +14,7 @@ class DataSyncerWorker : public AbstractDataInOut
 public:
     explicit DataSyncerWorker(QObject *parent = 0);
 
-    void init();
+    void init(const QString &dataPath);
 
 signals:
     void error(const QString &errorText) const;

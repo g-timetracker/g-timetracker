@@ -40,14 +40,16 @@ int main(int argc, char *argv[])
     parser.addOption(exportOption);
     QCommandLineOption separatorOption("separator", "Separator for import/export", "string", ";");
     parser.addOption(separatorOption);
+    QCommandLineOption dataPathOption("dataPath", "Use specified path to program's data", "path");
+    parser.addOption(dataPathOption);
 
     parser.process(app);
 
-    if (!TimeLogHistory::instance()->init()) {
+    if (!TimeLogHistory::instance()->init(parser.value(dataPathOption))) {
         qCCritical(MAIN_CATEGORY) << "Fail to initialize db";
         return EXIT_FAILURE;
     }
-    DataSyncer::instance()->init();
+    DataSyncer::instance()->init(parser.value(dataPathOption));
 
     qRegisterMetaType<TimeLogData>();
     qRegisterMetaType<TimeLogEntry>();
