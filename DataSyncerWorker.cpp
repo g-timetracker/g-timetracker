@@ -29,7 +29,7 @@ DataSyncerWorker::DataSyncerWorker(QObject *parent) :
     AbstractDataInOut(parent),
     m_sm(new QStateMachine(this))
 {
-    m_intPath = QString("%1/sync").arg(QStandardPaths::writableLocation(QStandardPaths::DataLocation));
+    m_intPath = QString("%1/sync").arg(QStandardPaths::writableLocation(QStandardPaths::AppDataLocation));
 
     QState *exportState = new QState();
     QState *syncFoldersState = new QState();
