@@ -20,7 +20,7 @@ ApplicationWindow {
             }
             MenuItem {
                 text: "Sync"
-                onTriggered: DataSyncer.start(Settings.syncPath);
+                onTriggered: DataSyncer.sync(Settings.syncPath);
             }
             MenuItem {
                 text: qsTr("E&xit")

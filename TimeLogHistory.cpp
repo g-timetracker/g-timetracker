@@ -1,12 +1,8 @@
 #include <QThread>
 
-#include <QLoggingCategory>
-
 #include "TimeLogHistory.h"
 #include "TimeLogHistory_p.h"
 #include "TimeLogHistoryWorker.h"
-
-Q_LOGGING_CATEGORY(TIME_LOG_HISTORY_CATEGORY, "TimeLogHistory", QtInfoMsg)
 
 Q_GLOBAL_STATIC(TimeLogHistorySingleton, timeLogHistory)
 
@@ -141,8 +137,8 @@ void TimeLogHistory::makeAsync()
     m_thread->setParent(0);
     m_worker->setParent(0);
 
-    connect (m_thread, SIGNAL(finished()), m_worker, SLOT(deleteLater()));
-    connect (m_worker, SIGNAL(destroyed()), m_thread, SLOT(deleteLater()));
+    connect(m_thread, SIGNAL(finished()), m_worker, SLOT(deleteLater()));
+    connect(m_worker, SIGNAL(destroyed()), m_thread, SLOT(deleteLater()));
 
     m_worker->moveToThread(m_thread);
 
