@@ -1,5 +1,5 @@
 import QtQuick 2.0
-import QtQuick.Extras 2.0
+import Qt.labs.controls 1.0
 import "Util.js" as Util
 
 Row {
