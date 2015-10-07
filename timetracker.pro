@@ -17,7 +17,8 @@ SOURCES += main.cpp \
     AbstractDataInOut.cpp \
     TimeLogSyncData.cpp \
     DataSyncerWorker.cpp \
-    DataSyncer.cpp
+    DataSyncer.cpp \
+    TimeLogStats.cpp
 
 RESOURCES += qml.qrc
 
@@ -45,4 +46,5 @@ HEADERS += \
     TimeLogSyncData.h \
     DataSyncer_p.h \
     DataSyncerWorker.h \
-    DataSyncer.h
+    DataSyncer.h \
+    TimeLogStats.h

@@ -189,6 +189,37 @@ void TimeLogHistoryWorker::getHistoryBefore(const uint limit, const QDateTime &u
     emit dataAvailable(result, until);
 }
 
+void TimeLogHistoryWorker::getStats(const QDateTime &begin, const QDateTime &end, const QString &category) const
+{
+    QSqlDatabase db = QSqlDatabase::database("timelog");
+    QSqlQuery query(db);
+    QString queryString = QString("WITH result AS ( "
+                                  "    SELECT category, CASE "
+                                  "        WHEN duration!=-1 THEN duration "
+                                  "        ELSE (SELECT strftime('%s','now')) - (SELECT start FROM timelog ORDER BY start DESC LIMIT 1) "
+                                  "        END AS duration "
+                                  "    FROM timelog "
+                                  "    WHERE (start BETWEEN ? AND ?) %1 "
+                                  ") "
+                                  "SELECT category, SUM(duration) FROM result "
+                                  " GROUP BY category "
+                                  " ORDER BY category ASC")
+                                  .arg(category.isEmpty() ? "" : "AND category=?");
+    if (!query.prepare(queryString)) {
+        qCCritical(HISTORY_WORKER_CATEGORY) << "Fail to prepare query:" << query.lastError().text()
+                                            << query.lastQuery();
+        emit error(query.lastError().text());
+        return;
+    }
+    query.addBindValue(begin.toTime_t());
+    query.addBindValue(end.toTime_t());
+    if (!category.isEmpty()) {
+        query.addBindValue(category);
+    }
+
+    emit statsDataAvailable(getStats(query), end);
+}
+
 void TimeLogHistoryWorker::getSyncData(const QDateTime &mBegin, const QDateTime &mEnd) const
 {
     Q_ASSERT(m_isInitialized);
@@ -704,6 +735,30 @@ QVector<TimeLogEntry> TimeLogHistoryWorker::getHistory(QSqlQuery &query) const
         data.category = query.value(2).toString();
         data.comment = query.value(3).toString();
         data.durationTime = query.value(4).toInt();
+
+        result.append(data);
+    }
+
+    query.finish();
+
+    return result;
+}
+
+QVector<TimeLogStats> TimeLogHistoryWorker::getStats(QSqlQuery &query) const
+{
+    QVector<TimeLogStats> result;
+
+    if (!query.exec()) {
+        qCCritical(HISTORY_WORKER_CATEGORY) << "Fail to execute query:" << query.lastError().text()
+                                            << query.executedQuery() << query.boundValues();
+        emit error(query.lastError().text());
+        return result;
+    }
+
+    while (query.next()) {
+        TimeLogStats data;
+        data.category = query.value(0).toString();
+        data.durationTime = query.value(1).toInt();
 
         result.append(data);
     }

@@ -5,7 +5,6 @@
 #include <QSqlQuery>
 #include <QSet>
 
-#include "TimeLogSyncData.h"
 #include "TimeLogHistory.h"
 
 class TimeLogHistoryWorker : public QObject
@@ -35,6 +34,10 @@ public slots:
     void getHistoryBefore(const uint limit,
                           const QDateTime &until = QDateTime::currentDateTime()) const;
 
+    void getStats(const QDateTime &begin = QDateTime::fromTime_t(0),
+                  const QDateTime &end = QDateTime::currentDateTime(),
+                  const QString &category = QString()) const;
+
     void getSyncData(const QDateTime &mBegin = QDateTime::fromMSecsSinceEpoch(0),
                      const QDateTime &mEnd = QDateTime::currentDateTime()) const;
 
@@ -44,6 +47,7 @@ signals:
     void dataAvailable(QVector<TimeLogEntry> data, QDateTime until) const;
     void dataUpdated(QVector<TimeLogEntry> data, QVector<TimeLogHistory::Fields> fields) const;
     void dataInserted(QVector<TimeLogEntry> data) const;
+    void statsDataAvailable(QVector<TimeLogStats> data, QDateTime until) const;
     void syncDataAvailable(QVector<TimeLogSyncData> data, QDateTime until) const;
     void dataSynced(QVector<TimeLogSyncData> updatedData, QVector<TimeLogSyncData> removedData);
 
@@ -67,6 +71,7 @@ private:
     bool syncData(const QVector<TimeLogSyncData> &updatedData,
                   const QVector<TimeLogSyncData> &removedData);
     QVector<TimeLogEntry> getHistory(QSqlQuery &query) const;
+    QVector<TimeLogStats> getStats(QSqlQuery &query) const;
     QVector<TimeLogSyncData> getSyncData(QSqlQuery &query) const;
     bool notifyUpdates(const QString &queryString, const QVector<QDateTime> &values) const;
     bool updateSize();

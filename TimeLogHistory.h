@@ -4,6 +4,7 @@
 #include <QObject>
 #include <QSet>
 
+#include "TimeLogStats.h"
 #include "TimeLogSyncData.h"
 
 class QThread;
@@ -51,6 +52,10 @@ public slots:
     void getHistoryBefore(const uint limit,
                           const QDateTime &until = QDateTime::currentDateTime()) const;
 
+    void getStats(const QDateTime &begin = QDateTime::fromTime_t(0),
+                  const QDateTime &end = QDateTime::currentDateTime(),
+                  const QString &category = QString()) const;
+
     void getSyncData(const QDateTime &mBegin = QDateTime::fromMSecsSinceEpoch(0),
                      const QDateTime &mEnd = QDateTime::currentDateTime()) const;
 
@@ -60,6 +65,7 @@ signals:
     void dataAvailable(QVector<TimeLogEntry> data, QDateTime until) const;
     void dataUpdated(QVector<TimeLogEntry> data, QVector<TimeLogHistory::Fields>) const;
     void dataInserted(QVector<TimeLogEntry> data) const;
+    void statsDataAvailable(QVector<TimeLogStats> data, QDateTime until) const;
     void syncDataAvailable(QVector<TimeLogSyncData> data, QDateTime until) const;
     void dataSynced(QVector<TimeLogSyncData> updatedData, QVector<TimeLogSyncData> removedData);
 

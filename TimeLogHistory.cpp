@@ -26,6 +26,8 @@ TimeLogHistory::TimeLogHistory(QObject *parent) :
             this, SLOT(workerSizeChanged(qlonglong)));
     connect(m_worker, SIGNAL(categoriesChanged(QSet<QString>)),
             this, SLOT(workerCategoriesChanged(QSet<QString>)));
+    connect(m_worker, SIGNAL(statsDataAvailable(QVector<TimeLogStats>,QDateTime)),
+            this, SIGNAL(statsDataAvailable(QVector<TimeLogStats>,QDateTime)));
     connect(m_worker, SIGNAL(syncDataAvailable(QVector<TimeLogSyncData>,QDateTime)),
             this, SIGNAL(syncDataAvailable(QVector<TimeLogSyncData>,QDateTime)));
     connect(m_worker, SIGNAL(dataSynced(QVector<TimeLogSyncData>,QVector<TimeLogSyncData>)),
@@ -114,6 +116,12 @@ void TimeLogHistory::getHistoryBefore(const uint limit, const QDateTime &until) 
 {
     QMetaObject::invokeMethod(m_worker, "getHistoryBefore", Qt::AutoConnection, Q_ARG(uint, limit),
                               Q_ARG(QDateTime, until));
+}
+
+void TimeLogHistory::getStats(const QDateTime &begin, const QDateTime &end, const QString &category) const
+{
+    QMetaObject::invokeMethod(m_worker, "getStats", Qt::AutoConnection, Q_ARG(QDateTime, begin),
+                              Q_ARG(QDateTime, end), Q_ARG(QString, category));
 }
 
 void TimeLogHistory::getSyncData(const QDateTime &mBegin, const QDateTime &mEnd) const
