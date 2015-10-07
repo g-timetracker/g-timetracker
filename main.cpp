@@ -74,12 +74,12 @@ int main(int argc, char *argv[])
         qmlRegisterType<TimeLogRecentModel>("TimeLog", 1, 0, "TimeLogRecentModel");
         qmlRegisterType<TimeLogSearchModel>("TimeLog", 1, 0, "TimeLogSearchModel");
         qmlRegisterType<ReverseProxyModel>("TimeLog", 1, 0, "ReverseProxyModel");
-        qmlRegisterSingletonType(QUrl("qrc:/Settings.qml"), "TimeLog", 1, 0, "Settings");
+        qmlRegisterSingletonType(QUrl("qrc:/qml/timetracker/Settings.qml"), "TimeLog", 1, 0, "Settings");
 
         QQmlApplicationEngine engine;
         engine.rootContext()->setContextProperty("TimeLog", TimeLog::instance());
         engine.rootContext()->setContextProperty("DataSyncer", DataSyncer::instance());
-        engine.load(QUrl(QStringLiteral("qrc:/main.qml")));
+        engine.load(QUrl(QStringLiteral("qrc:/qml/timetracker/main.qml")));
         return app.exec();
     }
 }

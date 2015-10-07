@@ -1,17 +1,17 @@
 <RCC>
     <qresource prefix="/">
-        <file>main.qml</file>
-        <file>TimeLogDelegate.qml</file>
-        <file>TimeLogEntryEditor.qml</file>
-        <file>TimeLogEditDialog.qml</file>
-        <file>TimeLogNewDialog.qml</file>
-        <file>Util.js</file>
-        <file>TimeTumbler.qml</file>
-        <file>RecentView.qml</file>
-        <file>SearchView.qml</file>
-        <file>DatePicker.qml</file>
-        <file>CalendarPopup.qml</file>
-        <file>MainView.qml</file>
-        <file>Settings.qml</file>
+        <file>qml/timetracker/main.qml</file>
+        <file>qml/timetracker/TimeLogDelegate.qml</file>
+        <file>qml/timetracker/TimeLogEntryEditor.qml</file>
+        <file>qml/timetracker/TimeLogEditDialog.qml</file>
+        <file>qml/timetracker/TimeLogNewDialog.qml</file>
+        <file>qml/timetracker/Util.js</file>
+        <file>qml/timetracker/TimeTumbler.qml</file>
+        <file>qml/timetracker/RecentView.qml</file>
+        <file>qml/timetracker/SearchView.qml</file>
+        <file>qml/timetracker/DatePicker.qml</file>
+        <file>qml/timetracker/CalendarPopup.qml</file>
+        <file>qml/timetracker/MainView.qml</file>
+        <file>qml/timetracker/Settings.qml</file>
     </qresource>
 </RCC>
