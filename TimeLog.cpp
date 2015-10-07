@@ -12,6 +12,8 @@ TimeLog::TimeLog(QObject *parent) : QObject(parent)
 {
     connect(TimeLogHistory::instance(), SIGNAL(error(QString)),
             this, SIGNAL(error(QString)));
+    connect(TimeLogHistory::instance(), SIGNAL(statsDataAvailable(QVector<TimeLogStats>,QDateTime)),
+            this, SLOT(statsDataAvailable(QVector<TimeLogStats>,QDateTime)));
     connect(DataSyncer::instance(), SIGNAL(error(QString)),
             this, SIGNAL(error(QString)));
 }
@@ -40,6 +42,11 @@ QStringList TimeLog::categories()
     return result;
 }
 
+void TimeLog::getStats(const QDateTime &begin, const QDateTime &end)
+{
+    TimeLogHistory::instance()->getStats(begin, end);
+}
+
 QPointF TimeLog::mapToGlobal(QQuickItem *item)
 {
     if (!item) {
@@ -47,4 +54,20 @@ QPointF TimeLog::mapToGlobal(QQuickItem *item)
     }
 
     return (item->window()->mapToGlobal(QPoint()) + item->mapToScene(QPointF()));
+}
+
+void TimeLog::statsDataAvailable(QVector<TimeLogStats> data, QDateTime until) const
+{
+    QVariantList result;
+
+    foreach (const TimeLogStats &entry, data) {
+        QVariantMap map;
+        map.insert("label", entry.category);
+        QVariantList datasetData;
+        datasetData.append(entry.durationTime);
+        map.insert("data", datasetData);
+        result.append(map);
+    }
+
+    emit statsDataAvailable(result, until);
 }

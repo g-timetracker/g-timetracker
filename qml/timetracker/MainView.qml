@@ -14,10 +14,20 @@ Item {
         tabBar.setCurrentIndex(d.searchIndex)
     }
 
+    function showStats() {
+        if (d.statsIndex === -1) {
+            d.statsIndex = tabModel.count
+            tabModel.append({ "text": "Statistics", "source": "StatsView.qml",
+                                "hasCloseButton": true })
+        }
+        tabBar.setCurrentIndex(d.statsIndex)
+    }
+
     QtObject {
         id: d
 
         property int searchIndex: -1
+        property int statsIndex: -1
     }
 
     ListModel {

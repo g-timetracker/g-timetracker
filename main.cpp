@@ -78,6 +78,7 @@ int main(int argc, char *argv[])
         qmlRegisterSingletonType(QUrl("qrc:/qml/timetracker/Settings.qml"), "TimeLog", 1, 0, "Settings");
 
         QQmlApplicationEngine engine;
+        engine.addImportPath(QString("%1/qml").arg(app.applicationDirPath()));
         engine.rootContext()->setContextProperty("TimeLog", TimeLog::instance());
         engine.rootContext()->setContextProperty("DataSyncer", DataSyncer::instance());
         engine.load(QUrl(QStringLiteral("qrc:/qml/timetracker/main.qml")));

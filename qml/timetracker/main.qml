@@ -19,6 +19,10 @@ ApplicationWindow {
                 onTriggered: mainView.showSearch();
             }
             MenuItem {
+                text: "Statistics"
+                onTriggered: mainView.showStats();
+            }
+            MenuItem {
                 text: "Sync"
                 onTriggered: DataSyncer.sync(Settings.syncPath);
             }
