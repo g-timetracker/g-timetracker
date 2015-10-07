@@ -69,10 +69,7 @@ QSet<QString> TimeLogHistoryWorker::categories() const
 
 void TimeLogHistoryWorker::insert(const TimeLogEntry &data)
 {
-    if (!m_isInitialized) {
-        qCCritical(HISTORY_WORKER_CATEGORY) << "db is not initialized";
-        return;
-    }
+    Q_ASSERT(m_isInitialized);
 
     if (insertData(data)) {
         emit dataInserted(QVector<TimeLogEntry>() << data);
@@ -83,10 +80,7 @@ void TimeLogHistoryWorker::insert(const TimeLogEntry &data)
 
 void TimeLogHistoryWorker::insert(const QVector<TimeLogEntry> &data)
 {
-    if (!m_isInitialized) {
-        qCCritical(HISTORY_WORKER_CATEGORY) << "db is not initialized";
-        return;
-    }
+    Q_ASSERT(m_isInitialized);
 
     if (insertData(data)) {
         emit dataInserted(data);
@@ -97,10 +91,7 @@ void TimeLogHistoryWorker::insert(const QVector<TimeLogEntry> &data)
 
 void TimeLogHistoryWorker::remove(const TimeLogEntry &data)
 {
-    if (!m_isInitialized) {
-        qCCritical(HISTORY_WORKER_CATEGORY) << "db is not initialized";
-        return;
-    }
+    Q_ASSERT(m_isInitialized);
 
     if (removeData(data)) {
         // TODO: signal
@@ -109,10 +100,7 @@ void TimeLogHistoryWorker::remove(const TimeLogEntry &data)
 
 void TimeLogHistoryWorker::edit(const TimeLogEntry &data, TimeLogHistory::Fields fields)
 {
-    if (!m_isInitialized) {
-        qCCritical(HISTORY_WORKER_CATEGORY) << "db is not initialized";
-        return;
-    }
+    Q_ASSERT(m_isInitialized);
 
     if (fields == TimeLogHistory::NoFields) {
         qCWarning(HISTORY_WORKER_CATEGORY) << "No fields specified";
@@ -126,10 +114,7 @@ void TimeLogHistoryWorker::edit(const TimeLogEntry &data, TimeLogHistory::Fields
 
 void TimeLogHistoryWorker::sync(const QVector<TimeLogSyncData> &updatedData, const QVector<TimeLogSyncData> &removedData)
 {
-    if (!m_isInitialized) {
-        qCCritical(HISTORY_WORKER_CATEGORY) << "db is not initialized";
-        return;
-    }
+    Q_ASSERT(m_isInitialized);
 
     if (syncData(updatedData, removedData)) {
         emit dataSynced(updatedData, removedData);
@@ -138,10 +123,7 @@ void TimeLogHistoryWorker::sync(const QVector<TimeLogSyncData> &updatedData, con
 
 void TimeLogHistoryWorker::getHistoryBetween(const QDateTime &begin, const QDateTime &end, const QString &category) const
 {
-    if (!m_isInitialized) {
-        qCCritical(HISTORY_WORKER_CATEGORY) << "db is not initialized";
-        return;
-    }
+    Q_ASSERT(m_isInitialized);
 
     QSqlDatabase db = QSqlDatabase::database("timelog");
     QSqlQuery query(db);
@@ -165,10 +147,7 @@ void TimeLogHistoryWorker::getHistoryBetween(const QDateTime &begin, const QDate
 
 void TimeLogHistoryWorker::getHistoryAfter(const uint limit, const QDateTime &from) const
 {
-    if (!m_isInitialized) {
-        qCCritical(HISTORY_WORKER_CATEGORY) << "db is not initialized";
-        return;
-    }
+    Q_ASSERT(m_isInitialized);
 
     QSqlDatabase db = QSqlDatabase::database("timelog");
     QSqlQuery query(db);
@@ -188,10 +167,7 @@ void TimeLogHistoryWorker::getHistoryAfter(const uint limit, const QDateTime &fr
 
 void TimeLogHistoryWorker::getHistoryBefore(const uint limit, const QDateTime &until) const
 {
-    if (!m_isInitialized) {
-        qCCritical(HISTORY_WORKER_CATEGORY) << "db is not initialized";
-        return;
-    }
+    Q_ASSERT(m_isInitialized);
 
     QSqlDatabase db = QSqlDatabase::database("timelog");
     QSqlQuery query(db);
@@ -215,10 +191,7 @@ void TimeLogHistoryWorker::getHistoryBefore(const uint limit, const QDateTime &u
 
 void TimeLogHistoryWorker::getSyncData(const QDateTime &mBegin, const QDateTime &mEnd) const
 {
-    if (!m_isInitialized) {
-        qCCritical(HISTORY_WORKER_CATEGORY) << "db is not initialized";
-        return;
-    }
+    Q_ASSERT(m_isInitialized);
 
     QSqlDatabase db = QSqlDatabase::database("timelog");
     QSqlQuery query(db);

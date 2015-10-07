@@ -67,10 +67,7 @@ void DataSyncerWorker::init(const QString &dataPath)
 
 void DataSyncerWorker::startIO(const QString &path)
 {
-    if (!m_isInitialized) {
-        qCCritical(SYNC_WORKER_CATEGORY) << "Syncer is not initialized";
-        return;
-    }
+    Q_ASSERT(m_isInitialized);
 
     if (m_sm->isRunning()) {
         qCWarning(SYNC_WORKER_CATEGORY) << "Sync already running";
