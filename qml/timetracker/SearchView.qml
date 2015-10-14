@@ -8,8 +8,8 @@ Item {
     TimeLogSearchModel {
         id: timeLogModel
 
-        begin: new Date(fromField.text)
-        end: new Date(toField.text)
+        begin: fromField.selectedDate
+        end: new Date(toField.selectedDate.valueOf() + 86399000)
         category: categoryField.currentText
     }
 

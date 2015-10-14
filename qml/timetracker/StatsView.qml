@@ -34,8 +34,8 @@ Item {
             GridLayout {
                 id: controlsLayout
 
-                property var beginDate: new Date(fromField.text)
-                property var endDate: new Date(toField.text)
+                property var beginDate: fromField.selectedDate
+                property var endDate: new Date(toField.selectedDate.valueOf() + 86399000)
 
                 function requestStats() {
                     TimeLog.getStats(beginDate, endDate)
