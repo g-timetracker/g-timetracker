@@ -8,6 +8,30 @@
 
 Q_GLOBAL_STATIC(TimeLogSingleton, timeLog)
 
+bool durationTimeCompare(const TimeLogStats &a, const TimeLogStats &b)
+{
+    return a.durationTime < b.durationTime;
+}
+
+QPair<QString, int> calcTimeUnits(int duration)
+{
+    if (duration / (365 * 24 * 60 * 60)) {
+        return QPair<QString, int>("years", 365 * 24 * 60 * 60);
+    } else if (duration / (30 * 24 * 60 * 60)) {
+        return QPair<QString, int>("months", 30 * 24 * 60 * 60);
+    } else if (duration / (7 * 24 * 60 * 60)) {
+        return QPair<QString, int>("weeks", 7 * 24 * 60 * 60);
+    } else if (duration / (24 * 60 * 60)) {
+        return QPair<QString, int>("days", 24 * 60 * 60);
+    } else if (duration / (60 * 60)) {
+        return QPair<QString, int>("hours", 60 * 60);
+    } else if (duration / (60)) {
+        return QPair<QString, int>("minutes", 60);
+    } else {
+        return QPair<QString, int>("seconds", 1);
+    }
+}
+
 TimeLog::TimeLog(QObject *parent) : QObject(parent)
 {
     connect(TimeLogHistory::instance(), SIGNAL(error(QString)),
@@ -58,16 +82,27 @@ QPointF TimeLog::mapToGlobal(QQuickItem *item)
 
 void TimeLog::statsDataAvailable(QVector<TimeLogStats> data, QDateTime until) const
 {
-    QVariantList result;
+    QVariantMap result;
 
+    QPair<QString, int> timeUnits("", 1);
+    if (!data.isEmpty()) {
+        QVector<TimeLogStats>::const_iterator max = std::max_element(data.cbegin(), data.cend(),
+                                                                     durationTimeCompare);
+        timeUnits = calcTimeUnits(max->durationTime);
+
+    }
+    result.insert("units", timeUnits.first);
+
+    QVariantList dataset;
     foreach (const TimeLogStats &entry, data) {
         QVariantMap map;
         map.insert("label", entry.category);
         QVariantList datasetData;
-        datasetData.append(entry.durationTime);
+        datasetData.append(static_cast<float>(entry.durationTime) / timeUnits.second);
         map.insert("data", datasetData);
-        result.append(map);
+        dataset.append(map);
     }
+    result.insert("data", dataset);
 
     emit statsDataAvailable(result, until);
 }

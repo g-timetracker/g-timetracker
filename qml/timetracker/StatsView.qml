@@ -12,11 +12,10 @@ Item {
                 return
             }
 
+            chart.units = data.units
             chart.chartData = {
-                labels: [
-                    "test"
-                ],
-                datasets: data
+                labels: [],
+                datasets: data.data
             }
         }
     }
@@ -77,6 +76,8 @@ Item {
         Chart {
             id: chart
 
+            property string units: ""
+
             Layout.fillHeight: true
             Layout.fillWidth: true
             chartAnimated: false;
@@ -85,6 +86,18 @@ Item {
             chartType: Charts.ChartType.BAR;
             chartOptions: new Object({
                 maintainAspectRatio: false,
+                scales: {
+                    yAxes: [
+                        {
+                            type: "linear",
+                            ticks: {
+                                userCallback: function(tickValue, tickIndex, ticksArray) {
+                                    return "%1 %2".arg(tickValue).arg(chart.units)
+                                }
+                            }
+                        }
+                    ]
+                }
             })
         }
     }

@@ -30,7 +30,7 @@ public:
 
 signals:
     void error(const QString &errorText) const;
-    void statsDataAvailable(QVariantList data, QDateTime until) const;
+    void statsDataAvailable(QVariantMap data, QDateTime until) const;
 
 private slots:
     void statsDataAvailable(QVector<TimeLogStats> data, QDateTime until) const;
