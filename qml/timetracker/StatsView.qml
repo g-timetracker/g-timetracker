@@ -2,6 +2,7 @@ import QtQuick 2.4
 import QtQuick.Layouts 1.1
 import QtQuick.Controls 1.4
 import jbQuick.Charts 1.0
+import "ChartColors.js" as ChartColors
 
 Item {
     Connections {
@@ -13,6 +14,7 @@ Item {
             }
 
             chart.units = data.units
+            ChartColors.addColors(data.data, "backgroundColor")
             chart.chartData = {
                 labels: [],
                 datasets: data.data
