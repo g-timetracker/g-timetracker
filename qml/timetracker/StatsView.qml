@@ -1,7 +1,6 @@
 import QtQuick 2.4
 import QtQuick.Layouts 1.1
 import QtQuick.Controls 1.4
-import jbQuick.Charts 1.0
 import "ChartColors.js" as ChartColors
 
 Item {
@@ -14,11 +13,8 @@ Item {
             }
 
             chart.units = data.units
-            ChartColors.addColors(data.data, "backgroundColor")
-            chart.chartData = {
-                labels: [],
-                datasets: data.data
-            }
+            ChartColors.addColors(data.data, "color")
+            chart.chartData = data
         }
     }
 
@@ -78,29 +74,8 @@ Item {
         Chart {
             id: chart
 
-            property string units: ""
-
             Layout.fillHeight: true
             Layout.fillWidth: true
-            chartAnimated: false;
-            chartAnimationEasing: Easing.Linear;
-            chartAnimationDuration: 2000;
-            chartType: Charts.ChartType.BAR;
-            chartOptions: new Object({
-                maintainAspectRatio: false,
-                scales: {
-                    yAxes: [
-                        {
-                            type: "linear",
-                            ticks: {
-                                userCallback: function(tickValue, tickIndex, ticksArray) {
-                                    return "%1 %2".arg(tickValue).arg(chart.units)
-                                }
-                            }
-                        }
-                    ]
-                }
-            })
         }
     }
 }

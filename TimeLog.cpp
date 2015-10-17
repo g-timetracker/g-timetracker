@@ -85,21 +85,21 @@ void TimeLog::statsDataAvailable(QVector<TimeLogStats> data, QDateTime until) co
     QVariantMap result;
 
     QPair<QString, int> timeUnits("", 1);
+    int maxValue = 0;
     if (!data.isEmpty()) {
         QVector<TimeLogStats>::const_iterator max = std::max_element(data.cbegin(), data.cend(),
                                                                      durationTimeCompare);
-        timeUnits = calcTimeUnits(max->durationTime);
-
+        maxValue = max->durationTime;
     }
+    timeUnits = calcTimeUnits(maxValue);
     result.insert("units", timeUnits.first);
+    result.insert("max", static_cast<float>(maxValue) / timeUnits.second);
 
     QVariantList dataset;
     foreach (const TimeLogStats &entry, data) {
         QVariantMap map;
         map.insert("label", entry.category);
-        QVariantList datasetData;
-        datasetData.append(static_cast<float>(entry.durationTime) / timeUnits.second);
-        map.insert("data", datasetData);
+        map.insert("value", static_cast<float>(entry.durationTime) / timeUnits.second);
         dataset.append(map);
     }
     result.insert("data", dataset);
