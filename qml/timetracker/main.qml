@@ -23,6 +23,10 @@ ApplicationWindow {
                 onTriggered: mainView.showStats();
             }
             MenuItem {
+                text: "Categories"
+                onTriggered: mainView.showCategories();
+            }
+            MenuItem {
                 text: "Sync"
                 onTriggered: DataSyncer.sync(Settings.syncPath);
             }

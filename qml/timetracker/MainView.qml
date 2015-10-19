@@ -23,11 +23,21 @@ Item {
         tabBar.setCurrentIndex(d.statsIndex)
     }
 
+    function showCategories() {
+        if (d.categoriesIndex === -1) {
+            d.categoriesIndex = tabModel.count
+            tabModel.append({ "text": "Categories", "source": "CategoriesView.qml",
+                                "hasCloseButton": true })
+        }
+        tabBar.setCurrentIndex(d.categoriesIndex)
+    }
+
     QtObject {
         id: d
 
         property int searchIndex: -1
         property int statsIndex: -1
+        property int categoriesIndex: -1
     }
 
     ListModel {
