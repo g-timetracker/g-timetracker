@@ -41,6 +41,7 @@ public slots:
     void insert(const QVector<TimeLogEntry> &data);
     void remove(const TimeLogEntry &data);
     void edit(const TimeLogEntry &data, TimeLogHistory::Fields fields);
+    void editCategory(QString oldName, QString newName);
     void sync(const QVector<TimeLogSyncData> &updatedData,
               const QVector<TimeLogSyncData> &removedData);
 
@@ -61,6 +62,7 @@ public slots:
 
 signals:
     void error(const QString &errorText) const;
+    void dataChanged() const;
     void dataAvailable(QDateTime from, QVector<TimeLogEntry> data) const;
     void dataAvailable(QVector<TimeLogEntry> data, QDateTime until) const;
     void dataUpdated(QVector<TimeLogEntry> data, QVector<TimeLogHistory::Fields>) const;
@@ -68,6 +70,8 @@ signals:
     void statsDataAvailable(QVector<TimeLogStats> data, QDateTime until) const;
     void syncDataAvailable(QVector<TimeLogSyncData> data, QDateTime until) const;
     void dataSynced(QVector<TimeLogSyncData> updatedData, QVector<TimeLogSyncData> removedData);
+
+    void categoriesChanged(QSet<QString> categories) const;
 
 private slots:
     void workerSizeChanged(qlonglong size);

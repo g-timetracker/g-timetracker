@@ -22,6 +22,8 @@ TimeLogModel::TimeLogModel(QObject *parent) :
 {
     connect(m_history, SIGNAL(error(QString)),
             this, SLOT(historyError(QString)));
+    connect(m_history, SIGNAL(dataChanged()),
+            this, SLOT(historyDataChanged()));
     connect(m_history, SIGNAL(dataAvailable(QVector<TimeLogEntry>,QDateTime)),
             this, SLOT(historyDataAvailable(QVector<TimeLogEntry>,QDateTime)));
     connect(m_history, SIGNAL(dataUpdated(QVector<TimeLogEntry>,QVector<TimeLogHistory::Fields>)),
@@ -186,6 +188,11 @@ void TimeLogModel::historyError(const QString &errorText)
 {
     Q_UNUSED(errorText)
 
+    clear();
+}
+
+void TimeLogModel::historyDataChanged()
+{
     clear();
 }
 

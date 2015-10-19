@@ -38,6 +38,7 @@ public:
 
 private slots:
     void historyError(const QString &errorText);
+    void historyDataChanged();
     void historyDataAvailable(QVector<TimeLogEntry> data, QDateTime until);
     void historyDataUpdated(QVector<TimeLogEntry> data, QVector<TimeLogHistory::Fields> fields);
     void historyDataSynced(QVector<TimeLogSyncData> updatedData, QVector<TimeLogSyncData> removedData);

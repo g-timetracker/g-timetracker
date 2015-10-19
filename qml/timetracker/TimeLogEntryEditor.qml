@@ -41,7 +41,7 @@ Item {
                 property alias origCategory: delegateEditor.category
 
                 editable: true
-                model: TimeLog.categories()
+                model: TimeLog.categories
 
                 onEditTextChanged: delegateEditor.category = editText
 

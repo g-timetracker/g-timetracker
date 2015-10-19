@@ -14,6 +14,8 @@ TimeLogHistory::TimeLogHistory(QObject *parent) :
 {
     connect(m_worker, SIGNAL(error(QString)),
             this, SIGNAL(error(QString)));
+    connect(m_worker, SIGNAL(dataChanged()),
+            this, SIGNAL(dataChanged()));
     connect(m_worker, SIGNAL(dataAvailable(QDateTime,QVector<TimeLogEntry>)),
             this, SIGNAL(dataAvailable(QDateTime,QVector<TimeLogEntry>)));
     connect(m_worker, SIGNAL(dataAvailable(QVector<TimeLogEntry>,QDateTime)),
@@ -93,6 +95,12 @@ void TimeLogHistory::edit(const TimeLogEntry &data, TimeLogHistory::Fields field
                               Q_ARG(TimeLogHistory::Fields, fields));
 }
 
+void TimeLogHistory::editCategory(QString oldName, QString newName)
+{
+    QMetaObject::invokeMethod(m_worker, "editCategory", Qt::AutoConnection,
+                              Q_ARG(QString, oldName), Q_ARG(QString, newName));
+}
+
 void TimeLogHistory::sync(const QVector<TimeLogSyncData> &updatedData, const QVector<TimeLogSyncData> &removedData)
 {
     QMetaObject::invokeMethod(m_worker, "sync", Qt::AutoConnection,
@@ -138,6 +146,8 @@ void TimeLogHistory::workerSizeChanged(qlonglong size)
 void TimeLogHistory::workerCategoriesChanged(QSet<QString> categories)
 {
     m_categories.swap(categories);
+
+    emit categoriesChanged(m_categories);
 }
 
 void TimeLogHistory::makeAsync()

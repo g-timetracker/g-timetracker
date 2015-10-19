@@ -48,7 +48,7 @@ bool TimeLogHistoryWorker::init(const QString &dataPath)
         return false;
     }
 
-    if (!updateCategories(QDateTime::fromTime_t(0), QDateTime::currentDateTime())) {
+    if (!updateCategories()) {
         return false;
     }
 
@@ -109,6 +109,15 @@ void TimeLogHistoryWorker::edit(const TimeLogEntry &data, TimeLogHistory::Fields
 
     if (editData(data, fields)) {
         // TODO: signal
+    }
+}
+
+void TimeLogHistoryWorker::editCategory(QString oldName, QString newName)
+{
+    Q_ASSERT(m_isInitialized);
+
+    if (editCategoryData(oldName, newName)) {
+        emit dataChanged();
     }
 }
 
@@ -451,6 +460,17 @@ void TimeLogHistoryWorker::setSize(qlonglong size)
     emit sizeChanged(m_size);
 }
 
+void TimeLogHistoryWorker::removeFromCategories(QString category)
+{
+    if (!m_categories.contains(category)) {
+        return;
+    }
+
+    m_categories.remove(category);
+
+    emit categoriesChanged(m_categories);
+}
+
 void TimeLogHistoryWorker::addToCategories(QString category)
 {
     if (m_categories.contains(category)) {
@@ -657,6 +677,69 @@ bool TimeLogHistoryWorker::editData(const TimeLogSyncData &data, TimeLogHistory:
         if (!notifyUpdates(queryString, QVector<QDateTime>() << data.startTime << oldStart)) {
             return false;
         }
+    }
+
+    return true;
+}
+
+bool TimeLogHistoryWorker::editCategoryData(QString oldName, QString newName)
+{
+    if (newName.isEmpty()) {
+        qCCritical(HISTORY_WORKER_CATEGORY) << "Empty category name";
+        emit error("Empty category name");
+        return false;
+    } else if (oldName == newName) {
+        qCWarning(HISTORY_WORKER_CATEGORY) << "Same category name:" << newName;
+        return false;
+    }
+
+    QSqlDatabase db = QSqlDatabase::database("timelog");
+    QSqlQuery query(db);
+    QString queryString("SELECT count(*) FROM timelog WHERE category=?");
+    if (!query.prepare(queryString)) {
+        qCCritical(HISTORY_WORKER_CATEGORY) << "Fail to prepare query:" << query.lastError().text()
+                                            << query.lastQuery();
+        emit error(query.lastError().text());
+        return false;
+    }
+    query.addBindValue(oldName);
+
+    if (!query.exec()) {
+        qCCritical(HISTORY_WORKER_CATEGORY) << "Fail to execute query:" << query.lastError().text()
+                                            << query.executedQuery() << query.boundValues();
+        emit error(query.lastError().text());
+        return false;
+    }
+
+    query.next();
+    bool hasOldCategoryItems = query.value(0).toULongLong() > 0;
+    query.finish();
+
+    if (!hasOldCategoryItems) {
+        removeFromCategories(oldName);
+        return false;
+    }
+
+    queryString = QString("UPDATE timelog SET category=?, mtime=? WHERE category=?;");
+    if (!query.prepare(queryString)) {
+        qCCritical(HISTORY_WORKER_CATEGORY) << "Fail to prepare query:" << query.lastError().text()
+                                            << query.lastQuery();
+        emit error(query.lastError().text());
+        return false;
+    }
+    query.addBindValue(newName);
+    query.addBindValue(QDateTime::currentMSecsSinceEpoch());
+    query.addBindValue(oldName);
+
+    if (!query.exec()) {
+        qCCritical(HISTORY_WORKER_CATEGORY) << "Fail to execute query:" << query.lastError().text()
+                                            << query.executedQuery() << query.boundValues();
+        emit error(query.lastError().text());
+        return false;
+    }
+
+    if (!updateCategories()) {
+        return false;
     }
 
     return true;

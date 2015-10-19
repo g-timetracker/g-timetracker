@@ -38,6 +38,8 @@ TimeLog::TimeLog(QObject *parent) : QObject(parent)
             this, SIGNAL(error(QString)));
     connect(TimeLogHistory::instance(), SIGNAL(statsDataAvailable(QVector<TimeLogStats>,QDateTime)),
             this, SLOT(statsDataAvailable(QVector<TimeLogStats>,QDateTime)));
+    connect(TimeLogHistory::instance(), SIGNAL(categoriesChanged(QSet<QString>)),
+            this, SLOT(categoriesAvailable(QSet<QString>)));
     connect(DataSyncer::instance(), SIGNAL(error(QString)),
             this, SIGNAL(error(QString)));
 }
@@ -52,18 +54,23 @@ TimeLog *TimeLog::instance()
     return static_cast<TimeLog*>(timeLog);
 }
 
-TimeLogData TimeLog::createTimeLogData(QDateTime startTime, int durationTime,
-                                       QString category, QString comment)
-{
-    return TimeLogData(startTime, durationTime, category, comment);
-}
-
 QStringList TimeLog::categories()
 {
     QStringList result = TimeLogHistory::instance()->categories().toList();
     std::sort(result.begin(), result.end());
 
     return result;
+}
+
+TimeLogData TimeLog::createTimeLogData(QDateTime startTime, int durationTime,
+                                       QString category, QString comment)
+{
+    return TimeLogData(startTime, durationTime, category, comment);
+}
+
+void TimeLog::editCategory(QString oldName, QString newName)
+{
+    TimeLogHistory::instance()->editCategory(oldName, newName);
 }
 
 void TimeLog::getStats(const QDateTime &begin, const QDateTime &end)
@@ -105,4 +112,12 @@ void TimeLog::statsDataAvailable(QVector<TimeLogStats> data, QDateTime until) co
     result.insert("data", dataset);
 
     emit statsDataAvailable(result, until);
+}
+
+void TimeLog::categoriesAvailable(QSet<QString> categories) const
+{
+    QStringList result = categories.toList();
+    std::sort(result.begin(), result.end());
+
+    emit categoriesChanged(result);
 }

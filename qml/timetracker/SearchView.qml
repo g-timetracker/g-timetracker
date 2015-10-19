@@ -60,7 +60,7 @@ Item {
                 ComboBox {
                     id: categoryField
 
-                    model: TimeLog.categories()
+                    model: TimeLog.categories
                 }
             }
         }

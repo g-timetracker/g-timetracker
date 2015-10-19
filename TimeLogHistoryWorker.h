@@ -23,6 +23,7 @@ public slots:
     void insert(const QVector<TimeLogEntry> &data);
     void remove(const TimeLogEntry &data);
     void edit(const TimeLogEntry &data, TimeLogHistory::Fields fields);
+    void editCategory(QString oldName, QString newName);
     void sync(const QVector<TimeLogSyncData> &updatedData,
               const QVector<TimeLogSyncData> &removedData);
 
@@ -43,6 +44,7 @@ public slots:
 
 signals:
     void error(const QString &errorText) const;
+    void dataChanged() const;
     void dataAvailable(QDateTime from, QVector<TimeLogEntry> data) const;
     void dataAvailable(QVector<TimeLogEntry> data, QDateTime until) const;
     void dataUpdated(QVector<TimeLogEntry> data, QVector<TimeLogHistory::Fields> fields) const;
@@ -62,12 +64,14 @@ private:
     bool setupTable();
     bool setupTriggers();
     void setSize(qlonglong size);
+    void removeFromCategories(QString category);
     void addToCategories(QString category);
 
     bool insertData(const QVector<TimeLogEntry> &data);
     bool insertData(const TimeLogSyncData &data);
     bool removeData(const TimeLogSyncData &data);
     bool editData(const TimeLogSyncData &data, TimeLogHistory::Fields fields);
+    bool editCategoryData(QString oldName, QString newName);
     bool syncData(const QVector<TimeLogSyncData> &updatedData,
                   const QVector<TimeLogSyncData> &removedData);
     QVector<TimeLogEntry> getHistory(QSqlQuery &query) const;
