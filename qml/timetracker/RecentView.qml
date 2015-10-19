@@ -182,7 +182,6 @@ Item {
 
     ColumnLayout {
         anchors.fill: parent
-        spacing: 10
 
         ColumnLayout {
             Layout.fillHeight: true

@@ -20,7 +20,6 @@ Item {
 
     ColumnLayout {
         anchors.fill: parent
-        spacing: 10
 
         Item {
             Layout.fillHeight: false
