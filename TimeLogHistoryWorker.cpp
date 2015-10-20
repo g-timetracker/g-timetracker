@@ -213,7 +213,7 @@ void TimeLogHistoryWorker::getStats(const QDateTime &begin, const QDateTime &end
                                   "SELECT category, SUM(duration) FROM result "
                                   " GROUP BY category "
                                   " ORDER BY category ASC")
-                                  .arg(category.isEmpty() ? "" : "AND category=?");
+                                  .arg(category.isEmpty() ? "" : "AND category LIKE ? || '%'");
     if (!query.prepare(queryString)) {
         qCCritical(HISTORY_WORKER_CATEGORY) << "Fail to prepare query:" << query.lastError().text()
                                             << query.lastQuery();
