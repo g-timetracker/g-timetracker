@@ -3,6 +3,8 @@ import QtQuick.Layouts 1.1
 import "ChartColors.js" as ChartColors
 
 Item {
+    property alias category: timeLogFilter.category
+
     Connections {
         target: TimeLog
         onStatsDataAvailable: {

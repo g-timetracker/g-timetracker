@@ -5,6 +5,10 @@ import QtQuick.Dialogs 1.2
 import TimeLog 1.0
 
 Item {
+    id: categoryView
+
+    property MainView mainView
+
     Dialog {
         id: renameDialog
 
@@ -49,11 +53,37 @@ Item {
         onTriggered: renameDialog.openDialog(tableView.model[tableView.currentRow])
     }
 
+    Action {
+        id: showEntriesAction
+
+        text: "Show entries"
+        tooltip: "Show entries for this category"
+        enabled: tableView.currentRow !== -1
+
+        onTriggered: categoryView.mainView.showSearch((tableView.model[tableView.currentRow]))
+    }
+
+    Action {
+        id: showStatsAction
+
+        text: "Show statistics"
+        tooltip: "Show statistics for this category"
+        enabled: tableView.currentRow !== -1
+
+        onTriggered: categoryView.mainView.showStats((tableView.model[tableView.currentRow]))
+    }
+
     Menu {
         id: itemMenu
 
         MenuItem {
             action: renameAction
+        }
+        MenuItem {
+            action: showEntriesAction
+        }
+        MenuItem {
+            action: showStatsAction
         }
     }
 
@@ -89,15 +119,25 @@ Item {
             }
 
             onPressAndHold: itemMenu.popup()
+            onDoubleClicked: showEntriesAction.trigger()
         }
 
         Row {
             Layout.fillWidth: true
             Layout.fillHeight: false
+            spacing: 10
 
             Button {
                 anchors.verticalCenter: parent.verticalCenter
                 action: renameAction
+            }
+            Button {
+                anchors.verticalCenter: parent.verticalCenter
+                action: showEntriesAction
+            }
+            Button {
+                anchors.verticalCenter: parent.verticalCenter
+                action: showStatsAction
             }
         }
     }

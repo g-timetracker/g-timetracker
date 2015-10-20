@@ -7,7 +7,7 @@ GridLayout {
 
     property var beginDate: fromField.selectedDate
     property var endDate: new Date(toField.selectedDate.valueOf() + 86399000)
-    property string category: categoryField.currentText
+    property string category
 
     columns: 2
     columnSpacing: 10
@@ -43,5 +43,17 @@ GridLayout {
         id: categoryField
 
         model: [ "" ].concat(TimeLog.categories)
+
+        onCurrentTextChanged: {
+            if (controlsLayout.category !== currentText) {
+                controlsLayout.category = currentText
+            }
+        }
+    }
+
+    onCategoryChanged: {
+        if (categoryField.currentText !== category) {
+            categoryField.currentIndex = categoryField.find(category)
+        }
     }
 }

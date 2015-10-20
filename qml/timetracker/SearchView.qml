@@ -5,6 +5,8 @@ import TimeLog 1.0
 import "Util.js" as Util
 
 Item {
+    property alias category: timeLogFilter.category
+
     TimeLogSearchModel {
         id: timeLogModel
 

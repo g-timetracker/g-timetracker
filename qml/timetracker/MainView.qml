@@ -5,22 +5,28 @@ import Qt.labs.controls 1.0
 Item {
     id: mainView
 
-    function showSearch() {
+    function showSearch(category) {
         if (d.searchIndex === -1) {
             d.searchIndex = tabModel.count
             tabModel.append({ "text": "Search", "source": "SearchView.qml",
                                 "hasCloseButton": true })
         }
         tabBar.setCurrentIndex(d.searchIndex)
+        if (category !== undefined) {
+            stackLayout.children[d.searchIndex].item.category = category
+        }
     }
 
-    function showStats() {
+    function showStats(category) {
         if (d.statsIndex === -1) {
             d.statsIndex = tabModel.count
             tabModel.append({ "text": "Statistics", "source": "StatsView.qml",
                                 "hasCloseButton": true })
         }
         tabBar.setCurrentIndex(d.statsIndex)
+        if (category !== undefined) {
+            stackLayout.children[d.statsIndex].item.category = category
+        }
     }
 
     function showCategories() {
@@ -28,6 +34,7 @@ Item {
             d.categoriesIndex = tabModel.count
             tabModel.append({ "text": "Categories", "source": "CategoriesView.qml",
                                 "hasCloseButton": true })
+            stackLayout.children[d.categoriesIndex].item.mainView = mainView
         }
         tabBar.setCurrentIndex(d.categoriesIndex)
     }
