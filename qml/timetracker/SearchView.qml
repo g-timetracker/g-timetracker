@@ -8,61 +8,19 @@ Item {
     TimeLogSearchModel {
         id: timeLogModel
 
-        begin: fromField.selectedDate
-        end: new Date(toField.selectedDate.valueOf() + 86399000)
-        category: categoryField.currentText
+        begin: timeLogFilter.beginDate
+        end: timeLogFilter.endDate
+        category: timeLogFilter.category
     }
 
     ColumnLayout {
         anchors.fill: parent
 
-        Item {
+        TimeLogFilter {
+            id: timeLogFilter
+
             Layout.fillHeight: false
             Layout.fillWidth: true
-            implicitHeight: controlsLayout.implicitHeight + controlsLayout.anchors.margins * 2
-            implicitWidth: controlsLayout.implicitWidth + controlsLayout.anchors.margins * 2
-
-            GridLayout {
-                id: controlsLayout
-
-                anchors.margins: 10
-                anchors.fill: parent
-                columns: 2
-                columnSpacing: 10
-                rowSpacing: 10
-
-                Label {
-                    text: "From:"
-                }
-
-                DatePicker {
-                    id: fromField
-
-                    minimumDate: new Date(0)
-                    maximumDate: toField.selectedDate
-                }
-
-                Label {
-                    text: "To:"
-                }
-
-                DatePicker {
-                    id: toField
-
-                    minimumDate: fromField.selectedDate
-                    maximumDate: new Date()
-                }
-
-                Label {
-                    text: "Category:"
-                }
-
-                ComboBox {
-                    id: categoryField
-
-                    model: [ "" ].concat(TimeLog.categories)
-                }
-            }
         }
 
         TableView {

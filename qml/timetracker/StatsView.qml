@@ -1,13 +1,12 @@
 import QtQuick 2.4
 import QtQuick.Layouts 1.1
-import QtQuick.Controls 1.4
 import "ChartColors.js" as ChartColors
 
 Item {
     Connections {
         target: TimeLog
         onStatsDataAvailable: {
-            if (until.valueOf() !== controlsLayout.endDate.valueOf()) {
+            if (until.valueOf() !== timeLogFilter.endDate.valueOf()) {
                 console.log("Discarding stats data for different period, end:", until)
                 return
             }
@@ -21,53 +20,18 @@ Item {
     ColumnLayout {
         anchors.fill: parent
 
-        Item {
+        TimeLogFilter {
+            id: timeLogFilter
+
+            function requestStats() {
+                TimeLog.getStats(beginDate, endDate)
+            }
+
             Layout.fillHeight: false
             Layout.fillWidth: true
-            implicitHeight: controlsLayout.implicitHeight + controlsLayout.anchors.margins * 2
-            implicitWidth: controlsLayout.implicitWidth + controlsLayout.anchors.margins * 2
 
-            GridLayout {
-                id: controlsLayout
-
-                property var beginDate: fromField.selectedDate
-                property var endDate: new Date(toField.selectedDate.valueOf() + 86399000)
-
-                function requestStats() {
-                    TimeLog.getStats(beginDate, endDate)
-                }
-
-                anchors.margins: 10
-                anchors.fill: parent
-                columns: 2
-                columnSpacing: 10
-                rowSpacing: 10
-
-                Label {
-                    text: "From:"
-                }
-
-                DatePicker {
-                    id: fromField
-
-                    minimumDate: new Date(0)
-                    maximumDate: toField.selectedDate
-                }
-
-                Label {
-                    text: "To:"
-                }
-
-                DatePicker {
-                    id: toField
-
-                    minimumDate: fromField.selectedDate
-                    maximumDate: new Date()
-                }
-
-                onBeginDateChanged: requestStats()
-                onEndDateChanged: requestStats()
-            }
+            onBeginDateChanged: requestStats()
+            onEndDateChanged: requestStats()
         }
 
         Chart {

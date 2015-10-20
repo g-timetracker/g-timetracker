@@ -18,5 +18,6 @@
         <file>qml/timetracker/MaterialColors.js</file>
         <file>qml/timetracker/Chart.qml</file>
         <file>qml/timetracker/CategoriesView.qml</file>
+        <file>qml/timetracker/TimeLogFilter.qml</file>
     </qresource>
 </RCC>
