@@ -24,7 +24,7 @@ Item {
             id: timeLogFilter
 
             function requestStats() {
-                TimeLog.getStats(beginDate, endDate)
+                TimeLog.getStats(beginDate, endDate, category)
             }
 
             Layout.fillHeight: false
@@ -32,6 +32,7 @@ Item {
 
             onBeginDateChanged: requestStats()
             onEndDateChanged: requestStats()
+            onCategoryChanged: requestStats()
         }
 
         Chart {

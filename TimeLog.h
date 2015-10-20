@@ -28,7 +28,8 @@ public:
                                                      QString category, QString comment);
     Q_INVOKABLE static void editCategory(QString oldName, QString newName);
     Q_INVOKABLE static void getStats(const QDateTime &begin = QDateTime::fromTime_t(0),
-                                     const QDateTime &end = QDateTime::currentDateTime());
+                                     const QDateTime &end = QDateTime::currentDateTime(),
+                                     const QString &category = QString());
     Q_INVOKABLE static QPointF mapToGlobal(QQuickItem *item);
 
 signals:
