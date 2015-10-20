@@ -11,7 +11,7 @@ Window {
     property alias selectedDate: calendar.selectedDate
 
     x: position.x
-    y: position.y - height - 1
+    y: position.y
     height: calendar.implicitHeight
     width: calendar.implicitWidth
     flags: Qt.Popup

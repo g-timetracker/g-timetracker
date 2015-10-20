@@ -1,5 +1,6 @@
 import QtQuick 2.0
 import QtQuick.Controls 1.4
+import QtQuick.Window 2.2
 
 TextField {
     id: datePicker
@@ -25,7 +26,14 @@ TextField {
 
         onClicked: {
             updateDate()
-            popup.position = TimeLog.mapToGlobal(datePicker)
+
+            var datePickerPosition = TimeLog.mapToGlobal(datePicker)
+            var popupX = datePickerPosition.x
+            popupX -= popupX + popup.width > Screen.desktopAvailableWidth ? popup.width - datePicker.width : 0
+            var popupY = datePickerPosition.y
+            popupY -= popupY - popup.height < 0 ? -datePicker.height : popup.height
+            popup.position = Qt.point(popupX, popupY)
+
             popup.show()
             popup.requestActivate()
         }
