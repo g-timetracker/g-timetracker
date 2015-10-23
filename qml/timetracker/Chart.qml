@@ -19,6 +19,7 @@ Canvas {
     property int axesWidth: 1
     property int gridWidth: 1
     property int gridCells: 10
+    property int maxBarWidth: chart.width / 10
 
     QtObject {
         id: d
@@ -127,7 +128,7 @@ Canvas {
             var xOffset = labelsWidth
             var yOffset = padding
             var spacing = chartAreaWidth / (chartData.data.length + 0.17) * 0.17   // 20% of bar width
-            var barWidth = (chartAreaWidth - spacing) / chartData.data.length - spacing
+            var barWidth = Math.min((chartAreaWidth - spacing) / chartData.data.length - spacing, maxBarWidth)
             for (var i = 0; i < chartData.data.length; i++) {
                 ctx.fillStyle = chartData.data[i].color || defaultBarColor
                 var barHeight = chartAreaHeight * (chartData.data[i].value / maxValue)
