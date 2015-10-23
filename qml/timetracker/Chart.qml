@@ -128,7 +128,13 @@ Canvas {
             var xOffset = labelsWidth
             var yOffset = padding
             var spacing = chartAreaWidth / (chartData.data.length + 0.17) * 0.17   // 20% of bar width
+            spacing = Math.floor(spacing) || 1
             var barWidth = Math.min((chartAreaWidth - spacing) / chartData.data.length - spacing, maxBarWidth)
+            barWidth = Math.floor(barWidth) || 1
+            var chartWidth = barWidth * chartData.data.length + spacing * (chartData.data.length + 1)
+            if (chartWidth < chartAreaWidth) {  // Center chart horizontally
+                xOffset += Math.floor((chartAreaWidth - chartWidth) / 2)
+            }
             for (var i = 0; i < chartData.data.length; i++) {
                 ctx.fillStyle = chartData.data[i].color || defaultBarColor
                 var barHeight = chartAreaHeight * (chartData.data[i].value / maxValue)
