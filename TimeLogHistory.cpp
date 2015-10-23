@@ -126,10 +126,11 @@ void TimeLogHistory::getHistoryBefore(const uint limit, const QDateTime &until) 
                               Q_ARG(QDateTime, until));
 }
 
-void TimeLogHistory::getStats(const QDateTime &begin, const QDateTime &end, const QString &category) const
+void TimeLogHistory::getStats(const QDateTime &begin, const QDateTime &end, const QString &category, const QString &separator) const
 {
-    QMetaObject::invokeMethod(m_worker, "getStats", Qt::AutoConnection, Q_ARG(QDateTime, begin),
-                              Q_ARG(QDateTime, end), Q_ARG(QString, category));
+    QMetaObject::invokeMethod(m_worker, "getStats", Qt::AutoConnection,
+                              Q_ARG(QDateTime, begin), Q_ARG(QDateTime, end),
+                              Q_ARG(QString, category), Q_ARG(QString, separator));
 }
 
 void TimeLogHistory::getSyncData(const QDateTime &mBegin, const QDateTime &mEnd) const

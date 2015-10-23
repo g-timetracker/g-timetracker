@@ -198,32 +198,35 @@ void TimeLogHistoryWorker::getHistoryBefore(const uint limit, const QDateTime &u
     emit dataAvailable(result, until);
 }
 
-void TimeLogHistoryWorker::getStats(const QDateTime &begin, const QDateTime &end, const QString &category) const
+void TimeLogHistoryWorker::getStats(const QDateTime &begin, const QDateTime &end, const QString &category, const QString &separator) const
 {
     QSqlDatabase db = QSqlDatabase::database("timelog");
     QSqlQuery query(db);
     QString queryString = QString("WITH result AS ( "
-                                  "    SELECT category, CASE "
+                                  "    SELECT rtrim(substr(category, 1, ifnull(%1, length(category)))) as category, CASE "
                                   "        WHEN duration!=-1 THEN duration "
                                   "        ELSE (SELECT strftime('%s','now')) - (SELECT start FROM timelog ORDER BY start DESC LIMIT 1) "
                                   "        END AS duration "
                                   "    FROM timelog "
-                                  "    WHERE (start BETWEEN ? AND ?) %1 "
+                                  "    WHERE (start BETWEEN :sBegin AND :sEnd) %2 "
                                   ") "
                                   "SELECT category, SUM(duration) FROM result "
                                   " GROUP BY category "
                                   " ORDER BY category ASC")
-                                  .arg(category.isEmpty() ? "" : "AND category LIKE ? || '%'");
+            .arg(category.isEmpty() ? "nullif(instr(category, :separator) - 1, -1)"
+                                    : "nullif(instr(substr(category, nullif(instr(substr(category, length(:category) + 1), :separator), 0) + 1 + length(:category)), :separator), 0) + length(:category)")
+            .arg(category.isEmpty() ? "" : "AND category LIKE :category || '%'");
     if (!query.prepare(queryString)) {
         qCCritical(HISTORY_WORKER_CATEGORY) << "Fail to prepare query:" << query.lastError().text()
                                             << query.lastQuery();
         emit error(query.lastError().text());
         return;
     }
-    query.addBindValue(begin.toTime_t());
-    query.addBindValue(end.toTime_t());
+    query.bindValue(":sBegin", begin.toTime_t());
+    query.bindValue(":sEnd", end.toTime_t());
+    query.bindValue(":separator", separator);
     if (!category.isEmpty()) {
-        query.addBindValue(category);
+        query.bindValue(":category", category);
     }
 
     emit statsDataAvailable(getStats(query), end);

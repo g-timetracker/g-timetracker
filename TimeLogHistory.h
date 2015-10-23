@@ -55,7 +55,8 @@ public slots:
 
     void getStats(const QDateTime &begin = QDateTime::fromTime_t(0),
                   const QDateTime &end = QDateTime::currentDateTime(),
-                  const QString &category = QString()) const;
+                  const QString &category = QString(),
+                  const QString &separator = ">") const;
 
     void getSyncData(const QDateTime &mBegin = QDateTime::fromMSecsSinceEpoch(0),
                      const QDateTime &mEnd = QDateTime::currentDateTime()) const;

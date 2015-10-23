@@ -73,9 +73,9 @@ void TimeLog::editCategory(QString oldName, QString newName)
     TimeLogHistory::instance()->editCategory(oldName, newName);
 }
 
-void TimeLog::getStats(const QDateTime &begin, const QDateTime &end, const QString &category)
+void TimeLog::getStats(const QDateTime &begin, const QDateTime &end, const QString &category, const QString &separator)
 {
-    TimeLogHistory::instance()->getStats(begin, end, category);
+    TimeLogHistory::instance()->getStats(begin, end, category, separator);
 }
 
 QPointF TimeLog::mapToGlobal(QQuickItem *item)
