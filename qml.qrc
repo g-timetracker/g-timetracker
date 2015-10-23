@@ -19,5 +19,6 @@
         <file>qml/timetracker/Chart.qml</file>
         <file>qml/timetracker/CategoriesView.qml</file>
         <file>qml/timetracker/TimeLogFilter.qml</file>
+        <file>qml/timetracker/TimeEditorModel.qml</file>
     </qresource>
 </RCC>

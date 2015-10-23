@@ -76,14 +76,6 @@ Item {
                 minimumDate: (dayAfterFit ? startTimeAfter : new Date(startTimeAfter.valueOf() + 1000))
                 maximumDate: (dayBeforeFit ? startTimeBefore : new Date(startTimeBefore.valueOf() - 1000))
 
-                onSelectedDateChanged: {
-                    var newDate = new Date(selectedDate)
-                    delegateEditor.startTime.setFullYear(newDate.getFullYear())
-                    delegateEditor.startTime.setMonth(newDate.getMonth())
-                    delegateEditor.startTime.setDate(newDate.getDate())
-                    delegateEditor.startTime = delegateEditor.startTime
-                }
-
                 onOrigDateChanged: selectedDate = origDate
             }
 
