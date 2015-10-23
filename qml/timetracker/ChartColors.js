@@ -7,7 +7,8 @@ function addColors(data, colorProperty) {
         return
     }
 
+    var palettesOrder = Colors.randomPalettesOrder()  // Shuffle palettes
     for (var i = 0; i < data.length; i++) {
-        data[i][colorProperty] = Colors.colorForChartIndex(i)
+        data[i][colorProperty] = Colors.colorForChartIndex(i, palettesOrder)
     }
 }

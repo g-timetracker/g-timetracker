@@ -63,3 +63,18 @@ function rangeList(start, end) {
         return []
     }
 }
+
+function shuffleArray(array) {
+    var current = array ? array.length : 0
+    var index, tmp
+
+    while (current) {
+        index = Math.floor(Math.random() * current--)
+
+        tmp = array[current]
+        array[current] = array[index]
+        array[index] = tmp
+    }
+
+    return array
+}

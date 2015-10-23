@@ -1,5 +1,7 @@
 .pragma library
 
+.import "Util.js" as Util
+
 var _colors = [
     {
         name: "Red",
@@ -357,11 +359,20 @@ var _maxColorIndex = 9      // Use only primary colors
 var _startColorIndex = 5    // Start from 500 color
 var _colorStep = 3          // Distance betwen next color and current
 
-function colorForChartIndex(index) {
+function colorForChartIndex(index, palettesOrder) {
     var paletteIndex = index % _colors.length
     var colorCount = index / _colors.length | 0
     var colorIndex = ((_startColorIndex - _minColorIndex) + _colorStep * colorCount)
                       % (_maxColorIndex - _minColorIndex + 1) + _minColorIndex
 
-    return _colors[paletteIndex].list[colorIndex].value
+    return _colors[palettesOrder ? palettesOrder[paletteIndex] : paletteIndex].list[colorIndex].value
+}
+
+function randomPalettesOrder() {
+    var order = []
+    for (var i = 0; i < _colors.length; i++) {
+        order.push(i)
+    }
+
+    return Util.shuffleArray(order)
 }
