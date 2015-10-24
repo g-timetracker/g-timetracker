@@ -31,7 +31,7 @@ Dialog {
         }
 
         delegateEditor.category = ""
-        delegateEditor.startTimeCurrent = startTimeBefore
+        delegateEditor.startTimeCurrent = new Date(startTimeBefore.valueOf() - 1000)
         delegateEditor.comment = ""
     }
 

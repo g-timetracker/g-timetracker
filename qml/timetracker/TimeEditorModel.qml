@@ -41,6 +41,27 @@ QtObject {
     property bool hoursAfterFit: (startTimeAfter.getMinutes() < 59
                                   || minutesAfterFit)
 
+    onHoursChanged: {
+        if (currentDateTime.getHours() != hours) {
+            currentDateTime.setHours(hours)
+            currentDateTime = currentDateTime
+        }
+    }
+
+    onMinutesChanged: {
+        if (currentDateTime.getMinutes() != minutes) {
+            currentDateTime.setMinutes(minutes)
+            currentDateTime = currentDateTime
+        }
+    }
+
+    onSecondsChanged: {
+        if (currentDateTime.getSeconds() != seconds) {
+            currentDateTime.setSeconds(seconds)
+            currentDateTime = currentDateTime
+        }
+    }
+
     onCurrentDateChanged: {
         var newDate = new Date(currentDate)
         currentDateTime.setFullYear(newDate.getFullYear())

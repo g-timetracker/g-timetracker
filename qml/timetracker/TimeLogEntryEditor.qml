@@ -83,23 +83,13 @@ Item {
                 id: timeTumbler
 
                 startDateCurrent: calendar.selectedDate
-                startTimeCurrent: delegateEditor.startTimeCurrent
                 startTimeBefore: delegateEditor.startTimeBefore
                 startTimeAfter: delegateEditor.startTimeAfter
 
-                onHoursChanged: {
-                    delegateEditor.startTime.setHours(hours)
-                    delegateEditor.startTime = delegateEditor.startTime
-                }
-
-                onMinutesChanged: {
-                    delegateEditor.startTime.setMinutes(minutes)
-                    delegateEditor.startTime = delegateEditor.startTime
-                }
-
-                onSecondsChanged: {
-                    delegateEditor.startTime.setSeconds(seconds)
-                    delegateEditor.startTime = delegateEditor.startTime
+                onStartTimeCurrentChanged: {
+                    if (delegateEditor.startTime != startTimeCurrent) {
+                        delegateEditor.startTime = startTimeCurrent
+                    }
                 }
             }
         }
@@ -127,6 +117,12 @@ Item {
 
                 onOrigCommentChanged: text = origComment
             }
+        }
+    }
+
+    onStartTimeCurrentChanged: {
+        if (timeTumbler.startTimeCurrent != startTimeCurrent) {
+            timeTumbler.startTimeCurrent = startTimeCurrent
         }
     }
 }

@@ -56,8 +56,9 @@ Row {
     }
 
     onStartTimeCurrentChanged: {
-        setHours(startTimeCurrent.getHours())
-        setMinutes(startTimeCurrent.getMinutes())
-        setSeconds(startTimeCurrent.getSeconds())
+        var currentTime = startTimeCurrent
+        setHours(currentTime.getHours())
+        setMinutes(currentTime.getMinutes())
+        setSeconds(currentTime.getSeconds())
     }
 }
