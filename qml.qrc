@@ -28,5 +28,7 @@
         <file>qml/timetracker/MainWindowMobile.qml</file>
         <file>qml/timetracker/MainWindow.qml</file>
         <file>qml/timetracker/+android/MainWindow.qml</file>
+        <file>qml/timetracker/TimeEditor.qml</file>
+        <file>qml/timetracker/+android/TimeEditor.qml</file>
     </qresource>
 </RCC>

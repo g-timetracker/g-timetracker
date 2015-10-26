@@ -79,8 +79,8 @@ Item {
                 onOrigDateChanged: selectedDate = origDate
             }
 
-            TimeTumbler {
-                id: timeTumbler
+            TimeEditor {
+                id: timeEditor
 
                 startDateCurrent: calendar.selectedDate
                 startTimeBefore: delegateEditor.startTimeBefore
@@ -121,8 +121,8 @@ Item {
     }
 
     onStartTimeCurrentChanged: {
-        if (timeTumbler.startTimeCurrent != startTimeCurrent) {
-            timeTumbler.startTimeCurrent = startTimeCurrent
+        if (timeEditor.startTimeCurrent != startTimeCurrent) {
+            timeEditor.startTimeCurrent = startTimeCurrent
         }
     }
 }
