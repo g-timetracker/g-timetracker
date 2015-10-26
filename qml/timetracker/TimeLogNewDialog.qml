@@ -17,12 +17,14 @@ Dialog {
 
     signal dataAccepted(var newData)
 
-    width: delegateEditor.implicitWidth
     standardButtons: StandardButton.Ok | StandardButton.Cancel
     title: "Add new entry"
 
     TimeLogEntryEditor {
         id: delegateEditor
+
+        anchors.left: parent.left
+        anchors.right: parent.right
     }
 
     onVisibleChanged: {

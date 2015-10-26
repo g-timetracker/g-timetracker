@@ -26,12 +26,14 @@ Dialog {
         open()
     }
 
-    width: delegateEditor.implicitWidth
     standardButtons: StandardButton.Ok | StandardButton.Cancel | StandardButton.Reset
     title: "Edit entry"
 
     TimeLogEntryEditor {
         id: delegateEditor
+
+        anchors.left: parent.left
+        anchors.right: parent.right
     }
 
     onAccepted: {
