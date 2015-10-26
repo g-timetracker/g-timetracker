@@ -23,5 +23,7 @@
         <file>qml/timetracker/TimeSpinBox.qml</file>
         <file>qml/timetracker/MainWindowDesktop.qml</file>
         <file>qml/timetracker/MainWindowMobile.qml</file>
+        <file>qml/timetracker/MainWindow.qml</file>
+        <file>qml/timetracker/+android/MainWindow.qml</file>
     </qresource>
 </RCC>

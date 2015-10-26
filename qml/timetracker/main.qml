@@ -1,1 +1,1 @@
-MainWindowDesktop { }
+MainWindow { }
