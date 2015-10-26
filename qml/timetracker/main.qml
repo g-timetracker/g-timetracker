@@ -45,50 +45,9 @@ ApplicationWindow {
             }
             MenuItem {
                 text: "Sync path"
-                onTriggered: syncPathDialog.open()
+                onTriggered: mainView.changeSyncPath()
             }
         }
-    }
-
-    Connections {
-        target: TimeLog
-        onError: {
-            errorDialog.text = errorText
-            errorDialog.open()
-        }
-    }
-
-    Connections {
-        target: DataSyncer
-        onSynced: {
-            messageDialog.text = "Sync complete"
-            messageDialog.open()
-        }
-    }
-
-    MessageDialog {
-        id: messageDialog
-
-        title: "Message"
-        icon: StandardIcon.Information
-        standardButtons: StandardButton.Ok
-    }
-
-    MessageDialog {
-        id: errorDialog
-
-        title: "Error"
-        icon: StandardIcon.Critical
-        standardButtons: StandardButton.Ok
-    }
-
-    FileDialog {
-        id: syncPathDialog
-
-        title: "Select folder for sync"
-        selectFolder: true
-
-        onAccepted: Settings.syncPath = folder
     }
 
     MainView {

@@ -1,6 +1,8 @@
 import QtQuick 2.0
 import QtQuick.Layouts 1.3
+import QtQuick.Dialogs 1.2
 import Qt.labs.controls 1.0
+import TimeLog 1.0
 
 Item {
     id: mainView
@@ -39,12 +41,57 @@ Item {
         tabBar.setCurrentIndex(d.categoriesIndex)
     }
 
+    function changeSyncPath() {
+        syncPathDialog.open()
+    }
+
     QtObject {
         id: d
 
         property int searchIndex: -1
         property int statsIndex: -1
         property int categoriesIndex: -1
+    }
+
+    Connections {
+        target: TimeLog
+        onError: {
+            errorDialog.text = errorText
+            errorDialog.open()
+        }
+    }
+
+    Connections {
+        target: DataSyncer
+        onSynced: {
+            messageDialog.text = "Sync complete"
+            messageDialog.open()
+        }
+    }
+
+    MessageDialog {
+        id: messageDialog
+
+        title: "Message"
+        icon: StandardIcon.Information
+        standardButtons: StandardButton.Ok
+    }
+
+    MessageDialog {
+        id: errorDialog
+
+        title: "Error"
+        icon: StandardIcon.Critical
+        standardButtons: StandardButton.Ok
+    }
+
+    FileDialog {
+        id: syncPathDialog
+
+        title: "Select folder for sync"
+        selectFolder: true
+
+        onAccepted: Settings.syncPath = folder
     }
 
     ListModel {
