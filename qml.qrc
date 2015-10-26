@@ -21,5 +21,6 @@
         <file>qml/timetracker/TimeLogFilter.qml</file>
         <file>qml/timetracker/TimeEditorModel.qml</file>
         <file>qml/timetracker/TimeSpinBox.qml</file>
+        <file>qml/timetracker/MainWindowDesktop.qml</file>
     </qresource>
 </RCC>
