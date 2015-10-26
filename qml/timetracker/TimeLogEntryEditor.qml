@@ -112,16 +112,29 @@ GridLayout {
         text: "Comment:"
     }
 
-    TextField {
+    TextArea {
+        id: commentArea
+
         property alias origComment: delegateEditor.comment
 
         Layout.fillWidth: true
+        Layout.fillHeight: true
         Layout.alignment: Qt.AlignVCenter
-        placeholderText: "Optional comment"
+        Layout.columnSpan: delegateEditor.columns
 
         onTextChanged: delegateEditor.comment = text
 
         onOrigCommentChanged: text = origComment
+
+        Label {
+            anchors.margins: commentArea.textMargin
+            anchors.fill: parent
+            elide: Text.ElideRight
+            wrapMode: Text.Wrap
+            opacity: 0.5
+            text: "Optional comment"
+            visible: !commentArea.text && !commentArea.activeFocus
+        }
     }
 
     onStartTimeCurrentChanged: {
