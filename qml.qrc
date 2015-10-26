@@ -11,6 +11,7 @@
         <file>qml/timetracker/SearchView.qml</file>
         <file>qml/timetracker/DatePicker.qml</file>
         <file>qml/timetracker/CalendarPopup.qml</file>
+        <file>qml/timetracker/CalendarPopupDesktop.qml</file>
         <file>qml/timetracker/MainView.qml</file>
         <file>qml/timetracker/Settings.qml</file>
         <file>qml/timetracker/StatsView.qml</file>
