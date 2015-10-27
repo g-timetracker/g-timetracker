@@ -8,28 +8,50 @@
 
 Q_GLOBAL_STATIC(TimeLogSingleton, timeLog)
 
+enum TimeUnits {
+    Seconds = 0,
+    Minutes,
+    Hours,
+    Days,
+    Weeks,
+    Months,
+    Years
+};
+
+struct TimeUnit {
+    TimeUnit() :
+        id(Seconds), name("seconds"), value(1) { }
+    TimeUnit(TimeUnits id, QString name, int value) :
+        id(id), name(name), value(value) { }
+
+    TimeUnits id;
+    QString name;
+    int value;
+};
+
+static const QVector<TimeUnit> timeUnits = QVector<TimeUnit>() << TimeUnit(Seconds, "seconds", 1)
+                                                               << TimeUnit(Minutes, "minutes", 60)
+                                                               << TimeUnit(Hours, "hours", 60 * 60)
+                                                               << TimeUnit(Days, "days", 24 * 60 * 60)
+                                                               << TimeUnit(Weeks, "weeks", 7 * 24 * 60 * 60)
+                                                               << TimeUnit(Months, "months", 30 * 24 * 60 * 60)
+                                                               << TimeUnit(Years, "years", 365 * 24 * 60 * 60);
+
 bool durationTimeCompare(const TimeLogStats &a, const TimeLogStats &b)
 {
     return a.durationTime < b.durationTime;
 }
 
-QPair<QString, int> calcTimeUnits(int duration)
+int calcTimeUnits(int duration)
 {
-    if (duration / (365 * 24 * 60 * 60)) {
-        return QPair<QString, int>("years", 365 * 24 * 60 * 60);
-    } else if (duration / (30 * 24 * 60 * 60)) {
-        return QPair<QString, int>("months", 30 * 24 * 60 * 60);
-    } else if (duration / (7 * 24 * 60 * 60)) {
-        return QPair<QString, int>("weeks", 7 * 24 * 60 * 60);
-    } else if (duration / (24 * 60 * 60)) {
-        return QPair<QString, int>("days", 24 * 60 * 60);
-    } else if (duration / (60 * 60)) {
-        return QPair<QString, int>("hours", 60 * 60);
-    } else if (duration / (60)) {
-        return QPair<QString, int>("minutes", 60);
-    } else {
-        return QPair<QString, int>("seconds", 1);
+    int i;
+    for (i = timeUnits.size() - 1; i > 0; i--) {
+        if (duration / timeUnits.at(i).value) {
+            break;
+        }
     }
+
+    return i;
 }
 
 TimeLog::TimeLog(QObject *parent) : QObject(parent)
@@ -91,22 +113,22 @@ void TimeLog::statsDataAvailable(QVector<TimeLogStats> data, QDateTime until) co
 {
     QVariantMap result;
 
-    QPair<QString, int> timeUnits("", 1);
+    int unit = 0;
     int maxValue = 0;
     if (!data.isEmpty()) {
         QVector<TimeLogStats>::const_iterator max = std::max_element(data.cbegin(), data.cend(),
                                                                      durationTimeCompare);
         maxValue = max->durationTime;
     }
-    timeUnits = calcTimeUnits(maxValue);
-    result.insert("units", timeUnits.first);
-    result.insert("max", static_cast<float>(maxValue) / timeUnits.second);
+    unit = calcTimeUnits(maxValue);
+    result.insert("units", timeUnits.at(unit).name);
+    result.insert("max", static_cast<float>(maxValue) / timeUnits.at(unit).value);
 
     QVariantList dataset;
     foreach (const TimeLogStats &entry, data) {
         QVariantMap map;
         map.insert("label", entry.category);
-        map.insert("value", static_cast<float>(entry.durationTime) / timeUnits.second);
+        map.insert("value", static_cast<float>(entry.durationTime) / timeUnits.at(unit).value);
         dataset.append(map);
     }
     result.insert("data", dataset);
