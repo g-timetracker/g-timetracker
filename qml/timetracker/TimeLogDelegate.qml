@@ -1,7 +1,6 @@
 import QtQuick 2.4
 import QtQuick.Layouts 1.1
 import QtQuick.Controls 1.2
-import "Util.js" as Util
 
 Item {
     id: timeLogDelegate
@@ -52,7 +51,7 @@ Item {
                 Layout.alignment: Qt.AlignRight
                 Layout.fillWidth: true
                 horizontalAlignment: Text.AlignRight
-                text: "Duration: %1".arg(Util.durationText(timeLogDelegate.durationTime))
+                text: "Duration: %1".arg(TimeLog.durationText(timeLogDelegate.durationTime, 2))
             }
         }
 

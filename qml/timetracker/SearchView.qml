@@ -2,7 +2,6 @@ import QtQuick 2.4
 import QtQuick.Layouts 1.1
 import QtQuick.Controls 1.4
 import TimeLog 1.0
-import "Util.js" as Util
 
 Item {
     property alias category: timeLogFilter.category
@@ -53,7 +52,7 @@ Item {
                 delegate: Text {
                     color: styleData.textColor
                     elide: styleData.elideMode
-                    text: Util.durationText(styleData.value)
+                    text: TimeLog.durationText(styleData.value, 2)
                     renderType: Text.NativeRendering
                 }
             }

@@ -104,7 +104,7 @@ GridLayout {
         Layout.alignment: Qt.AlignVCenter
         horizontalAlignment: Text.AlignRight
         elide: Text.ElideRight
-        text: Util.durationText(d.durationTime)
+        text: TimeLog.durationText(d.durationTime)
     }
 
     Label {

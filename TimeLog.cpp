@@ -100,6 +100,27 @@ void TimeLog::getStats(const QDateTime &begin, const QDateTime &end, const QStri
     TimeLogHistory::instance()->getStats(begin, end, category, separator);
 }
 
+QString TimeLog::durationText(int duration, int maxUnits)
+{
+    QStringList values;
+    while (--maxUnits >= 0) {
+        int unit = calcTimeUnits(duration);
+        QString value;
+        if (maxUnits > 0 || !(duration % timeUnits.at(unit).value)) {
+            value.setNum(duration / timeUnits.at(unit).value);
+        } else {
+            value.setNum(static_cast<float>(duration) / timeUnits.at(unit).value, 'f', 1);
+        }
+        values.append(QString("%1 %2").arg(value).arg(timeUnits.at(unit).name));
+        duration %= timeUnits.at(unit).value;
+        if (!duration) {
+            break;
+        }
+    }
+
+    return values.join(", ");
+}
+
 QPointF TimeLog::mapToGlobal(QQuickItem *item)
 {
     if (!item) {

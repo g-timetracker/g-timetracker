@@ -31,6 +31,7 @@ public:
                                      const QDateTime &end = QDateTime::currentDateTime(),
                                      const QString &category = QString(),
                                      const QString &separator = ">");
+    Q_INVOKABLE static QString durationText(int duration, int maxUnits = 7);
     Q_INVOKABLE static QPointF mapToGlobal(QQuickItem *item);
 
 signals:
