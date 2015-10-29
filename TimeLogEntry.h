@@ -14,6 +14,7 @@ public:
     bool isValid() const;
 
     QUuid uuid;
+    QDateTime precedingStart;
 };
 
 Q_DECLARE_TYPEINFO(TimeLogEntry, Q_MOVABLE_TYPE);

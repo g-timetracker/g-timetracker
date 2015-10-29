@@ -8,6 +8,10 @@
 
 Q_LOGGING_CATEGORY(HISTORY_WORKER_CATEGORY, "TimeLogHistoryWorker", QtInfoMsg)
 
+const QString selectFields("SELECT uuid, start, category, comment, duration,"
+                           " ifnull((SELECT start FROM timelog WHERE start < result.start ORDER BY start DESC LIMIT 1), 0)"
+                           " FROM timelog AS result");
+
 TimeLogHistoryWorker::TimeLogHistoryWorker(QObject *parent) :
     QObject(parent),
     m_isInitialized(false),
@@ -136,8 +140,8 @@ void TimeLogHistoryWorker::getHistoryBetween(const QDateTime &begin, const QDate
 
     QSqlDatabase db = QSqlDatabase::database("timelog");
     QSqlQuery query(db);
-    QString queryString = QString("SELECT uuid, start, category, comment, duration FROM timelog"
-                                  " WHERE (start BETWEEN ? AND ?) %1 ORDER BY start ASC")
+    QString queryString = QString("%1 WHERE (start BETWEEN ? AND ?) %2 ORDER BY start ASC")
+                                  .arg(selectFields)
                                   .arg(category.isEmpty() ? "" : "AND category=?");
     if (!query.prepare(queryString)) {
         qCCritical(HISTORY_WORKER_CATEGORY) << "Fail to prepare query:" << query.lastError().text()
@@ -160,8 +164,7 @@ void TimeLogHistoryWorker::getHistoryAfter(const uint limit, const QDateTime &fr
 
     QSqlDatabase db = QSqlDatabase::database("timelog");
     QSqlQuery query(db);
-    QString queryString("SELECT uuid, start, category, comment, duration FROM timelog"
-                        " WHERE start > ? ORDER BY start ASC LIMIT ?");
+    QString queryString = QString("%1 WHERE start > ? ORDER BY start ASC LIMIT ?").arg(selectFields);
     if (!query.prepare(queryString)) {
         qCCritical(HISTORY_WORKER_CATEGORY) << "Fail to prepare query:" << query.lastError().text()
                                             << query.lastQuery();
@@ -180,8 +183,7 @@ void TimeLogHistoryWorker::getHistoryBefore(const uint limit, const QDateTime &u
 
     QSqlDatabase db = QSqlDatabase::database("timelog");
     QSqlQuery query(db);
-    QString queryString("SELECT uuid, start, category, comment, duration FROM timelog"
-                        " WHERE start < ? ORDER BY start DESC LIMIT ?");
+    QString queryString = QString("%1 WHERE start < ? ORDER BY start DESC LIMIT ?").arg(selectFields);
     if (!query.prepare(queryString)) {
         qCCritical(HISTORY_WORKER_CATEGORY) << "Fail to prepare query:" << query.lastError().text()
                                             << query.lastQuery();
@@ -549,9 +551,16 @@ bool TimeLogHistoryWorker::insertData(const TimeLogSyncData &data)
     setSize(m_size + query.numRowsAffected());
     addToCategories(data.category);
 
-    queryString = "SELECT uuid, start, category, comment, duration FROM timelog"
-                  " WHERE start <= ? ORDER BY start DESC LIMIT 2";
-    if (!notifyUpdates(queryString, QVector<QDateTime>() << data.startTime)) {
+    queryString = QString("SELECT * FROM ( "
+                          "    %1 WHERE start <= :newStart ORDER BY start DESC LIMIT 2 "
+                          ") "
+                          "UNION "
+                          "SELECT * FROM ( "
+                          "    %1 WHERE start > :newStart ORDER BY start ASC LIMIT 1 "
+                          ")").arg(selectFields);
+    QMap<QString, QDateTime> bindParameters;
+    bindParameters[":newStart"] = data.startTime;
+    if (!notifyUpdates(queryString, bindParameters)) {
         return false;
     }
 
@@ -584,9 +593,16 @@ bool TimeLogHistoryWorker::removeData(const TimeLogSyncData &data)
 
     setSize(m_size - query.numRowsAffected());
 
-    queryString = "SELECT uuid, start, category, comment, duration FROM timelog"
-                  " WHERE start < ? ORDER BY start DESC LIMIT 1";
-    if (!notifyUpdates(queryString, QVector<QDateTime>() << data.startTime)) {
+    queryString = QString("SELECT * FROM ( "
+                          "    %1 WHERE start < :oldStart ORDER BY start DESC LIMIT 1 "
+                          ") "
+                          "UNION "
+                          "SELECT * FROM ( "
+                          "    %1 WHERE start > :oldStart ORDER BY start ASC LIMIT 1 "
+                          ")").arg(selectFields);
+    QMap<QString, QDateTime> bindParameters;
+    bindParameters[":oldStart"] = data.startTime;
+    if (!notifyUpdates(queryString, bindParameters)) {
         return false;
     }
 
@@ -668,16 +684,25 @@ bool TimeLogHistoryWorker::editData(const TimeLogSyncData &data, TimeLogHistory:
     }
 
     if (fields & TimeLogHistory::StartTime) {
-        queryString = "SELECT * FROM ( "
-                      "    SELECT uuid, start, category, comment, duration FROM timelog "
-                      "    WHERE start <= ? ORDER BY start DESC LIMIT 2 "
-                      ") "
-                      "UNION "
-                      "SELECT * FROM ( "
-                      "    SELECT uuid, start, category, comment, duration FROM timelog "
-                      "    WHERE start < ? ORDER BY start DESC LIMIT 1 "
-                      ")";
-        if (!notifyUpdates(queryString, QVector<QDateTime>() << data.startTime << oldStart)) {
+        queryString = QString("SELECT * FROM ( "
+                              "    %1 WHERE start <= :newStart ORDER BY start DESC LIMIT 2 "
+                              ") "
+                              "UNION "
+                              "SELECT * FROM ( "
+                              "    %1 WHERE start > :newStart ORDER BY start ASC LIMIT 1 "
+                              ") "
+                              "UNION "
+                              "SELECT * FROM ( "
+                              "    %1 WHERE start < :oldStart ORDER BY start DESC LIMIT 1 "
+                              ") "
+                              "UNION "
+                              "SELECT * FROM ( "
+                              "    %1 WHERE start > :oldStart ORDER BY start ASC LIMIT 1 "
+                              ")").arg(selectFields);
+        QMap<QString, QDateTime> bindParameters;
+        bindParameters[":newStart"] = data.startTime;
+        bindParameters[":oldStart"] = oldStart;
+        if (!notifyUpdates(queryString, bindParameters)) {
             return false;
         }
     }
@@ -821,6 +846,7 @@ QVector<TimeLogEntry> TimeLogHistoryWorker::getHistory(QSqlQuery &query) const
         data.category = query.value(2).toString();
         data.comment = query.value(3).toString();
         data.durationTime = query.value(4).toInt();
+        data.precedingStart = QDateTime::fromTime_t(query.value(5).toUInt());
 
         result.append(data);
     }
@@ -881,7 +907,7 @@ QVector<TimeLogSyncData> TimeLogHistoryWorker::getSyncData(QSqlQuery &query) con
     return result;
 }
 
-bool TimeLogHistoryWorker::notifyUpdates(const QString &queryString, const QVector<QDateTime> &values) const
+bool TimeLogHistoryWorker::notifyUpdates(const QString &queryString, const QMap<QString, QDateTime> &values) const
 {
     QSqlDatabase db = QSqlDatabase::database("timelog");
     QSqlQuery query(db);
@@ -891,8 +917,8 @@ bool TimeLogHistoryWorker::notifyUpdates(const QString &queryString, const QVect
         emit error(query.lastError().text());
         return false;
     }
-    foreach (const QDateTime &value, values) {
-        query.addBindValue(value.toTime_t());
+    for (QMap<QString, QDateTime>::const_iterator it = values.cbegin(); it != values.cend(); it++) {
+        query.bindValue(it.key(), it.value().toTime_t());
     }
 
     QVector<TimeLogEntry> updated = getHistory(query);
@@ -900,7 +926,7 @@ bool TimeLogHistoryWorker::notifyUpdates(const QString &queryString, const QVect
 
     if (!updated.isEmpty()) {
         qCDebug(HISTORY_WORKER_CATEGORY) << "Updated items count:" << updated.size();
-        fields.insert(0, updated.size(), TimeLogHistory::DurationTime);
+        fields.insert(0, updated.size(), TimeLogHistory::DurationTime | TimeLogHistory::PrecedingStart);
         emit dataUpdated(updated, fields);
     }
 

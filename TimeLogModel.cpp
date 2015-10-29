@@ -58,6 +58,14 @@ QVariant TimeLogModel::data(const QModelIndex &index, int role) const
         return QVariant::fromValue(m_timeLog[index.row()].category);
     case CommentRole:
         return QVariant::fromValue(m_timeLog[index.row()].comment);
+    case PrecedingStartRole:
+        return QVariant::fromValue(m_timeLog[index.row()].precedingStart);
+    case SucceedingStartRole:
+        if (m_timeLog[index.row()].durationTime == -1) {
+            return QVariant::fromValue(QDateTime::currentDateTime());
+        } else {
+            return QVariant::fromValue(QDateTime(m_timeLog[index.row()].startTime).addSecs(m_timeLog[index.row()].durationTime));
+        }
     case Qt::DisplayRole:
         return QVariant::fromValue(QString("%1 | %2").arg(m_timeLog[index.row()].startTime.toString()).arg(m_timeLog[index.row()].category));
     default:
@@ -85,6 +93,8 @@ QHash<int, QByteArray> TimeLogModel::roleNames() const
     roles[DurationTimeRole] = "durationTime";
     roles[CategoryRole] = "category";
     roles[CommentRole] = "comment";
+    roles[PrecedingStartRole] = "precedingStart";
+    roles[SucceedingStartRole] = "succeedingStart";
 
     return roles;
 }
@@ -115,7 +125,9 @@ bool TimeLogModel::setData(const QModelIndex &index, const QVariant &value, int 
         break;
     }
     case DurationTimeRole:
-        return false;   // This property can only be calculated
+    case PrecedingStartRole:
+    case SucceedingStartRole:
+        return false;   // This properties can only be calculated
     case CategoryRole:
         m_timeLog[index.row()].category = value.toString();
         m_history->edit(m_timeLog.at(index.row()), TimeLogHistory::Category);
@@ -224,6 +236,7 @@ void TimeLogModel::historyDataUpdated(QVector<TimeLogEntry> data, QVector<TimeLo
         if (fields.at(i) & TimeLogHistory::DurationTime) {
             m_timeLog[dataIndex].durationTime = entry.durationTime;
             roles.append(DurationTimeRole);
+            roles.append(SucceedingStartRole);
         }
         if (fields.at(i) & TimeLogHistory::StartTime) {
             m_timeLog[dataIndex].startTime = entry.startTime;
@@ -236,6 +249,10 @@ void TimeLogModel::historyDataUpdated(QVector<TimeLogEntry> data, QVector<TimeLo
         if (fields.at(i) & TimeLogHistory::Comment) {
             m_timeLog[dataIndex].comment = entry.comment;
             roles.append(CommentRole);
+        }
+        if (fields.at(i) & TimeLogHistory::PrecedingStart) {
+            m_timeLog[dataIndex].precedingStart = entry.precedingStart;
+            roles.append(PrecedingStartRole);
         }
         QModelIndex itemIndex = index(dataIndex, 0, QModelIndex());
         emit dataChanged(itemIndex, itemIndex, roles);

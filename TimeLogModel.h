@@ -17,7 +17,9 @@ public:
         StartTimeRole = Qt::UserRole + 1,
         DurationTimeRole,
         CategoryRole,
-        CommentRole
+        CommentRole,
+        PrecedingStartRole,
+        SucceedingStartRole
     };
 
     explicit TimeLogModel(QObject *parent = 0);

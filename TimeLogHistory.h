@@ -17,14 +17,16 @@ class TimeLogHistory : public QObject
 protected:
     explicit TimeLogHistory(QObject *parent = 0);
 public:
-    enum Fields {
+    enum Field {
         NoFields        = 0,
-        StartTime       = 0x1,
-        DurationTime    = 0x2,
-        Category        = 0x4,
-        Comment         = 0x8,
+        StartTime       = 0x01,
+        DurationTime    = 0x02,
+        Category        = 0x04,
+        Comment         = 0x08,
+        PrecedingStart  = 0x10,
         AllFieldsMask   = StartTime | Category | Comment
     };
+    Q_DECLARE_FLAGS(Fields, Field)
     Q_FLAG(Fields)
 
     virtual ~TimeLogHistory();
@@ -87,5 +89,7 @@ private:
     qlonglong m_size;
     QSet<QString> m_categories;
 };
+
+Q_DECLARE_OPERATORS_FOR_FLAGS(TimeLogHistory::Fields)
 
 #endif // TIMELOGHISTORY_H
