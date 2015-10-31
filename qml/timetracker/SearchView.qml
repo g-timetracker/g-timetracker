@@ -32,6 +32,8 @@ Item {
 
     TimeLogEditDialog {
         id: editDialog
+
+        onError: TimeLog.error(errorText)
     }
 
     ColumnLayout {

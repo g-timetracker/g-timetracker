@@ -15,6 +15,8 @@ Item {
 
     TimeLogEditDialog {
         id: editDialog
+
+        onError: TimeLog.error(errorText)
     }
 
     TimeLogNewDialog {
@@ -27,6 +29,8 @@ Item {
                 timeLogModel.insertItem(delegateModel.modelIndex(newDialog.indexBefore), newData)
             }
         }
+
+        onError: TimeLog.error(errorText)
     }
 
     DelegateModel {

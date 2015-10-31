@@ -14,6 +14,8 @@ GridLayout {
     property var startTime: new Date()
     property string comment
 
+    property bool acceptable: categoryEditor.acceptableInput
+
     QtObject {
         id: d
 
@@ -30,12 +32,17 @@ GridLayout {
     }
 
     ComboBox {
+        id: categoryEditor
+
         property alias origCategory: delegateEditor.category
 
         Layout.fillWidth: true
         Layout.alignment: Qt.AlignVCenter
         editable: true
         model: TimeLog.categories
+        validator: RegExpValidator {
+            regExp: /\S+.*/
+        }
 
         onEditTextChanged: delegateEditor.category = editText
 

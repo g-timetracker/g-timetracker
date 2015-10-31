@@ -24,7 +24,10 @@ Dialog {
         open()
     }
 
-    standardButtons: StandardButton.Ok | StandardButton.Cancel | StandardButton.Reset
+    signal error(string errorText)
+
+    standardButtons: (delegateEditor.acceptable ? StandardButton.Ok : StandardButton.NoButton)
+                     | StandardButton.Cancel | StandardButton.Reset
     title: "Edit entry"
 
     TimeLogEntryEditor {
@@ -35,6 +38,11 @@ Dialog {
     }
 
     onAccepted: {
+        if (!delegateEditor.acceptable) {
+            editDialog.error("Empty category")
+            return
+        }
+
         delegateItem.updateData(delegateEditor.category, delegateEditor.startTime,
                                 delegateEditor.comment)
         delegateItem = null

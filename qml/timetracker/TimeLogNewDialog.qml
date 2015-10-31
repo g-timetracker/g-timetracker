@@ -16,8 +16,10 @@ Dialog {
     }
 
     signal dataAccepted(var newData)
+    signal error(string errorText)
 
-    standardButtons: StandardButton.Ok | StandardButton.Cancel
+    standardButtons: (delegateEditor.acceptable ? StandardButton.Ok : StandardButton.NoButton)
+                     | StandardButton.Cancel
     title: "Add new entry"
 
     TimeLogEntryEditor {
@@ -38,6 +40,11 @@ Dialog {
     }
 
     onAccepted: {
+        if (!delegateEditor.acceptable) {
+            newDialog.error("Empty category")
+            return
+        }
+
         newDialog.dataAccepted(TimeLog.createTimeLogData(delegateEditor.startTime, 0,
                                                          delegateEditor.category,
                                                          delegateEditor.comment))
