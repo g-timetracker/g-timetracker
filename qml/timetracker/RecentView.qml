@@ -42,20 +42,6 @@ Item {
 
         model: timeLogModel
         delegate: TimeLogDelegate {
-            id: delegateItem
-
-            function updateData(category, startTime, comment) {
-                if (model.category != category) {
-                    model.category = category
-                }
-                if (model.startTime != startTime) {
-                    model.startTime = startTime
-                }
-                if (model.comment != comment) {
-                    model.comment = comment
-                }
-            }
-
             width: listView.width
             category: model.category
             startTime: model.startTime

@@ -12,6 +12,18 @@ Item {
     property date precedingStart
     property date succeedingStart
 
+    function updateData(category, startTime, comment) {
+        if (model.category != category) {
+            model.category = category
+        }
+        if (model.startTime != startTime) {
+            model.startTime = startTime
+        }
+        if (model.comment != comment) {
+            model.comment = comment
+        }
+    }
+
     width: 400
     implicitHeight: elementsColumn.implicitHeight
 
