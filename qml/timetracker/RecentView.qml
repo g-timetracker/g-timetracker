@@ -32,22 +32,6 @@ Item {
     DelegateModel {
         id: delegateModel
 
-        function timeAfterFromIndex(indexAfter) {
-            if (indexAfter === -1) {
-                return new Date(0)
-            } else {
-                return timeLogModel.timeLogData(delegateModel.modelIndex(indexAfter)).startTime
-            }
-        }
-
-        function timeBeforeFromIndex(indexBefore) {
-            if (indexBefore === -1) {
-                return new Date()
-            } else {
-                return timeLogModel.timeLogData(delegateModel.modelIndex(indexBefore)).startTime
-            }
-        }
-
         function insert(indexBefore, timeAfter, timeBefore) {
             if (Util.calcDuration(timeAfter, timeBefore) > 1) {
                 newDialog.openDialog(indexBefore, timeAfter, timeBefore)
@@ -77,6 +61,8 @@ Item {
             startTime: model.startTime
             durationTime: model.durationTime
             comment: model.comment
+            precedingStart: model.precedingStart
+            succeedingStart: model.succeedingStart
         }
     }
 
@@ -86,17 +72,7 @@ Item {
         text: "Edit"
         tooltip: "Edit item"
 
-        onTriggered: {
-            var indexCurrent = listView.indexAt(mouseArea.mouseX + listView.contentX,
-                                                mouseArea.mouseY + listView.contentY)
-            var delegateItem = listView.itemAt(mouseArea.mouseX + listView.contentX,
-                                               mouseArea.mouseY + listView.contentY)
-            var indexAfter = (indexCurrent + 1 === listView.count) ? -1 : indexCurrent + 1
-            var indexBefore = indexCurrent - 1
-            editDialog.openDialog(delegateItem,
-                                  delegateModel.timeAfterFromIndex(indexAfter),
-                                  delegateModel.timeBeforeFromIndex(indexBefore))
-        }
+        onTriggered: editDialog.openDialog(listView.itemUnderCursor())
     }
 
     Action {
@@ -106,12 +82,9 @@ Item {
         tooltip: "Insert item before this item"
 
         onTriggered: {
-            var indexBefore = listView.indexAt(mouseArea.mouseX + listView.contentX,
-                                               mouseArea.mouseY + listView.contentY)
-            var indexAfter = (indexBefore + 1 === listView.count) ? -1 : indexBefore + 1
-            delegateModel.insert(indexBefore,
-                                 delegateModel.timeAfterFromIndex(indexAfter),
-                                 delegateModel.timeBeforeFromIndex(indexBefore))
+            var index = listView.indexUnderCursor()
+            var item = listView.itemUnderCursor()
+            delegateModel.insert(index, item.precedingStart, item.startTime)
         }
     }
 
@@ -122,12 +95,9 @@ Item {
         tooltip: "Insert item after this item"
 
         onTriggered: {
-            var indexAfter = listView.indexAt(mouseArea.mouseX + listView.contentX,
-                                              mouseArea.mouseY + listView.contentY)
-            var indexBefore = indexAfter - 1
-            delegateModel.insert(indexBefore,
-                                 delegateModel.timeAfterFromIndex(indexAfter),
-                                 delegateModel.timeBeforeFromIndex(indexBefore))
+            var index = listView.indexUnderCursor()
+            var item = listView.itemUnderCursor()
+            delegateModel.insert(index - 1, item.startTime, item.succeedingStart)
         }
     }
 
@@ -135,8 +105,7 @@ Item {
         id: removeAction
 
         function deleteItemUnderCursor() {
-            timeLogModel.removeItem(delegateModel.modelIndex(listView.indexAt(mouseArea.mouseX + listView.contentX,
-                                                                              mouseArea.mouseY + listView.contentY)))
+            timeLogModel.removeItem(delegateModel.modelIndex(listView.indexUnderCursor()))
         }
 
         text: "Remove"
@@ -191,6 +160,14 @@ Item {
             ListView {
                 id: listView
 
+                function itemUnderCursor() {
+                    return itemAt(mouseArea.mouseX + contentX, mouseArea.mouseY + contentY)
+                }
+
+                function indexUnderCursor() {
+                    return indexAt(mouseArea.mouseX + contentX, mouseArea.mouseY + contentY)
+                }
+
                 Layout.fillHeight: true
                 Layout.fillWidth: true
                 verticalLayoutDirection: ListView.BottomToTop
@@ -233,11 +210,9 @@ Item {
                 text: "Add item"
                 tooltip: "Adds item into model"
                 onClicked: {
-                    var indexAfter = (listView.count === 0) ? -1 : 0
-                    var indexBefore = -1
-                    delegateModel.insert(indexBefore,
-                                         delegateModel.timeAfterFromIndex(indexAfter),
-                                         delegateModel.timeBeforeFromIndex(indexBefore))
+                    var timeAfter = delegateModel.items.count ? delegateModel.items.get(0).model.startTime
+                                                              : new Date(0)
+                    delegateModel.insert(-1, timeAfter, new Date())
                 }
             }
         }

@@ -9,6 +9,8 @@ Item {
     property date startTime
     property int durationTime
     property string comment
+    property date precedingStart
+    property date succeedingStart
 
     width: 400
     implicitHeight: elementsColumn.implicitHeight

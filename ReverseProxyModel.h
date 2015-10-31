@@ -25,7 +25,6 @@ public:
 
     virtual void setSourceModel(QAbstractItemModel* newSourceModel);
 
-    Q_INVOKABLE TimeLogData timeLogData(const QModelIndex &index) const;
     Q_INVOKABLE void removeItem(const QModelIndex &index);
     Q_INVOKABLE void appendItem(TimeLogData data = TimeLogData());
     Q_INVOKABLE void insertItem(const QModelIndex &index, TimeLogData data = TimeLogData());

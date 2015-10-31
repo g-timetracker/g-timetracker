@@ -34,7 +34,6 @@ public:
 
     virtual bool removeRows(int row, int count, const QModelIndex &parent);
 
-    TimeLogData timeLogData(const QModelIndex &index) const;
     void appendItem(TimeLogData data = TimeLogData());
     void insertItem(const QModelIndex &index, TimeLogData data = TimeLogData());
 

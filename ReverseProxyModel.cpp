@@ -113,16 +113,6 @@ void ReverseProxyModel::setSourceModel(QAbstractItemModel *newSourceModel)
     endResetModel();
 }
 
-TimeLogData ReverseProxyModel::timeLogData(const QModelIndex &index) const
-{
-    if (!sourceModel() || !index.isValid()) {
-        return TimeLogData();
-    }
-
-    TimeLogModel *model = static_cast<TimeLogModel*>(sourceModel());
-    return model->timeLogData(mapToSource(index));
-}
-
 void ReverseProxyModel::removeItem(const QModelIndex &index)
 {
     QModelIndex sourceIndex = mapToSource(index);

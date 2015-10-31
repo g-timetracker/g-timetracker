@@ -164,15 +164,6 @@ bool TimeLogModel::removeRows(int row, int count, const QModelIndex &parent)
     return true;
 }
 
-TimeLogData TimeLogModel::timeLogData(const QModelIndex &index) const
-{
-    if (!index.isValid()) {
-        return TimeLogData();
-    }
-
-    return static_cast<TimeLogData>(m_timeLog.at(index.row()));
-}
-
 void TimeLogModel::appendItem(TimeLogData data)
 {
     TimeLogEntry entry(QUuid::createUuid(), data);
