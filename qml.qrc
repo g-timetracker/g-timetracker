@@ -30,5 +30,6 @@
         <file>qml/timetracker/+android/MainWindow.qml</file>
         <file>qml/timetracker/TimeEditor.qml</file>
         <file>qml/timetracker/+android/TimeEditor.qml</file>
+        <file>qml/timetracker/TimeLogView.qml</file>
     </qresource>
 </RCC>
