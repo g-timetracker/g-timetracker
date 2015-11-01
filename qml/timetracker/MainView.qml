@@ -12,6 +12,7 @@ Item {
             d.searchIndex = tabModel.count
             tabModel.append({ "text": "Search", "source": "SearchView.qml",
                                 "hasCloseButton": true })
+            stackLayout.children[d.searchIndex].item.mainView = mainView
         }
         tabBar.setCurrentIndex(d.searchIndex)
         if (category !== undefined) {
@@ -31,13 +32,17 @@ Item {
         }
     }
 
-    function showHistory() {
+    function showHistory(beginDate, endDate) {
         if (d.historyIndex === -1) {
             d.historyIndex = tabModel.count
             tabModel.append({ "text": "History", "source": "HistoryView.qml",
                                 "hasCloseButton": true })
         }
         tabBar.setCurrentIndex(d.historyIndex)
+        if (beginDate !== undefined && endDate !== undefined) {
+            stackLayout.children[d.historyIndex].item.beginDate = beginDate
+            stackLayout.children[d.historyIndex].item.endDate = endDate
+        }
     }
 
     function showCategories() {

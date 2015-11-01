@@ -23,6 +23,10 @@ Item {
     signal append(var newData)
     signal remove(var modelIndex)
 
+    function pointedItem() {
+        return listView.itemUnderCursor()
+    }
+
     QtObject {
         id: d
 
