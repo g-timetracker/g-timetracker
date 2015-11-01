@@ -46,6 +46,13 @@ ApplicationWindow {
                     }
                 }
                 Button {
+                    text: "History"
+                    onClicked: {
+                        drawer.close()
+                        mainView.showHistory()
+                    }
+                }
+                Button {
                     text: "Sync"
                     onClicked: {
                         drawer.close()

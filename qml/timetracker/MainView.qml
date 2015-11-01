@@ -31,6 +31,15 @@ Item {
         }
     }
 
+    function showHistory() {
+        if (d.historyIndex === -1) {
+            d.historyIndex = tabModel.count
+            tabModel.append({ "text": "History", "source": "HistoryView.qml",
+                                "hasCloseButton": true })
+        }
+        tabBar.setCurrentIndex(d.historyIndex)
+    }
+
     function showCategories() {
         if (d.categoriesIndex === -1) {
             d.categoriesIndex = tabModel.count
@@ -50,6 +59,7 @@ Item {
 
         property int searchIndex: -1
         property int statsIndex: -1
+        property int historyIndex: -1
         property int categoriesIndex: -1
     }
 

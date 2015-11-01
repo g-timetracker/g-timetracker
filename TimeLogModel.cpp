@@ -164,6 +164,11 @@ bool TimeLogModel::removeRows(int row, int count, const QModelIndex &parent)
     return true;
 }
 
+void TimeLogModel::removeItem(const QModelIndex &index)
+{
+    removeRow(index.row(), index.parent());
+}
+
 void TimeLogModel::appendItem(TimeLogData data)
 {
     TimeLogEntry entry(QUuid::createUuid(), data);

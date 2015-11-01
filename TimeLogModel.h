@@ -34,8 +34,9 @@ public:
 
     virtual bool removeRows(int row, int count, const QModelIndex &parent);
 
-    void appendItem(TimeLogData data = TimeLogData());
-    void insertItem(const QModelIndex &index, TimeLogData data = TimeLogData());
+    Q_INVOKABLE void removeItem(const QModelIndex &index);
+    Q_INVOKABLE void appendItem(TimeLogData data = TimeLogData());
+    Q_INVOKABLE void insertItem(const QModelIndex &index, TimeLogData data = TimeLogData());
 
 private slots:
     void historyError(const QString &errorText);

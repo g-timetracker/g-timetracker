@@ -23,6 +23,10 @@ ApplicationWindow {
                 onTriggered: mainView.showStats();
             }
             MenuItem {
+                text: "History"
+                onTriggered: mainView.showHistory();
+            }
+            MenuItem {
                 text: "Categories"
                 onTriggered: mainView.showCategories();
             }
