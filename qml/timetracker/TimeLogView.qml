@@ -10,6 +10,7 @@ Item {
     id: timeLogView
 
     property alias model: delegateModel.model
+    property bool reverse: false
 
     signal insert(var modelIndex, var newData)
     signal append(var newData)
@@ -18,7 +19,7 @@ Item {
     function appendDialog() {
         var timeAfter = delegateModel.items.count ? delegateModel.items.get(0).model.startTime
                                                   : new Date(0)
-        d.insert(-1, timeAfter, new Date())
+        d.insert(timeLogView.reverse ? -1 : delegateModel.items.count - 1, timeAfter, new Date())
     }
 
     QtObject {
@@ -61,7 +62,7 @@ Item {
         id: newDialog
 
         onDataAccepted: {
-            if (newDialog.indexBefore === -1) {
+            if (newDialog.indexBefore === (timeLogView.reverse ? -1 : delegateModel.items.count - 1)) {
                 timeLogView.append(newData)
             } else {
                 timeLogView.insert(delegateModel.modelIndex(newDialog.indexBefore), newData)
@@ -102,7 +103,7 @@ Item {
         onTriggered: {
             var index = listView.indexUnderCursor()
             var item = listView.itemUnderCursor()
-            d.insert(index - 1, item.startTime, item.succeedingStart)
+            d.insert(timeLogView.reverse ? index - 1 : index + 1, item.startTime, item.succeedingStart)
         }
     }
 
@@ -167,7 +168,7 @@ Item {
 
             Layout.fillHeight: true
             Layout.fillWidth: true
-            verticalLayoutDirection: ListView.BottomToTop
+            verticalLayoutDirection: timeLogView.reverse ? ListView.BottomToTop : ListView.TopToBottom
             clip: true
             model: delegateModel
 
@@ -193,7 +194,7 @@ Item {
             }
         }
         Item {
-            Layout.preferredHeight: (listView.contentHeight > parent.height ? 0 : parent.height - listView.contentHeight)
+            Layout.preferredHeight: (!timeLogView.reverse || listView.contentHeight > parent.height ? 0 : parent.height - listView.contentHeight)
         }
     }
 }
