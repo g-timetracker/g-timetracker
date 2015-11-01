@@ -33,9 +33,7 @@ Item {
 
             Button {
                 anchors.centerIn: parent
-                text: "Add item"
-                tooltip: "Adds item into model"
-                onClicked: timeLogView.appendDialog()
+                action: timeLogView.appendAction
             }
         }
     }

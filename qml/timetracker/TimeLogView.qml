@@ -12,18 +12,34 @@ Item {
     property alias model: delegateModel.model
     property bool reverse: false
 
+    property alias menu: d.itemMenu
+    readonly property alias editAction: itemEditAction
+    readonly property alias insertBeforeAction: itemInsertBeforeAction
+    readonly property alias insertAfterAction: itemInsertAfterAction
+    readonly property alias appendAction: itemAppendAction
+    readonly property alias removeAction: itemRemoveAction
+
     signal insert(var modelIndex, var newData)
     signal append(var newData)
     signal remove(var modelIndex)
 
-    function appendDialog() {
-        var timeAfter = delegateModel.items.count ? delegateModel.items.get(0).model.startTime
-                                                  : new Date(0)
-        d.insert(timeLogView.reverse ? -1 : delegateModel.items.count - 1, timeAfter, new Date())
-    }
-
     QtObject {
         id: d
+
+        property Menu itemMenu: Menu {
+            MenuItem {
+                action: itemEditAction
+            }
+            MenuItem {
+                action: itemInsertBeforeAction
+            }
+            MenuItem {
+                action: itemInsertAfterAction
+            }
+            MenuItem {
+                action: itemRemoveAction
+            }
+        }
 
         function insert(indexBefore, timeAfter, timeBefore) {
             if (Util.calcDuration(timeAfter, timeBefore) > 1) {
@@ -73,7 +89,7 @@ Item {
     }
 
     Action {
-        id: editAction
+        id: itemEditAction
 
         text: "Edit"
         tooltip: "Edit item"
@@ -82,7 +98,7 @@ Item {
     }
 
     Action {
-        id: insertBeforeAction
+        id: itemInsertBeforeAction
 
         text: "Insert before"
         tooltip: "Insert item before this item"
@@ -95,7 +111,7 @@ Item {
     }
 
     Action {
-        id: insertAfterAction
+        id: itemInsertAfterAction
 
         text: "Insert after"
         tooltip: "Insert item after this item"
@@ -108,7 +124,20 @@ Item {
     }
 
     Action {
-        id: removeAction
+        id: itemAppendAction
+
+        text: "Add item"
+        tooltip: "Adds item into model"
+
+        onTriggered: {
+            var timeAfter = delegateModel.items.count ? delegateModel.items.get(0).model.startTime
+                                                      : new Date(0)
+            d.insert(timeLogView.reverse ? -1 : delegateModel.items.count - 1, timeAfter, new Date())
+        }
+    }
+
+    Action {
+        id: itemRemoveAction
 
         text: "Remove"
         tooltip: "Remove item"
@@ -132,23 +161,6 @@ Item {
         standardButtons: StandardButton.Yes | StandardButton.No
 
         onYes: d.deleteItemUnderCursor()
-    }
-
-    Menu {
-        id: itemMenu
-
-        MenuItem {
-            action: editAction
-        }
-        MenuItem {
-            action: insertBeforeAction
-        }
-        MenuItem {
-            action: insertAfterAction
-        }
-        MenuItem {
-            action: removeAction
-        }
     }
 
     ColumnLayout {
@@ -181,14 +193,14 @@ Item {
                 onDoubleClicked: {
                     if (listView.itemAt(mouse.x + listView.contentX,
                                         mouse.y + listView.contentY)) {
-                        editAction.trigger()
+                        itemEditAction.trigger()
                     }
                 }
 
                 onClicked: {
                     if (mouse.button === Qt.RightButton && listView.itemAt(mouse.x + listView.contentX,
                                                                            mouse.y + listView.contentY)) {
-                        itemMenu.popup()
+                        d.itemMenu.popup()
                     }
                 }
             }
