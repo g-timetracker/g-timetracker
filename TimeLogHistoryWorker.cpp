@@ -683,6 +683,7 @@ bool TimeLogHistoryWorker::editData(const TimeLogSyncData &data, TimeLogHistory:
         addToCategories(data.category);
     }
 
+    QMap<QString, QDateTime> bindParameters;
     if (fields & TimeLogHistory::StartTime) {
         queryString = QString("SELECT * FROM ( "
                               "    %1 WHERE start <= :newStart ORDER BY start DESC LIMIT 2 "
@@ -699,12 +700,15 @@ bool TimeLogHistoryWorker::editData(const TimeLogSyncData &data, TimeLogHistory:
                               "SELECT * FROM ( "
                               "    %1 WHERE start > :oldStart ORDER BY start ASC LIMIT 1 "
                               ")").arg(selectFields);
-        QMap<QString, QDateTime> bindParameters;
         bindParameters[":newStart"] = data.startTime;
         bindParameters[":oldStart"] = oldStart;
-        if (!notifyUpdates(queryString, bindParameters)) {
-            return false;
-        }
+        fields |= TimeLogHistory::DurationTime | TimeLogHistory::PrecedingStart;
+    } else {
+        queryString = QString("%1 WHERE start=:start").arg(selectFields);
+        bindParameters[":start"] = data.startTime;
+    }
+    if (!notifyUpdates(queryString, bindParameters, fields)) {
+        return false;
     }
 
     return true;
@@ -907,7 +911,7 @@ QVector<TimeLogSyncData> TimeLogHistoryWorker::getSyncData(QSqlQuery &query) con
     return result;
 }
 
-bool TimeLogHistoryWorker::notifyUpdates(const QString &queryString, const QMap<QString, QDateTime> &values) const
+bool TimeLogHistoryWorker::notifyUpdates(const QString &queryString, const QMap<QString, QDateTime> &values, TimeLogHistory::Fields fields) const
 {
     QSqlDatabase db = QSqlDatabase::database("timelog");
     QSqlQuery query(db);
@@ -921,13 +925,13 @@ bool TimeLogHistoryWorker::notifyUpdates(const QString &queryString, const QMap<
         query.bindValue(it.key(), it.value().toTime_t());
     }
 
-    QVector<TimeLogEntry> updated = getHistory(query);
-    QVector<TimeLogHistory::Fields> fields;
+    QVector<TimeLogEntry> updatedData = getHistory(query);
+    QVector<TimeLogHistory::Fields> updatedFields;
 
-    if (!updated.isEmpty()) {
-        qCDebug(HISTORY_WORKER_CATEGORY) << "Updated items count:" << updated.size();
-        fields.insert(0, updated.size(), TimeLogHistory::DurationTime | TimeLogHistory::PrecedingStart);
-        emit dataUpdated(updated, fields);
+    if (!updatedData.isEmpty()) {
+        qCDebug(HISTORY_WORKER_CATEGORY) << "Updated items count:" << updatedData.size();
+        updatedFields.insert(0, updatedData.size(), fields);
+        emit dataUpdated(updatedData, updatedFields);
     }
 
     return true;
