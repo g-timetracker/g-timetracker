@@ -911,7 +911,7 @@ bool TimeLogHistoryWorker::notifyUpdates(const QString &queryString, const QMap<
 {
     QSqlDatabase db = QSqlDatabase::database("timelog");
     QSqlQuery query(db);
-    if (!query.prepare(queryString)) {
+    if (!query.prepare(QString("%1 ORDER BY start ASC").arg(queryString))) {
         qCCritical(HISTORY_WORKER_CATEGORY) << "Fail to prepare query:" << query.lastError().text()
                                             << query.lastQuery();
         emit error(query.lastError().text());

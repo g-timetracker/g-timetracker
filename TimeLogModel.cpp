@@ -221,9 +221,20 @@ void TimeLogModel::historyDataUpdated(QVector<TimeLogEntry> data, QVector<TimeLo
 {
     Q_ASSERT(data.size() == fields.size());
 
+    int dataIndex = -1;
+
     for (int i = 0; i < data.size(); i++) {
         const TimeLogEntry &entry = data.at(i);
-        int dataIndex = findData(entry);
+
+        if (dataIndex != -1 && dataIndex < m_timeLog.size() - 1
+            && entry.uuid == m_timeLog.at(dataIndex+1).uuid) {
+            // If current item to update follows right after the previous, no search needed
+            dataIndex++;
+        } else {
+            // Serch only by UUID if start time changed
+            dataIndex = (fields.at(i) & TimeLogHistory::StartTime) ? TimeLogModel::findData(entry)
+                                                                   : findData(entry);
+        }
         if (dataIndex == -1) {
             continue;
         }
