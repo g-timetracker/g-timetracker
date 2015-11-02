@@ -78,7 +78,12 @@ private:
     QVector<TimeLogEntry> getHistory(QSqlQuery &query) const;
     QVector<TimeLogStats> getStats(QSqlQuery &query) const;
     QVector<TimeLogSyncData> getSyncData(QSqlQuery &query) const;
-    bool notifyUpdates(const QString &queryString, const QMap<QString, QDateTime> &values,
+    TimeLogEntry getEntry(QUuid uuid) const;
+    void notifyInsertUpdates(const TimeLogEntry &data) const;
+    void notifyInsertUpdates(const QVector<TimeLogEntry> &data) const;
+    void notifyRemoveUpdates(const TimeLogEntry &data) const;
+    void notifyEditUpdates(const TimeLogEntry &data, TimeLogHistory::Fields fields, QDateTime oldStart = QDateTime()) const;
+    void notifyUpdates(const QString &queryString, const QMap<QString, QDateTime> &values,
                        TimeLogHistory::Fields fields = TimeLogHistory::DurationTime | TimeLogHistory::PrecedingStart) const;
     bool updateSize();
     bool updateCategories(const QDateTime &begin = QDateTime::fromTime_t(0),
