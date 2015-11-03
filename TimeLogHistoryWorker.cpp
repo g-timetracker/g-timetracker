@@ -100,6 +100,7 @@ void TimeLogHistoryWorker::remove(const TimeLogEntry &data)
     Q_ASSERT(m_isInitialized);
 
     if (removeData(data)) {
+        emit dataRemoved(data);
         notifyRemoveUpdates(data);
     }
 }

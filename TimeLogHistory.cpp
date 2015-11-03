@@ -24,6 +24,8 @@ TimeLogHistory::TimeLogHistory(QObject *parent) :
             this, SIGNAL(dataUpdated(QVector<TimeLogEntry>,QVector<TimeLogHistory::Fields>)));
     connect(m_worker, SIGNAL(dataInserted(QVector<TimeLogEntry>)),
             this, SIGNAL(dataInserted(QVector<TimeLogEntry>)));
+    connect(m_worker, SIGNAL(dataRemoved(TimeLogEntry)),
+            this, SIGNAL(dataRemoved(TimeLogEntry)));
     connect(m_worker, SIGNAL(sizeChanged(qlonglong)),
             this, SLOT(workerSizeChanged(qlonglong)));
     connect(m_worker, SIGNAL(categoriesChanged(QSet<QString>)),

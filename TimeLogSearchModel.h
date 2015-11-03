@@ -22,6 +22,8 @@ private slots:
     void updateData();
 
 private:
+    virtual void processDataInsert(QVector<TimeLogEntry> data);
+
     QDateTime m_begin;
     QDateTime m_end;
     QString m_category;

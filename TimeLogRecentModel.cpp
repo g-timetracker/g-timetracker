@@ -2,11 +2,6 @@
 
 static const int defaultPopulateCount(5);
 
-bool startTimeCompare(const TimeLogEntry &a, const TimeLogEntry &b)
-{
-    return a.startTime < b.startTime;
-}
-
 TimeLogRecentModel::TimeLogRecentModel(QObject *parent) :
     SUPER(parent)
 {
@@ -62,13 +57,33 @@ void TimeLogRecentModel::processHistoryData(QVector<TimeLogEntry> data)
     endInsertRows();
 }
 
+void TimeLogRecentModel::processDataInsert(QVector<TimeLogEntry> data)
+{
+    for (int i = 0; i < data.size(); i++) {
+        const TimeLogEntry &entry = data.at(i);
+
+        if (m_timeLog.size() > defaultPopulateCount && startTimeCompare(entry, m_timeLog.first())) {
+            continue;
+        }
+
+        QVector<TimeLogEntry>::iterator it = std::lower_bound(m_timeLog.begin(), m_timeLog.end(),
+                                                              entry, startTimeCompare);
+        if (it != m_timeLog.end() && it->uuid == entry.uuid) {
+            continue;
+        }
+        int index = (it == m_timeLog.end() ? m_timeLog.size() : it - m_timeLog.begin());
+
+        beginInsertRows(QModelIndex(), index, index);
+        m_timeLog.insert(index, entry);
+        endInsertRows();
+    }
+}
+
 int TimeLogRecentModel::findData(const TimeLogEntry &entry) const
 {
     QVector<TimeLogEntry>::const_iterator it = std::lower_bound(m_timeLog.begin(), m_timeLog.end(),
                                                                 entry, startTimeCompare);
     if (it == m_timeLog.end() || it->uuid != entry.uuid) {
-        qCWarning(TIME_LOG_MODEL_CATEGORY) << "Item absent or start time changed:\n"
-                                           << entry.startTime << entry.category << entry.uuid;
         return -1;
     } else {
         return (it - m_timeLog.begin());

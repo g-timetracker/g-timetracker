@@ -28,6 +28,10 @@ TimeLogModel::TimeLogModel(QObject *parent) :
             this, SLOT(historyDataAvailable(QVector<TimeLogEntry>,QDateTime)));
     connect(m_history, SIGNAL(dataUpdated(QVector<TimeLogEntry>,QVector<TimeLogHistory::Fields>)),
             this, SLOT(historyDataUpdated(QVector<TimeLogEntry>,QVector<TimeLogHistory::Fields>)));
+    connect(m_history, SIGNAL(dataInserted(QVector<TimeLogEntry>)),
+            this, SLOT(historyDataInserted(QVector<TimeLogEntry>)));
+    connect(m_history, SIGNAL(dataRemoved(TimeLogEntry)),
+            this, SLOT(historyDataRemoved(TimeLogEntry)));
     connect(m_history, SIGNAL(dataSynced(QVector<TimeLogSyncData>,QVector<TimeLogSyncData>)),
             this, SLOT(historyDataSynced(QVector<TimeLogSyncData>,QVector<TimeLogSyncData>)));
 }
@@ -266,6 +270,16 @@ void TimeLogModel::historyDataUpdated(QVector<TimeLogEntry> data, QVector<TimeLo
     }
 }
 
+void TimeLogModel::historyDataInserted(QVector<TimeLogEntry> data)
+{
+    processDataInsert(data);
+}
+
+void TimeLogModel::historyDataRemoved(TimeLogEntry data)
+{
+    processDataRemove(data);
+}
+
 void TimeLogModel::historyDataSynced(QVector<TimeLogSyncData> updatedData, QVector<TimeLogSyncData> removedData)
 {
     Q_UNUSED(updatedData)
@@ -295,6 +309,23 @@ void TimeLogModel::processHistoryData(QVector<TimeLogEntry> data)
     endInsertRows();
 }
 
+void TimeLogModel::processDataInsert(QVector<TimeLogEntry> data)
+{
+    Q_UNUSED(data)
+}
+
+void TimeLogModel::processDataRemove(const TimeLogEntry &data)
+{
+    int index = findData(data);
+    if (index == -1) {
+        return;
+    }
+
+    beginRemoveRows(QModelIndex(), index, index);
+    m_timeLog.remove(index, 1);
+    endRemoveRows();
+}
+
 int TimeLogModel::findData(const TimeLogEntry &entry) const
 {
     QVector<TimeLogEntry>::const_iterator it = std::find_if(m_timeLog.begin(), m_timeLog.end(),
@@ -306,4 +337,9 @@ int TimeLogModel::findData(const TimeLogEntry &entry) const
     } else {
         return (it - m_timeLog.begin());
     }
+}
+
+bool TimeLogModel::startTimeCompare(const TimeLogEntry &a, const TimeLogEntry &b)
+{
+    return a.startTime < b.startTime;
 }
