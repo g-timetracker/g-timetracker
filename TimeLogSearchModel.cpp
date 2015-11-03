@@ -2,8 +2,8 @@
 
 TimeLogSearchModel::TimeLogSearchModel(QObject *parent) :
     SUPER(parent),
-    m_begin(QDateTime::fromTime_t(0)),
-    m_end(QDateTime::fromTime_t(0))
+    m_begin(QDateTime::currentDateTime()),
+    m_end(QDateTime::currentDateTime())
 {
     connect(this, SIGNAL(beginChanged(QDateTime)),
             this, SLOT(updateData()));

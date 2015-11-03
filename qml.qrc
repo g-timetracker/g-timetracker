@@ -32,5 +32,10 @@
         <file>qml/timetracker/+android/TimeEditor.qml</file>
         <file>qml/timetracker/TimeLogView.qml</file>
         <file>qml/timetracker/HistoryView.qml</file>
+        <file>qml/timetracker/DatePeriodPicker.qml</file>
+        <file>qml/timetracker/DateDayPicker.qml</file>
+        <file>qml/timetracker/DateMonthPicker.qml</file>
+        <file>qml/timetracker/DateYearPicker.qml</file>
+        <file>qml/timetracker/DateRangePicker.qml</file>
     </qresource>
 </RCC>

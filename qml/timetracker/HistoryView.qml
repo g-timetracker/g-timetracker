@@ -16,12 +16,11 @@ Item {
     ColumnLayout {
         anchors.fill: parent
 
-        TimeLogFilter {
+        DatePeriodPicker {
             id: timeLogFilter
 
             Layout.fillHeight: false
             Layout.fillWidth: true
-            withCategory: false
         }
 
         TimeLogView {

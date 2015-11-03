@@ -5,47 +5,28 @@ import QtQuick.Layouts 1.1
 GridLayout {
     id: controlsLayout
 
-    property var beginDate: fromField.selectedDate
-    property var endDate: new Date(toField.selectedDate.valueOf() + 86399000)
+    property var beginDate: datePeriodPicker.beginDate
+    property var endDate: datePeriodPicker.endDate
     property string category
-    property bool withCategory: true
 
     columns: 2
     columnSpacing: 10
     rowSpacing: 10
 
-    Label {
-        text: "From:"
-    }
+    DatePeriodPicker {
+        id: datePeriodPicker
 
-    DatePicker {
-        id: fromField
-
-        minimumDate: new Date(0)
-        maximumDate: toField.selectedDate
-    }
-
-    Label {
-        text: "To:"
-    }
-
-    DatePicker {
-        id: toField
-
-        minimumDate: fromField.selectedDate
-        maximumDate: new Date()
+        Layout.columnSpan: columns
     }
 
     Label {
         text: "Category:"
-        visible: withCategory
     }
 
     ComboBox {
         id: categoryField
 
         model: [ "" ].concat(TimeLog.categories)
-        visible: withCategory
 
         onCurrentTextChanged: {
             if (controlsLayout.category !== currentText) {
