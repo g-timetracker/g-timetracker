@@ -13,13 +13,14 @@ Item {
     property date succeedingStart
 
     function updateData(category, startTime, comment) {
-        if (model.category != category) {
+        if (timeLogDelegate.category !== category) {
             model.category = category
         }
-        if (model.startTime != startTime) {
+        if (timeLogDelegate.startTime.valueOf() !== startTime.valueOf()) {
             model.startTime = startTime
         }
-        if (model.comment != comment) {
+
+        if (timeLogDelegate.comment !== comment) {
             model.comment = comment
         }
     }
