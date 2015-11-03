@@ -23,6 +23,7 @@ private slots:
 
 private:
     virtual void processDataInsert(QVector<TimeLogEntry> data);
+    virtual int findData(const TimeLogEntry &entry) const;
 
     QDateTime m_begin;
     QDateTime m_end;

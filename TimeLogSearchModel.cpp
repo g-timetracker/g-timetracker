@@ -42,3 +42,19 @@ void TimeLogSearchModel::processDataInsert(QVector<TimeLogEntry> data)
         endInsertRows();
     }
 }
+
+int TimeLogSearchModel::findData(const TimeLogEntry &entry) const
+{
+    if (entry.startTime < m_begin || entry.startTime > m_end
+        || (!m_category.isEmpty() && !entry.category.startsWith(m_category))) {
+        return -1;
+    }
+
+    QVector<TimeLogEntry>::const_iterator it = std::lower_bound(m_timeLog.begin(), m_timeLog.end(),
+                                                                entry, startTimeCompare);
+    if (it == m_timeLog.end() || it->uuid != entry.uuid) {
+        return -1;
+    } else {
+        return (it - m_timeLog.begin());
+    }
+}
