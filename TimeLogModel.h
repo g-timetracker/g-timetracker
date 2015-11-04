@@ -2,7 +2,6 @@
 #define TIMELOGMODEL_H
 
 #include <QAbstractListModel>
-#include <QSet>
 
 #include <QLoggingCategory>
 
@@ -39,8 +38,7 @@ public:
     Q_INVOKABLE void insertItem(const QModelIndex &index, TimeLogData data = TimeLogData());
 
 private slots:
-    void historyError(const QString &errorText);
-    void historyDataChanged();
+    void historyDataOutdated();
     void historyDataAvailable(QVector<TimeLogEntry> data, QDateTime until);
     void historyDataUpdated(QVector<TimeLogEntry> data, QVector<TimeLogHistory::Fields> fields);
     void historyDataInserted(QVector<TimeLogEntry> data);
@@ -58,7 +56,8 @@ protected:
 
     TimeLogHistory *m_history;
     QVector<TimeLogEntry> m_timeLog;
-    QSet<QDateTime> m_requestedData;
+    QList<QDateTime> m_pendingRequests;
+    QList<QDateTime> m_obsoleteRequests;
 };
 
 Q_DECLARE_LOGGING_CATEGORY(TIME_LOG_MODEL_CATEGORY)

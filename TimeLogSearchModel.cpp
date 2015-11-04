@@ -16,7 +16,7 @@ TimeLogSearchModel::TimeLogSearchModel(QObject *parent) :
 void TimeLogSearchModel::updateData()
 {
     clear();
-    m_requestedData.insert(m_end);
+    m_pendingRequests.append(m_end);
     m_history->getHistoryBetween(m_begin, m_end, m_category);
 }
 

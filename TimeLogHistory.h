@@ -65,9 +65,9 @@ public slots:
 
 signals:
     void error(const QString &errorText) const;
-    void dataChanged() const;
-    void dataAvailable(QDateTime from, QVector<TimeLogEntry> data) const;
-    void dataAvailable(QVector<TimeLogEntry> data, QDateTime until) const;
+    void dataOutdated() const;
+    void historyDataAvailable(QDateTime from, QVector<TimeLogEntry> data) const;
+    void historyDataAvailable(QVector<TimeLogEntry> data, QDateTime until) const;
     void dataUpdated(QVector<TimeLogEntry> data, QVector<TimeLogHistory::Fields>) const;
     void dataInserted(QVector<TimeLogEntry> data) const;
     void dataRemoved(const TimeLogEntry &data) const;

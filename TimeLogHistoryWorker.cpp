@@ -78,6 +78,8 @@ void TimeLogHistoryWorker::insert(const TimeLogEntry &data)
     if (insertData(data)) {
         emit dataInserted(QVector<TimeLogEntry>() << data);
         notifyInsertUpdates(data);
+    } else {
+        emit dataOutdated();
     }
 
     return;
@@ -90,6 +92,8 @@ void TimeLogHistoryWorker::insert(const QVector<TimeLogEntry> &data)
     if (insertData(data)) {
         emit dataInserted(data);
         notifyInsertUpdates(data);
+    } else {
+        emit dataOutdated();
     }
 
     return;
@@ -102,6 +106,8 @@ void TimeLogHistoryWorker::remove(const TimeLogEntry &data)
     if (removeData(data)) {
         emit dataRemoved(data);
         notifyRemoveUpdates(data);
+    } else {
+        emit dataOutdated();
     }
 }
 
@@ -118,6 +124,7 @@ void TimeLogHistoryWorker::edit(const TimeLogEntry &data, TimeLogHistory::Fields
         if (!oldData.isValid()) {
             qCCritical(HISTORY_WORKER_CATEGORY) << "Item to update not found:\n"
                                                 << data.startTime << data.category << data.uuid;
+            emit dataOutdated();
             return;
         }
         oldStart = oldData.startTime;
@@ -125,6 +132,8 @@ void TimeLogHistoryWorker::edit(const TimeLogEntry &data, TimeLogHistory::Fields
 
     if (editData(data, fields)) {
         notifyEditUpdates(data, fields, oldStart);
+    }  else {
+        emit dataOutdated();
     }
 }
 
@@ -133,7 +142,7 @@ void TimeLogHistoryWorker::editCategory(QString oldName, QString newName)
     Q_ASSERT(m_isInitialized);
 
     if (editCategoryData(oldName, newName)) {
-        emit dataChanged();
+        emit dataOutdated();
     }
 }
 
@@ -159,6 +168,7 @@ void TimeLogHistoryWorker::getHistoryBetween(const QDateTime &begin, const QDate
         qCCritical(HISTORY_WORKER_CATEGORY) << "Fail to prepare query:" << query.lastError().text()
                                             << query.lastQuery();
         emit error(query.lastError().text());
+        emit historyDataAvailable(QVector<TimeLogEntry>(), end);
         return;
     }
     query.addBindValue(begin.toTime_t());
@@ -167,7 +177,7 @@ void TimeLogHistoryWorker::getHistoryBetween(const QDateTime &begin, const QDate
         query.addBindValue(category);
     }
 
-    emit dataAvailable(getHistory(query), end);
+    emit historyDataAvailable(getHistory(query), end);
 }
 
 void TimeLogHistoryWorker::getHistoryAfter(const uint limit, const QDateTime &from) const
@@ -181,12 +191,13 @@ void TimeLogHistoryWorker::getHistoryAfter(const uint limit, const QDateTime &fr
         qCCritical(HISTORY_WORKER_CATEGORY) << "Fail to prepare query:" << query.lastError().text()
                                             << query.lastQuery();
         emit error(query.lastError().text());
+        emit historyDataAvailable(from, QVector<TimeLogEntry>());
         return;
     }
     query.addBindValue(from.toTime_t());
     query.addBindValue(limit);
 
-    emit dataAvailable(from, getHistory(query));
+    emit historyDataAvailable(from, getHistory(query));
 }
 
 void TimeLogHistoryWorker::getHistoryBefore(const uint limit, const QDateTime &until) const
@@ -200,6 +211,7 @@ void TimeLogHistoryWorker::getHistoryBefore(const uint limit, const QDateTime &u
         qCCritical(HISTORY_WORKER_CATEGORY) << "Fail to prepare query:" << query.lastError().text()
                                             << query.lastQuery();
         emit error(query.lastError().text());
+        emit historyDataAvailable(QVector<TimeLogEntry>(), until);
         return;
     }
     query.addBindValue(until.toTime_t());
@@ -209,7 +221,7 @@ void TimeLogHistoryWorker::getHistoryBefore(const uint limit, const QDateTime &u
     if (!result.isEmpty()) {
         std::reverse(result.begin(), result.end());
     }
-    emit dataAvailable(result, until);
+    emit historyDataAvailable(result, until);
 }
 
 void TimeLogHistoryWorker::getStats(const QDateTime &begin, const QDateTime &end, const QString &category, const QString &separator) const

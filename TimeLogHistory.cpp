@@ -14,12 +14,12 @@ TimeLogHistory::TimeLogHistory(QObject *parent) :
 {
     connect(m_worker, SIGNAL(error(QString)),
             this, SIGNAL(error(QString)));
-    connect(m_worker, SIGNAL(dataChanged()),
-            this, SIGNAL(dataChanged()));
-    connect(m_worker, SIGNAL(dataAvailable(QDateTime,QVector<TimeLogEntry>)),
-            this, SIGNAL(dataAvailable(QDateTime,QVector<TimeLogEntry>)));
-    connect(m_worker, SIGNAL(dataAvailable(QVector<TimeLogEntry>,QDateTime)),
-            this, SIGNAL(dataAvailable(QVector<TimeLogEntry>,QDateTime)));
+    connect(m_worker, SIGNAL(dataOutdated()),
+            this, SIGNAL(dataOutdated()));
+    connect(m_worker, SIGNAL(historyDataAvailable(QDateTime,QVector<TimeLogEntry>)),
+            this, SIGNAL(historyDataAvailable(QDateTime,QVector<TimeLogEntry>)));
+    connect(m_worker, SIGNAL(historyDataAvailable(QVector<TimeLogEntry>,QDateTime)),
+            this, SIGNAL(historyDataAvailable(QVector<TimeLogEntry>,QDateTime)));
     connect(m_worker, SIGNAL(dataUpdated(QVector<TimeLogEntry>,QVector<TimeLogHistory::Fields>)),
             this, SIGNAL(dataUpdated(QVector<TimeLogEntry>,QVector<TimeLogHistory::Fields>)));
     connect(m_worker, SIGNAL(dataInserted(QVector<TimeLogEntry>)),

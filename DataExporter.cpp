@@ -15,9 +15,9 @@
 DataExporter::DataExporter(QObject *parent) :
     AbstractDataInOut(parent)
 {
-    connect(m_db, SIGNAL(dataAvailable(QDateTime,QVector<TimeLogEntry>)),
+    connect(m_db, SIGNAL(historyDataAvailable(QDateTime,QVector<TimeLogEntry>)),
             this, SLOT(historyDataAvailable(QDateTime,QVector<TimeLogEntry>)));
-    connect(m_db, SIGNAL(dataAvailable(QVector<TimeLogEntry>,QDateTime)),
+    connect(m_db, SIGNAL(historyDataAvailable(QVector<TimeLogEntry>,QDateTime)),
             this, SLOT(historyDataAvailable(QVector<TimeLogEntry>,QDateTime)));
 }
 

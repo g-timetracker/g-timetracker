@@ -20,11 +20,9 @@ TimeLogModel::TimeLogModel(QObject *parent) :
     SUPER(parent),
     m_history(TimeLogHistory::instance())
 {
-    connect(m_history, SIGNAL(error(QString)),
-            this, SLOT(historyError(QString)));
-    connect(m_history, SIGNAL(dataChanged()),
-            this, SLOT(historyDataChanged()));
-    connect(m_history, SIGNAL(dataAvailable(QVector<TimeLogEntry>,QDateTime)),
+    connect(m_history, SIGNAL(dataOutdated()),
+            this, SLOT(historyDataOutdated()));
+    connect(m_history, SIGNAL(historyDataAvailable(QVector<TimeLogEntry>,QDateTime)),
             this, SLOT(historyDataAvailable(QVector<TimeLogEntry>,QDateTime)));
     connect(m_history, SIGNAL(dataUpdated(QVector<TimeLogEntry>,QVector<TimeLogHistory::Fields>)),
             this, SLOT(historyDataUpdated(QVector<TimeLogEntry>,QVector<TimeLogHistory::Fields>)));
@@ -196,29 +194,23 @@ void TimeLogModel::insertItem(const QModelIndex &index, TimeLogData data)
     m_history->insert(entry);
 }
 
-void TimeLogModel::historyError(const QString &errorText)
-{
-    Q_UNUSED(errorText)
-
-    clear();
-}
-
-void TimeLogModel::historyDataChanged()
+void TimeLogModel::historyDataOutdated()
 {
     clear();
 }
 
 void TimeLogModel::historyDataAvailable(QVector<TimeLogEntry> data, QDateTime until)
 {
-    if (!m_requestedData.contains(until)) {
+    if (m_obsoleteRequests.removeOne(until)) {
+        return;
+    }
+    if (!m_pendingRequests.removeOne(until)) {
         qCDebug(TIME_LOG_MODEL_CATEGORY) << "Discarding received but not requested data for time"
                                          << until;
         return;
     }
 
     processHistoryData(data);
-
-    m_requestedData.remove(until);
 }
 
 void TimeLogModel::historyDataUpdated(QVector<TimeLogEntry> data, QVector<TimeLogHistory::Fields> fields)
@@ -292,7 +284,8 @@ void TimeLogModel::clear()
 {
     beginResetModel();
     m_timeLog.clear();
-    m_requestedData.clear();
+    m_obsoleteRequests.append(m_pendingRequests);
+    m_pendingRequests.clear();
     endResetModel();
 }
 
