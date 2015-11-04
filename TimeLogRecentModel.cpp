@@ -92,11 +92,13 @@ int TimeLogRecentModel::findData(const TimeLogEntry &entry) const
 
 void TimeLogRecentModel::getMoreHistory()
 {
-    QDateTime until = m_timeLog.size() ? m_timeLog.at(0).startTime : QDateTime::currentDateTime();
-    if (m_pendingRequests.contains(until)) {
-        qCDebug(TIME_LOG_MODEL_CATEGORY) << "Alredy requested data for time" << until;
+    if (!m_pendingRequests.isEmpty()) {
+        qCDebug(TIME_LOG_MODEL_CATEGORY) << "Data already requested";
         return;
     }
-    m_pendingRequests.append(until);
-    m_history->getHistoryBefore(defaultPopulateCount, until);
+
+    QDateTime until = m_timeLog.size() ? m_timeLog.at(0).startTime : QDateTime::currentDateTime();
+    qlonglong id = QDateTime::currentMSecsSinceEpoch();
+    m_pendingRequests.append(id);
+    m_history->getHistoryBefore(id, defaultPopulateCount, until);
 }

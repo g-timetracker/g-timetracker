@@ -39,7 +39,7 @@ public:
 
 private slots:
     void historyDataOutdated();
-    void historyDataAvailable(QVector<TimeLogEntry> data, QDateTime until);
+    void historyRequestCompleted(QVector<TimeLogEntry> data, qlonglong id);
     void historyDataUpdated(QVector<TimeLogEntry> data, QVector<TimeLogHistory::Fields> fields);
     void historyDataInserted(QVector<TimeLogEntry> data);
     void historyDataRemoved(TimeLogEntry data);
@@ -56,8 +56,8 @@ protected:
 
     TimeLogHistory *m_history;
     QVector<TimeLogEntry> m_timeLog;
-    QList<QDateTime> m_pendingRequests;
-    QList<QDateTime> m_obsoleteRequests;
+    QList<qlonglong> m_pendingRequests;
+    QList<qlonglong> m_obsoleteRequests;
 };
 
 Q_DECLARE_LOGGING_CATEGORY(TIME_LOG_MODEL_CATEGORY)

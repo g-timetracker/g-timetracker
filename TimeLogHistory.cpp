@@ -16,10 +16,8 @@ TimeLogHistory::TimeLogHistory(QObject *parent) :
             this, SIGNAL(error(QString)));
     connect(m_worker, SIGNAL(dataOutdated()),
             this, SIGNAL(dataOutdated()));
-    connect(m_worker, SIGNAL(historyDataAvailable(QDateTime,QVector<TimeLogEntry>)),
-            this, SIGNAL(historyDataAvailable(QDateTime,QVector<TimeLogEntry>)));
-    connect(m_worker, SIGNAL(historyDataAvailable(QVector<TimeLogEntry>,QDateTime)),
-            this, SIGNAL(historyDataAvailable(QVector<TimeLogEntry>,QDateTime)));
+    connect(m_worker, SIGNAL(historyRequestCompleted(QVector<TimeLogEntry>,qlonglong)),
+            this, SIGNAL(historyRequestCompleted(QVector<TimeLogEntry>,qlonglong)));
     connect(m_worker, SIGNAL(dataUpdated(QVector<TimeLogEntry>,QVector<TimeLogHistory::Fields>)),
             this, SIGNAL(dataUpdated(QVector<TimeLogEntry>,QVector<TimeLogHistory::Fields>)));
     connect(m_worker, SIGNAL(dataInserted(QVector<TimeLogEntry>)),
@@ -110,22 +108,22 @@ void TimeLogHistory::sync(const QVector<TimeLogSyncData> &updatedData, const QVe
                               Q_ARG(QVector<TimeLogSyncData>, removedData));
 }
 
-void TimeLogHistory::getHistoryBetween(const QDateTime &begin, const QDateTime &end, const QString &category) const
+void TimeLogHistory::getHistoryBetween(qlonglong id, const QDateTime &begin, const QDateTime &end, const QString &category) const
 {
-    QMetaObject::invokeMethod(m_worker, "getHistoryBetween", Qt::AutoConnection, Q_ARG(QDateTime, begin),
-                              Q_ARG(QDateTime, end), Q_ARG(QString, category));
+    QMetaObject::invokeMethod(m_worker, "getHistoryBetween", Qt::AutoConnection, Q_ARG(qlonglong, id),
+                              Q_ARG(QDateTime, begin), Q_ARG(QDateTime, end), Q_ARG(QString, category));
 }
 
-void TimeLogHistory::getHistoryAfter(const uint limit, const QDateTime &from) const
+void TimeLogHistory::getHistoryAfter(qlonglong id, const uint limit, const QDateTime &from) const
 {
-    QMetaObject::invokeMethod(m_worker, "getHistoryAfter", Qt::AutoConnection, Q_ARG(uint, limit),
-                              Q_ARG(QDateTime, from));
+    QMetaObject::invokeMethod(m_worker, "getHistoryAfter", Qt::AutoConnection, Q_ARG(qlonglong, id),
+                              Q_ARG(uint, limit), Q_ARG(QDateTime, from));
 }
 
-void TimeLogHistory::getHistoryBefore(const uint limit, const QDateTime &until) const
+void TimeLogHistory::getHistoryBefore(qlonglong id, const uint limit, const QDateTime &until) const
 {
-    QMetaObject::invokeMethod(m_worker, "getHistoryBefore", Qt::AutoConnection, Q_ARG(uint, limit),
-                              Q_ARG(QDateTime, until));
+    QMetaObject::invokeMethod(m_worker, "getHistoryBefore", Qt::AutoConnection, Q_ARG(qlonglong, id),
+                              Q_ARG(uint, limit), Q_ARG(QDateTime, until));
 }
 
 void TimeLogHistory::getStats(const QDateTime &begin, const QDateTime &end, const QString &category, const QString &separator) const

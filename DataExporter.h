@@ -15,11 +15,10 @@ protected slots:
     virtual void historyError(const QString &errorText);
 
 private slots:
-    void historyDataAvailable(QDateTime from, QVector<TimeLogEntry> data);
-    void historyDataAvailable(QVector<TimeLogEntry> data, QDateTime until);
+    void historyRequestCompleted(QVector<TimeLogEntry> data, qlonglong id);
 
 private:
-    void exportCurrentDate();
+    void exportCurrentDate(qlonglong id);
     bool exportDay(QVector<TimeLogEntry> data);
 
     QDir m_dir;

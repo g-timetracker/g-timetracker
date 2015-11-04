@@ -22,8 +22,8 @@ TimeLogModel::TimeLogModel(QObject *parent) :
 {
     connect(m_history, SIGNAL(dataOutdated()),
             this, SLOT(historyDataOutdated()));
-    connect(m_history, SIGNAL(historyDataAvailable(QVector<TimeLogEntry>,QDateTime)),
-            this, SLOT(historyDataAvailable(QVector<TimeLogEntry>,QDateTime)));
+    connect(m_history, SIGNAL(historyRequestCompleted(QVector<TimeLogEntry>,qlonglong)),
+            this, SLOT(historyRequestCompleted(QVector<TimeLogEntry>,qlonglong)));
     connect(m_history, SIGNAL(dataUpdated(QVector<TimeLogEntry>,QVector<TimeLogHistory::Fields>)),
             this, SLOT(historyDataUpdated(QVector<TimeLogEntry>,QVector<TimeLogHistory::Fields>)));
     connect(m_history, SIGNAL(dataInserted(QVector<TimeLogEntry>)),
@@ -199,14 +199,13 @@ void TimeLogModel::historyDataOutdated()
     clear();
 }
 
-void TimeLogModel::historyDataAvailable(QVector<TimeLogEntry> data, QDateTime until)
+void TimeLogModel::historyRequestCompleted(QVector<TimeLogEntry> data, qlonglong id)
 {
-    if (m_obsoleteRequests.removeOne(until)) {
+    if (m_obsoleteRequests.removeOne(id)) {
         return;
     }
-    if (!m_pendingRequests.removeOne(until)) {
-        qCDebug(TIME_LOG_MODEL_CATEGORY) << "Discarding received but not requested data for time"
-                                         << until;
+    if (!m_pendingRequests.removeOne(id)) {
+        qCDebug(TIME_LOG_MODEL_CATEGORY) << "Discarding received but not requested data for id" << id;
         return;
     }
 

@@ -47,12 +47,13 @@ public slots:
     void sync(const QVector<TimeLogSyncData> &updatedData,
               const QVector<TimeLogSyncData> &removedData);
 
-    void getHistoryBetween(const QDateTime &begin = QDateTime::fromTime_t(0),
+    void getHistoryBetween(qlonglong id,
+                           const QDateTime &begin = QDateTime::fromTime_t(0),
                            const QDateTime &end = QDateTime::currentDateTime(),
                            const QString &category = QString()) const;
-    void getHistoryAfter(const uint limit,
+    void getHistoryAfter(qlonglong id, const uint limit,
                          const QDateTime &from = QDateTime::fromTime_t(0)) const;
-    void getHistoryBefore(const uint limit,
+    void getHistoryBefore(qlonglong id, const uint limit,
                           const QDateTime &until = QDateTime::currentDateTime()) const;
 
     void getStats(const QDateTime &begin = QDateTime::fromTime_t(0),
@@ -66,8 +67,7 @@ public slots:
 signals:
     void error(const QString &errorText) const;
     void dataOutdated() const;
-    void historyDataAvailable(QDateTime from, QVector<TimeLogEntry> data) const;
-    void historyDataAvailable(QVector<TimeLogEntry> data, QDateTime until) const;
+    void historyRequestCompleted(QVector<TimeLogEntry> data, qlonglong id) const;
     void dataUpdated(QVector<TimeLogEntry> data, QVector<TimeLogHistory::Fields>) const;
     void dataInserted(QVector<TimeLogEntry> data) const;
     void dataRemoved(const TimeLogEntry &data) const;

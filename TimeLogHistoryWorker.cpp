@@ -155,7 +155,7 @@ void TimeLogHistoryWorker::sync(const QVector<TimeLogSyncData> &updatedData, con
     }
 }
 
-void TimeLogHistoryWorker::getHistoryBetween(const QDateTime &begin, const QDateTime &end, const QString &category) const
+void TimeLogHistoryWorker::getHistoryBetween(qlonglong id, const QDateTime &begin, const QDateTime &end, const QString &category) const
 {
     Q_ASSERT(m_isInitialized);
 
@@ -168,7 +168,7 @@ void TimeLogHistoryWorker::getHistoryBetween(const QDateTime &begin, const QDate
         qCCritical(HISTORY_WORKER_CATEGORY) << "Fail to prepare query:" << query.lastError().text()
                                             << query.lastQuery();
         emit error(query.lastError().text());
-        emit historyDataAvailable(QVector<TimeLogEntry>(), end);
+        emit historyRequestCompleted(QVector<TimeLogEntry>(), id);
         return;
     }
     query.addBindValue(begin.toTime_t());
@@ -177,10 +177,10 @@ void TimeLogHistoryWorker::getHistoryBetween(const QDateTime &begin, const QDate
         query.addBindValue(category);
     }
 
-    emit historyDataAvailable(getHistory(query), end);
+    emit historyRequestCompleted(getHistory(query), id);
 }
 
-void TimeLogHistoryWorker::getHistoryAfter(const uint limit, const QDateTime &from) const
+void TimeLogHistoryWorker::getHistoryAfter(qlonglong id, const uint limit, const QDateTime &from) const
 {
     Q_ASSERT(m_isInitialized);
 
@@ -191,16 +191,16 @@ void TimeLogHistoryWorker::getHistoryAfter(const uint limit, const QDateTime &fr
         qCCritical(HISTORY_WORKER_CATEGORY) << "Fail to prepare query:" << query.lastError().text()
                                             << query.lastQuery();
         emit error(query.lastError().text());
-        emit historyDataAvailable(from, QVector<TimeLogEntry>());
+        emit historyRequestCompleted(QVector<TimeLogEntry>(), id);
         return;
     }
     query.addBindValue(from.toTime_t());
     query.addBindValue(limit);
 
-    emit historyDataAvailable(from, getHistory(query));
+    emit historyRequestCompleted(getHistory(query), id);
 }
 
-void TimeLogHistoryWorker::getHistoryBefore(const uint limit, const QDateTime &until) const
+void TimeLogHistoryWorker::getHistoryBefore(qlonglong id, const uint limit, const QDateTime &until) const
 {
     Q_ASSERT(m_isInitialized);
 
@@ -211,7 +211,7 @@ void TimeLogHistoryWorker::getHistoryBefore(const uint limit, const QDateTime &u
         qCCritical(HISTORY_WORKER_CATEGORY) << "Fail to prepare query:" << query.lastError().text()
                                             << query.lastQuery();
         emit error(query.lastError().text());
-        emit historyDataAvailable(QVector<TimeLogEntry>(), until);
+        emit historyRequestCompleted(QVector<TimeLogEntry>(), id);
         return;
     }
     query.addBindValue(until.toTime_t());
@@ -221,7 +221,7 @@ void TimeLogHistoryWorker::getHistoryBefore(const uint limit, const QDateTime &u
     if (!result.isEmpty()) {
         std::reverse(result.begin(), result.end());
     }
-    emit historyDataAvailable(result, until);
+    emit historyRequestCompleted(result, id);
 }
 
 void TimeLogHistoryWorker::getStats(const QDateTime &begin, const QDateTime &end, const QString &category, const QString &separator) const

@@ -16,8 +16,9 @@ TimeLogSearchModel::TimeLogSearchModel(QObject *parent) :
 void TimeLogSearchModel::updateData()
 {
     clear();
-    m_pendingRequests.append(m_end);
-    m_history->getHistoryBetween(m_begin, m_end, m_category);
+    qlonglong id = QDateTime::currentMSecsSinceEpoch();
+    m_pendingRequests.append(id);
+    m_history->getHistoryBetween(id, m_begin, m_end, m_category);
 }
 
 void TimeLogSearchModel::processDataInsert(QVector<TimeLogEntry> data)
