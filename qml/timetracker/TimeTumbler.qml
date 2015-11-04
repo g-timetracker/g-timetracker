@@ -7,8 +7,8 @@ Row {
 
     property alias startDateCurrent: d.currentDate
     property alias startTimeCurrent: d.currentDateTime
-    property alias startTimeAfter: d.startTimeAfter
-    property alias startTimeBefore: d.startTimeBefore
+    property alias minDateTime: d.minDateTime
+    property alias maxDateTime: d.maxDateTime
 
     readonly property alias hours: d.hours
     readonly property alias minutes: d.minutes

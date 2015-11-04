@@ -63,18 +63,11 @@ GridLayout {
 
         property alias origDate: delegateEditor.startTimeCurrent
 
-        property bool dayAfterFit: !(startTimeAfter.getHours() === 23
-                                     && startTimeAfter.getMinutes() === 59
-                                     && startTimeAfter.getSeconds() === 59)
-        property bool dayBeforeFit: !(startTimeBefore.getHours() === 0
-                                      && startTimeBefore.getMinutes() === 0
-                                      && startTimeBefore.getSeconds() === 0)
-
         Layout.fillWidth: true
         Layout.alignment: Qt.AlignVCenter
 
-        minimumDate: (dayAfterFit ? startTimeAfter : new Date(startTimeAfter.valueOf() + 1000))
-        maximumDate: (dayBeforeFit ? startTimeBefore : new Date(startTimeBefore.valueOf() - 1000))
+        minimumDate: new Date(startTimeAfter.valueOf() + 1000)
+        maximumDate: new Date(startTimeBefore.valueOf() - 1000)
 
         onOrigDateChanged: selectedDate = origDate
     }
@@ -91,8 +84,8 @@ GridLayout {
         Layout.alignment: Qt.AlignVCenter
 
         startDateCurrent: calendar.selectedDate
-        startTimeBefore: delegateEditor.startTimeBefore
-        startTimeAfter: delegateEditor.startTimeAfter
+        minDateTime: new Date(startTimeAfter.valueOf() + 1000)
+        maxDateTime: new Date(startTimeBefore.valueOf() - 1000)
 
         onStartTimeCurrentChanged: {
             if (delegateEditor.startTime != startTimeCurrent) {

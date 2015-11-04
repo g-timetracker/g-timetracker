@@ -6,15 +6,15 @@ SpinBox {
 
     property alias startDateCurrent: d.currentDate
     property alias startTimeCurrent: d.currentDateTime
-    property alias startTimeAfter: d.startTimeAfter
-    property alias startTimeBefore: d.startTimeBefore
+    property alias minDateTime: d.minDateTime
+    property alias maxDateTime: d.maxDateTime
 
     readonly property alias hours: d.hours
     readonly property alias minutes: d.minutes
     readonly property alias seconds: d.seconds
 
-    from: d.startTimeAfter.valueOf() / 1000 + 1
-    to: d.startTimeBefore.valueOf() / 1000 - 1
+    from: d.minDateTime.valueOf() / 1000
+    to: d.maxDateTime.valueOf() / 1000
     stepSize: 1
 
     validator: RegExpValidator {

@@ -3,43 +3,36 @@ import QtQml 2.0
 QtObject {
     property date currentDate
     property var currentDateTime: new Date()
-    property date startTimeAfter
-    property date startTimeBefore
+    property date minDateTime
+    property date maxDateTime
 
     property int hours
     property int minutes
     property int seconds
 
-    property int minHours: (currentDayAfter ? startTimeAfter.getHours() + (hoursAfterFit ? 0 : 1) : 0)
-    property int maxHours: (currentDayBefore ? startTimeBefore.getHours() - (hoursBeforeFit ? 0 : 1) : 23)
+    property int minHours: (isCurrentDayMin ? minDateTime.getHours() : 0)
+    property int maxHours: (isCurrentDayMax ? maxDateTime.getHours() : 23)
 
-    property int minMinutes: (currentHourAfter ? startTimeAfter.getMinutes() + (minutesAfterFit ? 0 : 1) : 0)
-    property int maxMinutes: (currentHourBefore ? startTimeBefore.getMinutes() - (minutesBeforeFit ? 0 : 1) : 59)
+    property int minMinutes: (isCurrentHourMin ? minDateTime.getMinutes() : 0)
+    property int maxMinutes: (isCurrentHourMax ? maxDateTime.getMinutes() : 59)
 
-    property int minSeconds: (currentMinuteAfter && minutesAfterFit ? startTimeAfter.getSeconds() + 1 : 0)
-    property int maxSeconds: (currentMinuteBefore && minutesBeforeFit ? startTimeBefore.getSeconds() - 1 : 59)
+    property int minSeconds: (isCurrentMinuteMin ? minDateTime.getSeconds() : 0)
+    property int maxSeconds: (isCurrentMinuteMax ? maxDateTime.getSeconds() : 59)
 
-    property bool currentDayBefore: (currentDate.getFullYear() === startTimeBefore.getFullYear()
-                                     && currentDate.getMonth() === startTimeBefore.getMonth()
-                                     && currentDate.getDate() === startTimeBefore.getDate())
-    property bool currentDayAfter: (startTimeAfter.getFullYear() === currentDate.getFullYear()
-                                    && startTimeAfter.getMonth() === currentDate.getMonth()
-                                    && startTimeAfter.getDate() === currentDate.getDate())
-    property bool currentHourBefore: (currentDayBefore
-                                      && hours === startTimeBefore.getHours())
-    property bool currentHourAfter: (currentDayAfter
-                                     && startTimeAfter.getHours() === hours)
-    property bool currentMinuteBefore: (currentHourBefore
-                                        && minutes === startTimeBefore.getMinutes())
-    property bool currentMinuteAfter: (currentHourAfter
-                                       && startTimeAfter.getMinutes() === minutes)
-
-    property bool minutesBeforeFit: (startTimeBefore.getSeconds() > 0)
-    property bool minutesAfterFit: (startTimeAfter.getSeconds() < 59)
-    property bool hoursBeforeFit: (startTimeBefore.getMinutes() > 0
-                                   || minutesBeforeFit)
-    property bool hoursAfterFit: (startTimeAfter.getMinutes() < 59
-                                  || minutesAfterFit)
+    property bool isCurrentDayMin: (minDateTime.getFullYear() === currentDate.getFullYear()
+                                    && minDateTime.getMonth() === currentDate.getMonth()
+                                    && minDateTime.getDate() === currentDate.getDate())
+    property bool isCurrentDayMax: (currentDate.getFullYear() === maxDateTime.getFullYear()
+                                    && currentDate.getMonth() === maxDateTime.getMonth()
+                                    && currentDate.getDate() === maxDateTime.getDate())
+    property bool isCurrentHourMin: (isCurrentDayMin
+                                     && minDateTime.getHours() === hours)
+    property bool isCurrentHourMax: (isCurrentDayMax
+                                     && hours === maxDateTime.getHours())
+    property bool isCurrentMinuteMin: (isCurrentHourMin
+                                       && minDateTime.getMinutes() === minutes)
+    property bool isCurrentMinuteMax: (isCurrentHourMax
+                                       && minutes === maxDateTime.getMinutes())
 
     onHoursChanged: {
         if (currentDateTime.getHours() != hours) {
