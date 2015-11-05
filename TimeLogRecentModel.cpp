@@ -57,26 +57,22 @@ void TimeLogRecentModel::processHistoryData(QVector<TimeLogEntry> data)
     endInsertRows();
 }
 
-void TimeLogRecentModel::processDataInsert(QVector<TimeLogEntry> data)
+void TimeLogRecentModel::processDataInsert(TimeLogEntry data)
 {
-    for (int i = 0; i < data.size(); i++) {
-        const TimeLogEntry &entry = data.at(i);
-
-        if (m_timeLog.size() > defaultPopulateCount && startTimeCompare(entry, m_timeLog.first())) {
-            continue;
-        }
-
-        QVector<TimeLogEntry>::iterator it = std::lower_bound(m_timeLog.begin(), m_timeLog.end(),
-                                                              entry, startTimeCompare);
-        if (it != m_timeLog.end() && it->uuid == entry.uuid) {
-            continue;
-        }
-        int index = (it == m_timeLog.end() ? m_timeLog.size() : it - m_timeLog.begin());
-
-        beginInsertRows(QModelIndex(), index, index);
-        m_timeLog.insert(index, entry);
-        endInsertRows();
+    if (m_timeLog.size() > defaultPopulateCount && startTimeCompare(data, m_timeLog.first())) {
+        return;
     }
+
+    QVector<TimeLogEntry>::iterator it = std::lower_bound(m_timeLog.begin(), m_timeLog.end(),
+                                                          data, startTimeCompare);
+    if (it != m_timeLog.end() && it->uuid == data.uuid) {
+        return;
+    }
+    int index = (it == m_timeLog.end() ? m_timeLog.size() : it - m_timeLog.begin());
+
+    beginInsertRows(QModelIndex(), index, index);
+    m_timeLog.insert(index, data);
+    endInsertRows();
 }
 
 int TimeLogRecentModel::findData(const TimeLogEntry &entry) const

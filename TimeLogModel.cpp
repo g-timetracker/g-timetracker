@@ -26,12 +26,10 @@ TimeLogModel::TimeLogModel(QObject *parent) :
             this, SLOT(historyRequestCompleted(QVector<TimeLogEntry>,qlonglong)));
     connect(m_history, SIGNAL(dataUpdated(QVector<TimeLogEntry>,QVector<TimeLogHistory::Fields>)),
             this, SLOT(historyDataUpdated(QVector<TimeLogEntry>,QVector<TimeLogHistory::Fields>)));
-    connect(m_history, SIGNAL(dataInserted(QVector<TimeLogEntry>)),
-            this, SLOT(historyDataInserted(QVector<TimeLogEntry>)));
+    connect(m_history, SIGNAL(dataInserted(TimeLogEntry)),
+            this, SLOT(historyDataInserted(TimeLogEntry)));
     connect(m_history, SIGNAL(dataRemoved(TimeLogEntry)),
             this, SLOT(historyDataRemoved(TimeLogEntry)));
-    connect(m_history, SIGNAL(dataSynced(QVector<TimeLogSyncData>,QVector<TimeLogSyncData>)),
-            this, SLOT(historyDataSynced(QVector<TimeLogSyncData>,QVector<TimeLogSyncData>)));
 }
 
 int TimeLogModel::rowCount(const QModelIndex &parent) const
@@ -261,7 +259,7 @@ void TimeLogModel::historyDataUpdated(QVector<TimeLogEntry> data, QVector<TimeLo
     }
 }
 
-void TimeLogModel::historyDataInserted(QVector<TimeLogEntry> data)
+void TimeLogModel::historyDataInserted(TimeLogEntry data)
 {
     processDataInsert(data);
 }
@@ -269,14 +267,6 @@ void TimeLogModel::historyDataInserted(QVector<TimeLogEntry> data)
 void TimeLogModel::historyDataRemoved(TimeLogEntry data)
 {
     processDataRemove(data);
-}
-
-void TimeLogModel::historyDataSynced(QVector<TimeLogSyncData> updatedData, QVector<TimeLogSyncData> removedData)
-{
-    Q_UNUSED(updatedData)
-    Q_UNUSED(removedData)
-
-    clear();
 }
 
 void TimeLogModel::clear()
@@ -301,7 +291,7 @@ void TimeLogModel::processHistoryData(QVector<TimeLogEntry> data)
     endInsertRows();
 }
 
-void TimeLogModel::processDataInsert(QVector<TimeLogEntry> data)
+void TimeLogModel::processDataInsert(TimeLogEntry data)
 {
     Q_UNUSED(data)
 }

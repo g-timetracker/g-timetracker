@@ -76,7 +76,7 @@ void TimeLogHistoryWorker::insert(const TimeLogEntry &data)
     Q_ASSERT(m_isInitialized);
 
     if (insertData(data)) {
-        emit dataInserted(QVector<TimeLogEntry>() << data);
+        emit dataInserted(data);
         notifyInsertUpdates(data);
     } else {
         emit dataOutdated();
@@ -85,13 +85,12 @@ void TimeLogHistoryWorker::insert(const TimeLogEntry &data)
     return;
 }
 
-void TimeLogHistoryWorker::insert(const QVector<TimeLogEntry> &data)
+void TimeLogHistoryWorker::import(const QVector<TimeLogEntry> &data)
 {
     Q_ASSERT(m_isInitialized);
 
     if (insertData(data)) {
-        emit dataInserted(data);
-        notifyInsertUpdates(data);
+        emit dataImported(data);
     } else {
         emit dataOutdated();
     }
@@ -150,7 +149,48 @@ void TimeLogHistoryWorker::sync(const QVector<TimeLogSyncData> &updatedData, con
 {
     Q_ASSERT(m_isInitialized);
 
-    if (syncData(updatedData, removedData)) {
+    QVector<TimeLogSyncData> removedNew;
+    QVector<TimeLogSyncData> removedOld;
+    QVector<TimeLogSyncData> insertedNew;
+    QVector<TimeLogSyncData> insertedOld;
+    QVector<TimeLogSyncData> updatedNew;
+    QVector<TimeLogSyncData> updatedOld;
+
+    foreach (const TimeLogSyncData &entry, removedData) {
+        QVector<TimeLogSyncData> affected = getSyncAffected(entry.uuid);
+        if (!affected.isEmpty() && affected.constFirst().mTime >= entry.mTime) {
+            continue;
+        }
+
+        removedNew.append(entry);
+        removedOld.append(affected.isEmpty() ? TimeLogSyncData() : affected.constFirst());
+    }
+
+    foreach (const TimeLogSyncData &entry, updatedData) {
+        QVector<TimeLogSyncData> affected = getSyncAffected(entry.uuid);
+        if (!affected.isEmpty() && affected.constFirst().mTime >= entry.mTime) {
+            continue;
+        }
+
+        if (affected.isEmpty() || !affected.constFirst().isValid()) {
+            insertedNew.append(entry);
+            insertedOld.append(affected.isEmpty() ? TimeLogSyncData() : affected.constFirst());
+        } else {
+            updatedNew.append(entry);
+            updatedOld.append(affected.constFirst());
+        }
+    }
+
+    emit syncStatsAvailable(removedOld, removedNew, insertedOld, insertedNew, updatedOld, updatedNew);
+
+    QVector<TimeLogSyncData> removedMerged(removedNew.size());
+    for (int i = 0; i < removedMerged.size(); i++) {
+        removedMerged[i] = removedOld.at(i);
+        removedMerged[i].uuid = removedNew.at(i).uuid;
+        removedMerged[i].mTime = removedNew.at(i).mTime;
+    }
+
+    if (syncData(removedMerged, insertedNew, updatedNew, updatedOld)) {
         emit dataSynced(updatedData, removedData);
     }
 }
@@ -722,7 +762,7 @@ bool TimeLogHistoryWorker::editCategoryData(QString oldName, QString newName)
     return true;
 }
 
-bool TimeLogHistoryWorker::syncData(const QVector<TimeLogSyncData> &updatedData, const QVector<TimeLogSyncData> &removedData)
+bool TimeLogHistoryWorker::syncData(const QVector<TimeLogSyncData> &removed, const QVector<TimeLogSyncData> &inserted, const QVector<TimeLogSyncData> &updatedNew, const QVector<TimeLogSyncData> &updatedOld)
 {
     QSqlDatabase db = QSqlDatabase::database("timelog");
     if (!db.transaction()) {
@@ -731,7 +771,7 @@ bool TimeLogHistoryWorker::syncData(const QVector<TimeLogSyncData> &updatedData,
         return false;
     }
 
-    foreach (const TimeLogSyncData &entry, removedData) {
+    foreach (const TimeLogSyncData &entry, removed) {
         if (!removeData(entry)) {
             if (!db.rollback()) {
                 qCCritical(HISTORY_WORKER_CATEGORY) << "Fail to rollback transaction:" << db.lastError().text();
@@ -742,7 +782,7 @@ bool TimeLogHistoryWorker::syncData(const QVector<TimeLogSyncData> &updatedData,
         }
     }
 
-    foreach (const TimeLogSyncData &entry, updatedData) {
+    foreach (const TimeLogSyncData &entry, inserted) {
         if (!insertData(entry)) {
             if (!db.rollback()) {
                 qCCritical(HISTORY_WORKER_CATEGORY) << "Fail to rollback transaction:" << db.lastError().text();
@@ -753,7 +793,7 @@ bool TimeLogHistoryWorker::syncData(const QVector<TimeLogSyncData> &updatedData,
         }
     }
 
-    foreach (const TimeLogSyncData &entry, updatedData) {
+    foreach (const TimeLogSyncData &entry, updatedNew) {
         if (!editData(entry, TimeLogHistory::AllFieldsMask)) {
             if (!db.rollback()) {
                 qCCritical(HISTORY_WORKER_CATEGORY) << "Fail to rollback transaction:" << db.lastError().text();
@@ -772,6 +812,38 @@ bool TimeLogHistoryWorker::syncData(const QVector<TimeLogSyncData> &updatedData,
             emit error(db.lastError().text());
         }
         return false;
+    }
+
+    foreach (const TimeLogEntry &entry, removed) {
+        if (entry.isValid()) {
+            emit dataRemoved(entry);
+        }
+    }
+    foreach (const TimeLogEntry &entry, removed) {
+        if (entry.isValid()) {
+            notifyRemoveUpdates(entry);
+        }
+    }
+    foreach (const TimeLogEntry &entry, inserted) {
+        emit dataInserted(entry);
+    }
+    foreach (const TimeLogEntry &entry, inserted) {
+        notifyInsertUpdates(entry);
+    }
+    for (int i = 0; i < updatedNew.size(); i++) {
+        const TimeLogSyncData &newField = updatedNew.at(i);
+        const TimeLogSyncData &oldField = updatedOld.at(i);
+        TimeLogHistory::Fields fields(TimeLogHistory::NoFields);
+        if (newField.startTime != oldField.startTime) {
+            fields |= TimeLogHistory::StartTime;
+        }
+        if (newField.category != oldField.category) {
+            fields |= TimeLogHistory::Category;
+        }
+        if (newField.comment != oldField.comment) {
+            fields |= TimeLogHistory::Comment;
+        }
+        notifyEditUpdates(updatedNew.at(i), fields, oldField.startTime);
     }
 
     return true;
@@ -856,7 +928,7 @@ QVector<TimeLogSyncData> TimeLogHistoryWorker::getSyncData(QSqlQuery &query) con
     return result;
 }
 
-TimeLogEntry TimeLogHistoryWorker::getEntry(QUuid uuid) const
+TimeLogEntry TimeLogHistoryWorker::getEntry(const QUuid &uuid) const
 {
     TimeLogEntry entry;
 
@@ -876,6 +948,29 @@ TimeLogEntry TimeLogHistoryWorker::getEntry(QUuid uuid) const
         entry = data.first();
     }
     return entry;
+}
+
+QVector<TimeLogSyncData> TimeLogHistoryWorker::getSyncAffected(const QUuid &uuid) const
+{
+    QSqlDatabase db = QSqlDatabase::database("timelog");
+    QSqlQuery query(db);
+    QString queryString("WITH result AS ( "
+                        "    SELECT uuid, start, category, comment, mtime FROM timelog "
+                        "    WHERE uuid=:uuid "
+                        "UNION ALL "
+                        "    SELECT uuid, NULL, NULL, NULL, mtime FROM removed "
+                        "    WHERE uuid=:uuid "
+                        ") "
+                        "SELECT * FROM result ORDER BY mtime DESC LIMIT 1");
+    if (!query.prepare(queryString)) {
+        qCCritical(HISTORY_WORKER_CATEGORY) << "Fail to prepare query:" << query.lastError().text()
+                                            << query.lastQuery();
+        emit error(query.lastError().text());
+        return QVector<TimeLogSyncData>();
+    }
+    query.bindValue(":uuid", uuid.toRfc4122());
+
+    return getSyncData(query);
 }
 
 void TimeLogHistoryWorker::notifyInsertUpdates(const TimeLogEntry &data) const

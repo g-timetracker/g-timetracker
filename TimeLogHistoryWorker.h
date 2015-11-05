@@ -20,7 +20,7 @@ public:
 
 public slots:
     void insert(const TimeLogEntry &data);
-    void insert(const QVector<TimeLogEntry> &data);
+    void import(const QVector<TimeLogEntry> &data);
     void remove(const TimeLogEntry &data);
     void edit(const TimeLogEntry &data, TimeLogHistory::Fields fields);
     void editCategory(QString oldName, QString newName);
@@ -49,10 +49,14 @@ signals:
     void dataOutdated() const;
     void historyRequestCompleted(QVector<TimeLogEntry> data, qlonglong id) const;
     void dataUpdated(QVector<TimeLogEntry> data, QVector<TimeLogHistory::Fields> fields) const;
-    void dataInserted(QVector<TimeLogEntry> data) const;
+    void dataInserted(const TimeLogEntry &data) const;
+    void dataImported(QVector<TimeLogEntry> data) const;
     void dataRemoved(const TimeLogEntry &data) const;
     void statsDataAvailable(QVector<TimeLogStats> data, QDateTime until) const;
     void syncDataAvailable(QVector<TimeLogSyncData> data, QDateTime until) const;
+    void syncStatsAvailable(QVector<TimeLogSyncData> removedOld, QVector<TimeLogSyncData> removedNew,
+                            QVector<TimeLogSyncData> insertedOld, QVector<TimeLogSyncData> insertedNew,
+                            QVector<TimeLogSyncData> updatedOld, QVector<TimeLogSyncData> updatedNew) const;
     void dataSynced(QVector<TimeLogSyncData> updatedData, QVector<TimeLogSyncData> removedData);
 
     void sizeChanged(qlonglong size) const;
@@ -74,12 +78,13 @@ private:
     bool removeData(const TimeLogSyncData &data);
     bool editData(const TimeLogSyncData &data, TimeLogHistory::Fields fields);
     bool editCategoryData(QString oldName, QString newName);
-    bool syncData(const QVector<TimeLogSyncData> &updatedData,
-                  const QVector<TimeLogSyncData> &removedData);
+    bool syncData(const QVector<TimeLogSyncData> &removed, const QVector<TimeLogSyncData> &inserted,
+                  const QVector<TimeLogSyncData> &updatedNew, const QVector<TimeLogSyncData> &updatedOld);
     QVector<TimeLogEntry> getHistory(QSqlQuery &query) const;
     QVector<TimeLogStats> getStats(QSqlQuery &query) const;
     QVector<TimeLogSyncData> getSyncData(QSqlQuery &query) const;
-    TimeLogEntry getEntry(QUuid uuid) const;
+    TimeLogEntry getEntry(const QUuid &uuid) const;
+    QVector<TimeLogSyncData> getSyncAffected(const QUuid &uuid) const;
     void notifyInsertUpdates(const TimeLogEntry &data) const;
     void notifyInsertUpdates(const QVector<TimeLogEntry> &data) const;
     void notifyRemoveUpdates(const TimeLogEntry &data) const;

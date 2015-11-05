@@ -15,7 +15,7 @@ protected slots:
     virtual void historyError(const QString &errorText);
 
 private slots:
-    void historyDataInserted(QVector<TimeLogEntry> data);
+    void historyDataImported(QVector<TimeLogEntry> data);
 
 private:
     void importCurrentFile();

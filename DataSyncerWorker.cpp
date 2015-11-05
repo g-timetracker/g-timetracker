@@ -53,6 +53,12 @@ DataSyncerWorker::DataSyncerWorker(QObject *parent) :
 
     connect(m_db, SIGNAL(syncDataAvailable(QVector<TimeLogSyncData>,QDateTime)),
             this, SLOT(syncDataAvailable(QVector<TimeLogSyncData>,QDateTime)));
+    connect(m_db, SIGNAL(syncStatsAvailable(QVector<TimeLogSyncData>,QVector<TimeLogSyncData>,
+                                            QVector<TimeLogSyncData>,QVector<TimeLogSyncData>,
+                                            QVector<TimeLogSyncData>,QVector<TimeLogSyncData>)),
+            this, SLOT(syncStatsAvailable(QVector<TimeLogSyncData>,QVector<TimeLogSyncData>,
+                                          QVector<TimeLogSyncData>,QVector<TimeLogSyncData>,
+                                          QVector<TimeLogSyncData>,QVector<TimeLogSyncData>)));
     connect(m_db, SIGNAL(dataSynced(QVector<TimeLogSyncData>,QVector<TimeLogSyncData>)),
             this, SLOT(syncDataSynced(QVector<TimeLogSyncData>,QVector<TimeLogSyncData>)));
 }
@@ -103,6 +109,17 @@ void DataSyncerWorker::syncDataAvailable(QVector<TimeLogSyncData> data, QDateTim
     }
 
     emit exported(QPrivateSignal());
+}
+
+void DataSyncerWorker::syncStatsAvailable(QVector<TimeLogSyncData> removedOld, QVector<TimeLogSyncData> removedNew, QVector<TimeLogSyncData> insertedOld, QVector<TimeLogSyncData> insertedNew, QVector<TimeLogSyncData> updatedOld, QVector<TimeLogSyncData> updatedNew) const
+{
+    // TODO
+    Q_UNUSED(removedOld)
+    Q_UNUSED(removedNew)
+    Q_UNUSED(insertedOld)
+    Q_UNUSED(insertedNew)
+    Q_UNUSED(updatedOld)
+    Q_UNUSED(updatedNew)
 }
 
 void DataSyncerWorker::syncDataSynced(QVector<TimeLogSyncData> updatedData, QVector<TimeLogSyncData> removedData)

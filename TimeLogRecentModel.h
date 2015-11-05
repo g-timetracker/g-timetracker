@@ -15,7 +15,7 @@ public:
 
 protected:
     virtual void processHistoryData(QVector<TimeLogEntry> data);
-    virtual void processDataInsert(QVector<TimeLogEntry> data);
+    virtual void processDataInsert(TimeLogEntry data);
     virtual int findData(const TimeLogEntry &entry) const;
 
 private:

@@ -40,7 +40,7 @@ public:
 
 public slots:
     void insert(const TimeLogEntry &data);
-    void insert(const QVector<TimeLogEntry> &data);
+    void import(const QVector<TimeLogEntry> &data);
     void remove(const TimeLogEntry &data);
     void edit(const TimeLogEntry &data, TimeLogHistory::Fields fields);
     void editCategory(QString oldName, QString newName);
@@ -69,10 +69,14 @@ signals:
     void dataOutdated() const;
     void historyRequestCompleted(QVector<TimeLogEntry> data, qlonglong id) const;
     void dataUpdated(QVector<TimeLogEntry> data, QVector<TimeLogHistory::Fields>) const;
-    void dataInserted(QVector<TimeLogEntry> data) const;
+    void dataInserted(const TimeLogEntry &data) const;
+    void dataImported(QVector<TimeLogEntry> data) const;
     void dataRemoved(const TimeLogEntry &data) const;
     void statsDataAvailable(QVector<TimeLogStats> data, QDateTime until) const;
     void syncDataAvailable(QVector<TimeLogSyncData> data, QDateTime until) const;
+    void syncStatsAvailable(QVector<TimeLogSyncData> removedOld, QVector<TimeLogSyncData> removedNew,
+                            QVector<TimeLogSyncData> insertedOld, QVector<TimeLogSyncData> insertedNew,
+                            QVector<TimeLogSyncData> updatedOld, QVector<TimeLogSyncData> updatedNew) const;
     void dataSynced(QVector<TimeLogSyncData> updatedData, QVector<TimeLogSyncData> removedData);
 
     void categoriesChanged(QSet<QString> categories) const;

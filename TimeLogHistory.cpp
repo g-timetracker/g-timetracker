@@ -20,8 +20,10 @@ TimeLogHistory::TimeLogHistory(QObject *parent) :
             this, SIGNAL(historyRequestCompleted(QVector<TimeLogEntry>,qlonglong)));
     connect(m_worker, SIGNAL(dataUpdated(QVector<TimeLogEntry>,QVector<TimeLogHistory::Fields>)),
             this, SIGNAL(dataUpdated(QVector<TimeLogEntry>,QVector<TimeLogHistory::Fields>)));
-    connect(m_worker, SIGNAL(dataInserted(QVector<TimeLogEntry>)),
-            this, SIGNAL(dataInserted(QVector<TimeLogEntry>)));
+    connect(m_worker, SIGNAL(dataInserted(TimeLogEntry)),
+            this, SIGNAL(dataInserted(TimeLogEntry)));
+    connect(m_worker, SIGNAL(dataImported(QVector<TimeLogEntry>)),
+            this, SIGNAL(dataImported(QVector<TimeLogEntry>)));
     connect(m_worker, SIGNAL(dataRemoved(TimeLogEntry)),
             this, SIGNAL(dataRemoved(TimeLogEntry)));
     connect(m_worker, SIGNAL(sizeChanged(qlonglong)),
@@ -32,6 +34,12 @@ TimeLogHistory::TimeLogHistory(QObject *parent) :
             this, SIGNAL(statsDataAvailable(QVector<TimeLogStats>,QDateTime)));
     connect(m_worker, SIGNAL(syncDataAvailable(QVector<TimeLogSyncData>,QDateTime)),
             this, SIGNAL(syncDataAvailable(QVector<TimeLogSyncData>,QDateTime)));
+    connect(m_worker, SIGNAL(syncStatsAvailable(QVector<TimeLogSyncData>,QVector<TimeLogSyncData>,
+                                                QVector<TimeLogSyncData>,QVector<TimeLogSyncData>,
+                                                QVector<TimeLogSyncData>,QVector<TimeLogSyncData>)),
+            this, SIGNAL(syncStatsAvailable(QVector<TimeLogSyncData>,QVector<TimeLogSyncData>,
+                                            QVector<TimeLogSyncData>,QVector<TimeLogSyncData>,
+                                            QVector<TimeLogSyncData>,QVector<TimeLogSyncData>)));
     connect(m_worker, SIGNAL(dataSynced(QVector<TimeLogSyncData>,QVector<TimeLogSyncData>)),
             this, SIGNAL(dataSynced(QVector<TimeLogSyncData>,QVector<TimeLogSyncData>)));
 }
@@ -78,9 +86,9 @@ void TimeLogHistory::insert(const TimeLogEntry &data)
     QMetaObject::invokeMethod(m_worker, "insert", Qt::AutoConnection, Q_ARG(TimeLogEntry, data));
 }
 
-void TimeLogHistory::insert(const QVector<TimeLogEntry> &data)
+void TimeLogHistory::import(const QVector<TimeLogEntry> &data)
 {
-    QMetaObject::invokeMethod(m_worker, "insert", Qt::AutoConnection,
+    QMetaObject::invokeMethod(m_worker, "import", Qt::AutoConnection,
                               Q_ARG(QVector<TimeLogEntry>, data));
 }
 

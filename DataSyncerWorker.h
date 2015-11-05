@@ -30,6 +30,9 @@ protected slots:
 
 private slots:
     void syncDataAvailable(QVector<TimeLogSyncData> data, QDateTime until);
+    void syncStatsAvailable(QVector<TimeLogSyncData> removedOld, QVector<TimeLogSyncData> removedNew,
+                            QVector<TimeLogSyncData> insertedOld, QVector<TimeLogSyncData> insertedNew,
+                            QVector<TimeLogSyncData> updatedOld, QVector<TimeLogSyncData> updatedNew) const;
     void syncDataSynced(QVector<TimeLogSyncData> updatedData,
                         QVector<TimeLogSyncData> removedData);
 

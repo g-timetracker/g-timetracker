@@ -41,14 +41,13 @@ private slots:
     void historyDataOutdated();
     void historyRequestCompleted(QVector<TimeLogEntry> data, qlonglong id);
     void historyDataUpdated(QVector<TimeLogEntry> data, QVector<TimeLogHistory::Fields> fields);
-    void historyDataInserted(QVector<TimeLogEntry> data);
+    void historyDataInserted(TimeLogEntry data);
     void historyDataRemoved(TimeLogEntry data);
-    void historyDataSynced(QVector<TimeLogSyncData> updatedData, QVector<TimeLogSyncData> removedData);
 
 protected:
     void clear();
     virtual void processHistoryData(QVector<TimeLogEntry> data);
-    virtual void processDataInsert(QVector<TimeLogEntry> data);
+    virtual void processDataInsert(TimeLogEntry data);
     virtual void processDataRemove(const TimeLogEntry &data);
     virtual int findData(const TimeLogEntry &entry) const;
 

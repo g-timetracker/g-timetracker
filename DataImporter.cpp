@@ -16,8 +16,8 @@
 DataImporter::DataImporter(QObject *parent) :
     AbstractDataInOut(parent)
 {
-    connect(m_db, SIGNAL(dataInserted(QVector<TimeLogEntry>)),
-            this, SLOT(historyDataInserted(QVector<TimeLogEntry>)));
+    connect(m_db, SIGNAL(dataImported(QVector<TimeLogEntry>)),
+            this, SLOT(historyDataImported(QVector<TimeLogEntry>)));
 }
 
 void DataImporter::startIO(const QString &path)
@@ -38,7 +38,7 @@ void DataImporter::historyError(const QString &errorText)
     fail(QString("DB error while importing file %1: %2").arg(m_fileList.at(m_currentIndex)).arg(errorText));
 }
 
-void DataImporter::historyDataInserted(QVector<TimeLogEntry> data)
+void DataImporter::historyDataImported(QVector<TimeLogEntry> data)
 {
     Q_UNUSED(data)
 
@@ -64,9 +64,9 @@ void DataImporter::importFile(const QString &path)
     QVector<TimeLogEntry> data = parseFile(path);
 
     if (data.size()) {
-        m_db->insert(data);
+        m_db->import(data);
     } else {
-        historyDataInserted(data);
+        historyDataImported(data);
     }
 }
 
