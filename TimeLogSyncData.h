@@ -10,6 +10,8 @@ struct TimeLogSyncData : public TimeLogEntry
 public:
     TimeLogSyncData(const TimeLogEntry &entry = TimeLogEntry(), const QDateTime &mTime = QDateTime());
 
+    QString toString() const;
+
     QDateTime mTime;
 };
 

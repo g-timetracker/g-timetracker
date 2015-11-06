@@ -113,13 +113,16 @@ void DataSyncerWorker::syncDataAvailable(QVector<TimeLogSyncData> data, QDateTim
 
 void DataSyncerWorker::syncStatsAvailable(QVector<TimeLogSyncData> removedOld, QVector<TimeLogSyncData> removedNew, QVector<TimeLogSyncData> insertedOld, QVector<TimeLogSyncData> insertedNew, QVector<TimeLogSyncData> updatedOld, QVector<TimeLogSyncData> updatedNew) const
 {
-    // TODO
-    Q_UNUSED(removedOld)
-    Q_UNUSED(removedNew)
-    Q_UNUSED(insertedOld)
-    Q_UNUSED(insertedNew)
-    Q_UNUSED(updatedOld)
-    Q_UNUSED(updatedNew)
+    qCDebug(SYNC_WORKER_CATEGORY) << "Import details:";
+    for (int i = 0; i < removedNew.size(); i++) {
+        qCDebug(SYNC_WORKER_CATEGORY) << formatSyncChange(removedOld.at(i), removedNew.at(i));
+    }
+    for (int i = 0; i < insertedNew.size(); i++) {
+        qCDebug(SYNC_WORKER_CATEGORY) << formatSyncChange(insertedOld.at(i), insertedNew.at(i));
+    }
+    for (int i = 0; i < updatedNew.size(); i++) {
+        qCDebug(SYNC_WORKER_CATEGORY) << formatSyncChange(updatedOld.at(i), updatedNew.at(i));
+    }
 }
 
 void DataSyncerWorker::syncDataSynced(QVector<TimeLogSyncData> updatedData, QVector<TimeLogSyncData> removedData)
@@ -279,9 +282,9 @@ bool DataSyncerWorker::exportData(const QVector<TimeLogSyncData> &data)
     stream.setVersion(syncFileStreamVersion);
 
     for (int i = 0; i < data.size(); i++) {
-        qCDebug(SYNC_WORKER_CATEGORY) << "Exporting entry:" << data.at(i);
-        stream << data.at(i);
         qCInfo(SYNC_WORKER_CATEGORY) << QString("Exported item %1 of %2").arg(i+1).arg(data.size());
+        qCDebug(SYNC_WORKER_CATEGORY) << data.at(i).toString();
+        stream << data.at(i);
     }
 
     if (stream.status() != QDataStream::Ok || file.error() != QFileDevice::NoError) {
@@ -387,4 +390,21 @@ bool DataSyncerWorker::parseFile(const QString &path, QVector<TimeLogSyncData> &
     }
 
     return true;
+}
+
+QString DataSyncerWorker::formatSyncChange(const TimeLogSyncData &oldData, const TimeLogSyncData &newData) const
+{
+    QStringList result;
+
+    if (newData.isValid()) {
+        if (!oldData.uuid.isNull()) {
+            result << "[Updated]" << oldData.toString() << "->" << newData.toString();
+        } else {
+            result << "[New item]" << newData.toString();
+        }
+    } else {
+        result << "[Removed]" << oldData.toString() << "->" << newData.toString();
+    }
+
+    return result.join(' ');
 }

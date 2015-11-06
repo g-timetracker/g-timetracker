@@ -52,6 +52,7 @@ private:
     bool parseFile(const QString &path,
                    QVector<TimeLogSyncData> &updatedData,
                    QVector<TimeLogSyncData> &removedData) const;
+    QString formatSyncChange(const TimeLogSyncData &oldData, const TimeLogSyncData &newData) const;
 
     bool m_isInitialized;
     QStringList m_fileList;
