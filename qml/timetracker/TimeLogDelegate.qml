@@ -11,6 +11,7 @@ Item {
     property string comment
     property date precedingStart
     property date succeedingStart
+    property bool isLastItem: false
 
     function updateData(category, startTime, comment) {
         if (timeLogDelegate.category !== category) {
@@ -26,56 +27,65 @@ Item {
     }
 
     width: 400
-    implicitHeight: elementsColumn.implicitHeight
+    implicitHeight: elementsColumn.implicitHeight + elementsColumn.spacing
 
     Column {
         id: elementsColumn
 
-        width: parent.width
+        anchors.margins: spacing
+        anchors.left: parent.left
+        anchors.right: parent.right
+        anchors.top: parent.top
         spacing: 10
-
-        Label {
-            text: "Category: %1".arg(timeLogDelegate.category)
-        }
 
         RowLayout {
             width: parent.width
             spacing: 10
 
             Label {
-                id: startLabel
+                id: categoryLabel
 
-                text: "Start:"
-            }
-
-            Label {
-                id: startDateLabel
-
-                text: Qt.formatDate(timeLogDelegate.startTime)
-            }
-
-            Label {
-                id: startTimeLabel
-
-                text: Qt.formatTime(timeLogDelegate.startTime)
+                Layout.fillWidth: false
+                font.pointSize: 12
+                font.bold: true
+                text: timeLogDelegate.category
             }
 
             Label {
                 id: durationTimeLabel
 
-                Layout.alignment: Qt.AlignRight
+                Layout.alignment: Qt.AlignRight | Qt.AlignVCenter
                 Layout.fillWidth: true
                 horizontalAlignment: Text.AlignRight
-                text: "Duration: %1".arg(TimeLog.durationText(timeLogDelegate.durationTime, 2))
+                elide: Text.ElideRight
+                font.pointSize: 10
+                text: TimeLog.durationText(timeLogDelegate.durationTime, 2)
             }
+        }
+
+        Label {
+            id: startLabel
+
+            font.pointSize: 10
+            text: "%1 - %2".arg(Qt.formatDateTime(timeLogDelegate.startTime))
+                           .arg(Qt.formatDateTime(new Date(timeLogDelegate.succeedingStart.valueOf() -1000)))
         }
 
         Label {
             id: commentLabel
 
-            text: "Comment: %1".arg(timeLogDelegate.comment)
+            font.pointSize: 9
+            opacity: 0.6
             wrapMode: Text.WrapAtWordBoundaryOrAnywhere
+            text: timeLogDelegate.comment
             visible: !!text
+        }
+
+        Rectangle {
+            width: parent.width
+            height: 1
+            color: "black"
+            opacity: isLastItem ? 0 : 0.12
         }
     }
 }

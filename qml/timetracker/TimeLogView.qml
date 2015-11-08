@@ -69,6 +69,7 @@ Item {
             comment: model.comment
             precedingStart: model.precedingStart
             succeedingStart: model.succeedingStart
+            isLastItem: model.index === delegateModel.count
         }
     }
 
