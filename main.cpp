@@ -6,6 +6,7 @@
 
 #include <QLoggingCategory>
 
+#include "FileLogger.h"
 #include "TimeLogHistory.h"
 #include "TimeLogRecentModel.h"
 #include "TimeLogSearchModel.h"
@@ -26,6 +27,7 @@ int main(int argc, char *argv[])
     app.setApplicationVersion("0.1");
 
     qSetMessagePattern("[%{time}] <%{category}> %{type} (%{file}:%{line}, %{function}) %{message}");
+    FileLogger::setup();
 
     QCommandLineParser parser;
     parser.setApplicationDescription("Global Time Tracker");
