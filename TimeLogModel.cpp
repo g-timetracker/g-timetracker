@@ -1,4 +1,5 @@
 #include "TimeLogModel.h"
+#include "TimeLog.h"
 
 Q_LOGGING_CATEGORY(TIME_LOG_MODEL_CATEGORY, "TimeLogModel", QtInfoMsg)
 
@@ -20,6 +21,8 @@ TimeLogModel::TimeLogModel(QObject *parent) :
     SUPER(parent),
     m_history(TimeLogHistory::instance())
 {
+    connect(this, SIGNAL(error(QString)),
+            TimeLog::instance(), SIGNAL(error(QString)));
     connect(m_history, SIGNAL(dataOutdated()),
             this, SLOT(historyDataOutdated()));
     connect(m_history, SIGNAL(historyRequestCompleted(QVector<TimeLogEntry>,qlonglong)),
@@ -120,6 +123,9 @@ bool TimeLogModel::setData(const QModelIndex &index, const QVariant &value, int 
         if (!time.isValid()) {
             return false;
         }
+        if (!checkStartValid(index.row() - 1, index.row() + 1, time)) {
+            return false;
+        }
         m_timeLog[index.row()].startTime = time;
         m_history->edit(m_timeLog.at(index.row()), TimeLogHistory::StartTime);
         break;
@@ -171,6 +177,10 @@ void TimeLogModel::removeItem(const QModelIndex &index)
 
 void TimeLogModel::appendItem(TimeLogData data)
 {
+    if (!checkStartValid(m_timeLog.size() - 1, m_timeLog.size(), data.startTime)) {
+        return;
+    }
+
     TimeLogEntry entry(QUuid::createUuid(), data);
 
     int itemIndex = m_timeLog.size();
@@ -183,6 +193,10 @@ void TimeLogModel::appendItem(TimeLogData data)
 
 void TimeLogModel::insertItem(const QModelIndex &index, TimeLogData data)
 {
+    if (!checkStartValid(index.row() - 1, index.row(), data.startTime)) {
+        return;
+    }
+
     TimeLogEntry entry(QUuid::createUuid(), data);
 
     beginInsertRows(index.parent(), index.row(), index.row());
@@ -318,6 +332,21 @@ int TimeLogModel::findData(const TimeLogEntry &entry) const
         return -1;
     } else {
         return (it - m_timeLog.begin());
+    }
+}
+
+bool TimeLogModel::checkStartValid(int indexBefore, int indexAfter, const QDateTime &startTime)
+{
+    Q_ASSERT(indexBefore < indexAfter);
+    Q_ASSERT(indexAfter <= m_timeLog.size());
+    Q_ASSERT(startTime.isValid());
+
+    if ((indexBefore == -1 || m_timeLog.at(indexBefore).startTime < startTime)
+        && (indexAfter == m_timeLog.size() || m_timeLog.at(indexAfter).startTime > startTime)) {
+        return true;
+    } else {
+        emit error(QString("Time %1 doesn't fall within a proper range").arg(startTime.toString(Qt::ISODate)));
+        return false;
     }
 }
 

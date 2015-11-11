@@ -44,12 +44,16 @@ private slots:
     void historyDataInserted(TimeLogEntry data);
     void historyDataRemoved(TimeLogEntry data);
 
+signals:
+    void error(const QString &errorText) const;
+
 protected:
     void clear();
     virtual void processHistoryData(QVector<TimeLogEntry> data);
     virtual void processDataInsert(TimeLogEntry data);
     virtual void processDataRemove(const TimeLogEntry &data);
     virtual int findData(const TimeLogEntry &entry) const;
+    virtual bool checkStartValid(int indexBefore, int indexAfter, const QDateTime &startTime);
 
     static bool startTimeCompare(const TimeLogEntry &a, const TimeLogEntry &b);
 
