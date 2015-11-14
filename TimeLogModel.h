@@ -7,9 +7,12 @@
 
 #include "TimeLogHistory.h"
 
+class TimeTracker;
+
 class TimeLogModel : public QAbstractListModel
 {
     Q_OBJECT
+    Q_PROPERTY(TimeTracker* timeTracker MEMBER m_timeTracker WRITE setTimeTracker NOTIFY timeTrackerChanged)
     typedef QAbstractListModel SUPER;
 public:
     enum Roles {
@@ -37,7 +40,10 @@ public:
     Q_INVOKABLE void appendItem(TimeLogData data = TimeLogData());
     Q_INVOKABLE void insertItem(const QModelIndex &index, TimeLogData data = TimeLogData());
 
+    void setTimeTracker(TimeTracker *timeTracker);
+
 private slots:
+    void setHistory(TimeLogHistory *history);
     void historyDataOutdated();
     void historyRequestCompleted(QVector<TimeLogEntry> data, qlonglong id);
     void historyDataUpdated(QVector<TimeLogEntry> data, QVector<TimeLogHistory::Fields> fields);
@@ -45,6 +51,7 @@ private slots:
     void historyDataRemoved(TimeLogEntry data);
 
 signals:
+    void timeTrackerChanged(TimeTracker *newTimeTracker);
     void error(const QString &errorText) const;
 
 protected:
@@ -57,6 +64,7 @@ protected:
 
     static bool startTimeCompare(const TimeLogEntry &a, const TimeLogEntry &b);
 
+    TimeTracker *m_timeTracker;
     TimeLogHistory *m_history;
     QVector<TimeLogEntry> m_timeLog;
     QList<qlonglong> m_pendingRequests;

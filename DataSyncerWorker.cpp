@@ -25,8 +25,8 @@ const int mTimeLength = QString::number(std::numeric_limits<qint64>::max()).leng
 const QString fileNamePattern = QString("^(?<mTime>\\d{%1})-\\{[\\w-]+\\}$").arg(mTimeLength);
 const QRegularExpression fileNameRegexp(fileNamePattern);
 
-DataSyncerWorker::DataSyncerWorker(QObject *parent) :
-    AbstractDataInOut(parent),
+DataSyncerWorker::DataSyncerWorker(TimeLogHistory *db, QObject *parent) :
+    AbstractDataInOut(db, parent),
     m_isInitialized(false),
     m_sm(new QStateMachine(this))
 {

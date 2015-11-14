@@ -36,7 +36,7 @@ Item {
 
         onAccepted: {
             if (textField.text !== categoryName) {
-                TimeLog.editCategory(categoryName, textField.text)
+                TimeTracker.editCategory(categoryName, textField.text)
             }
         }
 
@@ -95,7 +95,7 @@ Item {
 
             Layout.fillWidth: true
             Layout.fillHeight: true
-            model: TimeLog.categories
+            model: TimeTracker.categories
             headerVisible: false
 
             TableViewColumn { }

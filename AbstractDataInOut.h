@@ -13,7 +13,7 @@ class AbstractDataInOut : public QObject
 {
     Q_OBJECT
 public:
-    explicit AbstractDataInOut(QObject *parent = 0);
+    explicit AbstractDataInOut(TimeLogHistory *db, QObject *parent = 0);
 
     void setSeparator(const QString &sep);
     Q_INVOKABLE void start(const QString &path);

@@ -1,6 +1,7 @@
 import QtQuick 2.0
 import QtQuick.Window 2.0
 import QtQuick.Controls 1.4
+import TimeLog 1.0
 
 Window {
     id: popup
@@ -33,7 +34,7 @@ Window {
         property point position
 
         function positionPopup(parentControl) {
-            var parentControlPosition = TimeLog.mapToGlobal(parentControl)
+            var parentControlPosition = TimeTracker.mapToGlobal(parentControl)
             var popupX = parentControlPosition.x
             popupX -= popupX + popup.width > Screen.desktopAvailableWidth ? popup.width - parentControl.width : 0
             var popupY = parentControlPosition.y

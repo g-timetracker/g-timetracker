@@ -12,8 +12,8 @@
         QCoreApplication::exit(EXIT_FAILURE);   \
     } while (0)
 
-DataExporter::DataExporter(QObject *parent) :
-    AbstractDataInOut(parent)
+DataExporter::DataExporter(TimeLogHistory *db, QObject *parent) :
+    AbstractDataInOut(db, parent)
 {
     connect(m_db, SIGNAL(historyRequestCompleted(QVector<TimeLogEntry>,qlonglong)),
             this, SLOT(historyRequestCompleted(QVector<TimeLogEntry>,qlonglong)));

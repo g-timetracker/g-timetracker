@@ -13,8 +13,8 @@
         QCoreApplication::exit(EXIT_FAILURE);   \
     } while (0)
 
-DataImporter::DataImporter(QObject *parent) :
-    AbstractDataInOut(parent)
+DataImporter::DataImporter(TimeLogHistory *db, QObject *parent) :
+    AbstractDataInOut(db, parent)
 {
     connect(m_db, SIGNAL(dataImported(QVector<TimeLogEntry>)),
             this, SLOT(historyDataImported(QVector<TimeLogEntry>)));

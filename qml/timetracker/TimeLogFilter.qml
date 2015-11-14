@@ -1,6 +1,7 @@
 import QtQuick 2.0
 import QtQuick.Controls 1.4
 import QtQuick.Layouts 1.1
+import TimeLog 1.0
 
 GridLayout {
     id: controlsLayout
@@ -26,7 +27,7 @@ GridLayout {
     ComboBox {
         id: categoryField
 
-        model: [ "" ].concat(TimeLog.categories)
+        model: [ "" ].concat(TimeTracker.categories)
 
         onCurrentTextChanged: {
             if (controlsLayout.category !== currentText) {

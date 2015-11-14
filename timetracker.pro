@@ -10,7 +10,6 @@ SOURCES += main.cpp \
     DataImporter.cpp \
     TimeLogHistoryWorker.cpp \
     TimeLogHistory.cpp \
-    TimeLog.cpp \
     TimeLogRecentModel.cpp \
     TimeLogSearchModel.cpp \
     DataExporter.cpp \
@@ -19,7 +18,8 @@ SOURCES += main.cpp \
     DataSyncerWorker.cpp \
     DataSyncer.cpp \
     TimeLogStats.cpp \
-    FileLogger.cpp
+    FileLogger.cpp \
+    TimeTracker.cpp
 
 RESOURCES += qml.qrc
 
@@ -37,16 +37,13 @@ HEADERS += \
     DataImporter.h \
     TimeLogHistoryWorker.h \
     TimeLogHistory.h \
-    TimeLogHistory_p.h \
-    TimeLog.h \
-    TimeLog_p.h \
     TimeLogRecentModel.h \
     TimeLogSearchModel.h \
     DataExporter.h \
     AbstractDataInOut.h \
     TimeLogSyncData.h \
-    DataSyncer_p.h \
     DataSyncerWorker.h \
     DataSyncer.h \
     TimeLogStats.h \
-    FileLogger.h
+    FileLogger.h \
+    TimeTracker.h

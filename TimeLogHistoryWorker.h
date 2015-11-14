@@ -64,6 +64,7 @@ signals:
 
 private:
     bool m_isInitialized;
+    QString m_connectionName;
     qlonglong m_size;
     QSet<QString> m_categories;
 

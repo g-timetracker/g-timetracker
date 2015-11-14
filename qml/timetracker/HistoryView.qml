@@ -9,6 +9,7 @@ Item {
     TimeLogSearchModel {
         id: timeLogModel
 
+        timeTracker: TimeTracker
         begin: timeLogFilter.beginDate
         end: timeLogFilter.endDate
     }

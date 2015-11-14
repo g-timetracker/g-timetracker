@@ -1,6 +1,7 @@
 import QtQuick 2.4
 import QtQuick.Layouts 1.1
 import QtQuick.Controls 1.3
+import TimeLog 1.0
 import "Util.js" as Util
 
 GridLayout {
@@ -39,7 +40,7 @@ GridLayout {
         Layout.fillWidth: true
         Layout.alignment: Qt.AlignVCenter
         editable: true
-        model: TimeLog.categories
+        model: TimeTracker.categories
         validator: RegExpValidator {
             regExp: /\S+.*/
         }
@@ -104,7 +105,7 @@ GridLayout {
         Layout.alignment: Qt.AlignVCenter
         horizontalAlignment: Text.AlignRight
         elide: Text.ElideRight
-        text: TimeLog.durationText(d.durationTime)
+        text: TimeTracker.durationText(d.durationTime)
     }
 
     Label {

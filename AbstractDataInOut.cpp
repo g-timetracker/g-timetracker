@@ -1,13 +1,14 @@
 #include <QCoreApplication>
 
 #include "AbstractDataInOut.h"
+#include "TimeTracker.h"
 #include "TimeLogHistory.h"
 
 Q_LOGGING_CATEGORY(DATA_IO_CATEGORY, "DataIO", QtInfoMsg)
 
-AbstractDataInOut::AbstractDataInOut(QObject *parent) :
+AbstractDataInOut::AbstractDataInOut(TimeLogHistory *db, QObject *parent) :
     QObject(parent),
-    m_db(TimeLogHistory::instance()),
+    m_db(db),
     m_sep(";")
 {
     connect(m_db, SIGNAL(error(QString)),

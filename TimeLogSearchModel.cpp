@@ -15,6 +15,10 @@ TimeLogSearchModel::TimeLogSearchModel(QObject *parent) :
 
 void TimeLogSearchModel::updateData()
 {
+    if (!m_history) {
+        return;
+    }
+
     clear();
     qlonglong id = QDateTime::currentMSecsSinceEpoch();
     m_pendingRequests.append(id);

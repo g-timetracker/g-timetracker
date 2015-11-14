@@ -59,6 +59,10 @@ Item {
         syncPathDialog.open()
     }
 
+    function sync(syncPath) {
+        TimeTracker.syncer.sync(syncPath)
+    }
+
     QtObject {
         id: d
 
@@ -68,8 +72,15 @@ Item {
         property int categoriesIndex: -1
     }
 
+    Binding {
+        target: TimeTracker
+        property: "dataPath"
+        value: TimeLogDataPath ? TimeLogDataPath : Settings.dataPath
+    }
+
     Connections {
-        target: TimeLog
+        target: TimeTracker
+
         onError: {
             errorDialog.text = errorText
             errorDialog.open()
@@ -77,7 +88,7 @@ Item {
     }
 
     Connections {
-        target: DataSyncer
+        target: TimeTracker.syncer
         onSynced: {
             messageDialog.text = "Sync complete"
             messageDialog.open()

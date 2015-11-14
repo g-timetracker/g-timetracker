@@ -1,6 +1,7 @@
 import QtQuick 2.4
 import QtQuick.Layouts 1.1
 import QtQuick.Controls 1.2
+import TimeLog 1.0
 
 Item {
     id: timeLogDelegate
@@ -59,7 +60,7 @@ Item {
                 horizontalAlignment: Text.AlignRight
                 elide: Text.ElideRight
                 font.pointSize: 10
-                text: TimeLog.durationText(timeLogDelegate.durationTime, 2)
+                text: TimeTracker.durationText(timeLogDelegate.durationTime, 2)
             }
         }
 

@@ -1,12 +1,9 @@
 #include <QtQuick/QQuickItem>
 #include <QtQuick/QQuickWindow>
 
-#include "TimeLog.h"
-#include "TimeLog_p.h"
+#include "TimeTracker.h"
 #include "TimeLogHistory.h"
 #include "DataSyncer.h"
-
-Q_GLOBAL_STATIC(TimeLogSingleton, timeLog)
 
 enum TimeUnits {
     Seconds = 0,
@@ -54,53 +51,77 @@ int calcTimeUnits(int duration)
     return i;
 }
 
-TimeLog::TimeLog(QObject *parent) : QObject(parent)
-{
-    connect(TimeLogHistory::instance(), SIGNAL(error(QString)),
-            this, SIGNAL(error(QString)));
-    connect(TimeLogHistory::instance(), SIGNAL(statsDataAvailable(QVector<TimeLogStats>,QDateTime)),
-            this, SLOT(statsDataAvailable(QVector<TimeLogStats>,QDateTime)));
-    connect(TimeLogHistory::instance(), SIGNAL(categoriesChanged(QSet<QString>)),
-            this, SLOT(categoriesAvailable(QSet<QString>)));
-    connect(DataSyncer::instance(), SIGNAL(error(QString)),
-            this, SIGNAL(error(QString)));
-}
-
-TimeLog::~TimeLog()
+TimeTracker::TimeTracker(QObject *parent) :
+    QObject(parent),
+    m_history(Q_NULLPTR),
+    m_syncer(Q_NULLPTR)
 {
 
 }
 
-TimeLog *TimeLog::instance()
+TimeTracker::~TimeTracker()
 {
-    return static_cast<TimeLog*>(timeLog);
+
 }
 
-QStringList TimeLog::categories()
+void TimeTracker::setDataPath(const QUrl &dataPathUrl)
 {
-    QStringList result = TimeLogHistory::instance()->categories().toList();
-    std::sort(result.begin(), result.end());
+    if (m_dataPath.path() == dataPathUrl.path() && m_history && m_syncer) {
+        return;
+    }
 
-    return result;
+    m_dataPath = dataPathUrl;
+
+    TimeLogHistory *history = new TimeLogHistory(this);
+    if (!history->init(dataPathUrl.path())) {
+        emit error("Fail to initialize db");
+        delete history;
+        return;
+    }
+    setHistory(history);
+
+    DataSyncer *syncer = new DataSyncer(m_history, this);
+    syncer->init(dataPathUrl.path());
+    setSyncer(syncer);
+
+    emit dataPathChanged(m_dataPath);
 }
 
-TimeLogData TimeLog::createTimeLogData(QDateTime startTime, int durationTime,
+TimeLogHistory *TimeTracker::history()
+{
+    return m_history;
+}
+
+QStringList TimeTracker::categories() const
+{
+    return m_categories;
+}
+
+TimeLogData TimeTracker::createTimeLogData(QDateTime startTime, int durationTime,
                                        QString category, QString comment)
 {
     return TimeLogData(startTime, durationTime, category, comment);
 }
 
-void TimeLog::editCategory(QString oldName, QString newName)
+void TimeTracker::editCategory(QString oldName, QString newName)
 {
-    TimeLogHistory::instance()->editCategory(oldName, newName);
+    if (!m_history) {
+        return;
+    }
+
+    m_history->editCategory(oldName, newName);
 }
 
-void TimeLog::getStats(const QDateTime &begin, const QDateTime &end, const QString &category, const QString &separator)
+void TimeTracker::getStats(const QDateTime &begin, const QDateTime &end, const QString &category, const QString &separator)
 {
-    TimeLogHistory::instance()->getStats(begin, end, category, separator);
+    if (!m_history) {
+        return;
+    }
+
+    m_history->getStats(begin, end, category, separator);
 }
 
-QString TimeLog::durationText(int duration, int maxUnits)
+QString TimeTracker::durationText(int duration, int maxUnits)
 {
     QStringList values;
     while (--maxUnits >= 0) {
@@ -121,7 +142,7 @@ QString TimeLog::durationText(int duration, int maxUnits)
     return values.join(", ");
 }
 
-QPointF TimeLog::mapToGlobal(QQuickItem *item)
+QPointF TimeTracker::mapToGlobal(QQuickItem *item)
 {
     if (!item) {
         return QPointF();
@@ -130,7 +151,7 @@ QPointF TimeLog::mapToGlobal(QQuickItem *item)
     return (item->window()->mapToGlobal(QPoint()) + item->mapToScene(QPointF()));
 }
 
-void TimeLog::statsDataAvailable(QVector<TimeLogStats> data, QDateTime until) const
+void TimeTracker::statsDataAvailable(QVector<TimeLogStats> data, QDateTime until) const
 {
     QVariantMap result;
 
@@ -157,10 +178,60 @@ void TimeLog::statsDataAvailable(QVector<TimeLogStats> data, QDateTime until) co
     emit statsDataAvailable(result, until);
 }
 
-void TimeLog::categoriesAvailable(QSet<QString> categories) const
+void TimeTracker::updateCategories(QSet<QString> categories)
 {
-    QStringList result = categories.toList();
-    std::sort(result.begin(), result.end());
+    m_categories = categories.toList();
+    std::sort(m_categories.begin(), m_categories.end());
 
-    emit categoriesChanged(result);
+    emit categoriesChanged(m_categories);
+}
+
+void TimeTracker::setHistory(TimeLogHistory *history)
+{
+    if (m_history == history) {
+        return;
+    }
+
+    TimeLogHistory *oldHistory = m_history;
+
+    m_history = history;
+
+    if (history) {
+        connect(m_history, SIGNAL(error(QString)),
+                this, SIGNAL(error(QString)));
+        connect(m_history, SIGNAL(statsDataAvailable(QVector<TimeLogStats>,QDateTime)),
+                this, SLOT(statsDataAvailable(QVector<TimeLogStats>,QDateTime)));
+        connect(m_history, SIGNAL(categoriesChanged(QSet<QString>)),
+                this, SLOT(updateCategories(QSet<QString>)));
+    }
+
+    emit historyChanged(m_history);
+
+    updateCategories(m_history ? m_history->categories() : QSet<QString>());
+
+    if (oldHistory) {
+        delete oldHistory;
+    }
+}
+
+void TimeTracker::setSyncer(DataSyncer *syncer)
+{
+    if (m_syncer == syncer) {
+        return;
+    }
+
+    DataSyncer *oldSyncer = m_syncer;
+
+    m_syncer = syncer;
+
+    if (syncer) {
+        connect(m_syncer, SIGNAL(error(QString)),
+                this, SIGNAL(error(QString)));
+    }
+
+    emit syncerChanged(m_syncer);
+
+    if (oldSyncer) {
+        delete oldSyncer;
+    }
 }

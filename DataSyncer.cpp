@@ -1,15 +1,12 @@
 #include <QThread>
 
 #include "DataSyncer.h"
-#include "DataSyncer_p.h"
 #include "DataSyncerWorker.h"
 
-Q_GLOBAL_STATIC(DataSyncerSingleton, dataSyncer)
-
-DataSyncer::DataSyncer(QObject *parent) :
+DataSyncer::DataSyncer(TimeLogHistory *history, QObject *parent) :
     QObject(parent),
     m_thread(new QThread(this)),
-    m_worker(new DataSyncerWorker(this))
+    m_worker(new DataSyncerWorker(history, this))
 {
     connect(m_worker, SIGNAL(error(QString)), this, SIGNAL(error(QString)));
     connect(m_worker, SIGNAL(synced()), this, SIGNAL(synced()));
@@ -20,11 +17,6 @@ DataSyncer::~DataSyncer()
     if (m_thread->isRunning()) {
         m_thread->quit();
     }
-}
-
-DataSyncer *DataSyncer::instance()
-{
-    return static_cast<DataSyncer*>(dataSyncer);
 }
 
 void DataSyncer::init(const QString &dataPath)

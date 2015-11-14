@@ -1,5 +1,6 @@
 import QtQuick 2.4
 import QtQuick.Dialogs 1.2
+import TimeLog 1.0
 
 Dialog {
     id: newDialog
@@ -45,8 +46,8 @@ Dialog {
             return
         }
 
-        newDialog.dataAccepted(TimeLog.createTimeLogData(delegateEditor.startTime, 0,
-                                                         delegateEditor.category,
-                                                         delegateEditor.comment))
+        newDialog.dataAccepted(TimeTracker.createTimeLogData(delegateEditor.startTime, 0,
+                                                             delegateEditor.category,
+                                                             delegateEditor.comment))
     }
 }

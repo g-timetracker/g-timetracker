@@ -22,8 +22,8 @@ TimeLogHistoryWorker::TimeLogHistoryWorker(QObject *parent) :
 
 TimeLogHistoryWorker::~TimeLogHistoryWorker()
 {
-    QSqlDatabase::database("timelog").close();
-    QSqlDatabase::removeDatabase("timelog");
+    QSqlDatabase::database(m_connectionName).close();
+    QSqlDatabase::removeDatabase(m_connectionName);
 }
 
 bool TimeLogHistoryWorker::init(const QString &dataPath)
@@ -32,7 +32,8 @@ bool TimeLogHistoryWorker::init(const QString &dataPath)
                  .arg(!dataPath.isEmpty() ? dataPath
                                           : QStandardPaths::writableLocation(QStandardPaths::AppDataLocation)));
     QDir().mkpath(path);
-    QSqlDatabase db = QSqlDatabase::addDatabase("QSQLITE", "timelog");
+    m_connectionName = QString("timelog_%1").arg(qHash(dataPath));
+    QSqlDatabase db = QSqlDatabase::addDatabase("QSQLITE", m_connectionName);
     db.setDatabaseName(QString("%1/%2.sqlite").arg(path).arg("db"));
 
     if (!db.open()) {
@@ -199,7 +200,7 @@ void TimeLogHistoryWorker::getHistoryBetween(qlonglong id, const QDateTime &begi
 {
     Q_ASSERT(m_isInitialized);
 
-    QSqlDatabase db = QSqlDatabase::database("timelog");
+    QSqlDatabase db = QSqlDatabase::database(m_connectionName);
     QSqlQuery query(db);
     QString queryString = QString("%1 WHERE (start BETWEEN ? AND ?) %2 ORDER BY start ASC")
                                   .arg(selectFields)
@@ -224,7 +225,7 @@ void TimeLogHistoryWorker::getHistoryAfter(qlonglong id, const uint limit, const
 {
     Q_ASSERT(m_isInitialized);
 
-    QSqlDatabase db = QSqlDatabase::database("timelog");
+    QSqlDatabase db = QSqlDatabase::database(m_connectionName);
     QSqlQuery query(db);
     QString queryString = QString("%1 WHERE start > ? ORDER BY start ASC LIMIT ?").arg(selectFields);
     if (!query.prepare(queryString)) {
@@ -244,7 +245,7 @@ void TimeLogHistoryWorker::getHistoryBefore(qlonglong id, const uint limit, cons
 {
     Q_ASSERT(m_isInitialized);
 
-    QSqlDatabase db = QSqlDatabase::database("timelog");
+    QSqlDatabase db = QSqlDatabase::database(m_connectionName);
     QSqlQuery query(db);
     QString queryString = QString("%1 WHERE start < ? ORDER BY start DESC LIMIT ?").arg(selectFields);
     if (!query.prepare(queryString)) {
@@ -266,7 +267,7 @@ void TimeLogHistoryWorker::getHistoryBefore(qlonglong id, const uint limit, cons
 
 void TimeLogHistoryWorker::getStats(const QDateTime &begin, const QDateTime &end, const QString &category, const QString &separator) const
 {
-    QSqlDatabase db = QSqlDatabase::database("timelog");
+    QSqlDatabase db = QSqlDatabase::database(m_connectionName);
     QSqlQuery query(db);
     QString queryString = QString("WITH result AS ( "
                                   "    SELECT rtrim(substr(category, 1, ifnull(%1, length(category)))) as category, CASE "
@@ -302,7 +303,7 @@ void TimeLogHistoryWorker::getSyncData(const QDateTime &mBegin, const QDateTime 
 {
     Q_ASSERT(m_isInitialized);
 
-    QSqlDatabase db = QSqlDatabase::database("timelog");
+    QSqlDatabase db = QSqlDatabase::database(m_connectionName);
     QSqlQuery query(db);
     QString queryString("WITH result AS ( "
                         "    SELECT uuid, start, category, comment, mtime FROM timelog "
@@ -326,7 +327,7 @@ void TimeLogHistoryWorker::getSyncData(const QDateTime &mBegin, const QDateTime 
 
 bool TimeLogHistoryWorker::setupTable()
 {
-    QSqlDatabase db = QSqlDatabase::database("timelog");
+    QSqlDatabase db = QSqlDatabase::database(m_connectionName);
     QSqlQuery query(db);
     QString queryString("CREATE TABLE IF NOT EXISTS timelog"
                         " (uuid BLOB UNIQUE, start INTEGER PRIMARY KEY, category TEXT, comment TEXT,"
@@ -361,7 +362,7 @@ bool TimeLogHistoryWorker::setupTable()
 
 bool TimeLogHistoryWorker::setupTriggers()
 {
-    QSqlDatabase db = QSqlDatabase::database("timelog");
+    QSqlDatabase db = QSqlDatabase::database(m_connectionName);
     QSqlQuery query(db);
     QString queryString;
 
@@ -553,7 +554,7 @@ void TimeLogHistoryWorker::addToCategories(QString category)
 
 bool TimeLogHistoryWorker::insertData(const QVector<TimeLogEntry> &data)
 {
-    QSqlDatabase db = QSqlDatabase::database("timelog");
+    QSqlDatabase db = QSqlDatabase::database(m_connectionName);
     if (!db.transaction()) {
         qCCritical(HISTORY_WORKER_CATEGORY) << "Fail to start transaction:" << db.lastError().text();
         emit error(db.lastError().text());
@@ -588,7 +589,7 @@ bool TimeLogHistoryWorker::insertData(const TimeLogSyncData &data)
 {
     Q_ASSERT(data.isValid());
 
-    QSqlDatabase db = QSqlDatabase::database("timelog");
+    QSqlDatabase db = QSqlDatabase::database(m_connectionName);
     QSqlQuery query(db);
     QString queryString = QString("INSERT INTO timelog (uuid, start, category, comment, mtime)"
                                   " VALUES (?,?,?,?,?);");
@@ -622,7 +623,7 @@ bool TimeLogHistoryWorker::removeData(const TimeLogSyncData &data)
 {
     Q_ASSERT(!data.uuid.isNull());
 
-    QSqlDatabase db = QSqlDatabase::database("timelog");
+    QSqlDatabase db = QSqlDatabase::database(m_connectionName);
     QSqlQuery query(db);
     QString queryString("INSERT OR REPLACE INTO removed (uuid, mtime) VALUES(?,?);");
     if (!query.prepare(queryString)) {
@@ -652,7 +653,7 @@ bool TimeLogHistoryWorker::editData(const TimeLogSyncData &data, TimeLogHistory:
     Q_ASSERT(data.isValid());
     Q_ASSERT(fields != TimeLogHistory::NoFields);
 
-    QSqlDatabase db = QSqlDatabase::database("timelog");
+    QSqlDatabase db = QSqlDatabase::database(m_connectionName);
     QSqlQuery query(db);
     QStringList fieldNames;
     if (fields & TimeLogHistory::StartTime) {
@@ -710,7 +711,7 @@ bool TimeLogHistoryWorker::editCategoryData(QString oldName, QString newName)
         return false;
     }
 
-    QSqlDatabase db = QSqlDatabase::database("timelog");
+    QSqlDatabase db = QSqlDatabase::database(m_connectionName);
     QSqlQuery query(db);
     QString queryString("SELECT count(*) FROM timelog WHERE category=?");
     if (!query.prepare(queryString)) {
@@ -764,7 +765,7 @@ bool TimeLogHistoryWorker::editCategoryData(QString oldName, QString newName)
 
 bool TimeLogHistoryWorker::syncData(const QVector<TimeLogSyncData> &removed, const QVector<TimeLogSyncData> &inserted, const QVector<TimeLogSyncData> &updatedNew, const QVector<TimeLogSyncData> &updatedOld)
 {
-    QSqlDatabase db = QSqlDatabase::database("timelog");
+    QSqlDatabase db = QSqlDatabase::database(m_connectionName);
     if (!db.transaction()) {
         qCCritical(HISTORY_WORKER_CATEGORY) << "Fail to start transaction:" << db.lastError().text();
         emit error(db.lastError().text());
@@ -932,7 +933,7 @@ TimeLogEntry TimeLogHistoryWorker::getEntry(const QUuid &uuid) const
 {
     TimeLogEntry entry;
 
-    QSqlDatabase db = QSqlDatabase::database("timelog");
+    QSqlDatabase db = QSqlDatabase::database(m_connectionName);
     QSqlQuery query(db);
     QString queryString = QString("%1 WHERE uuid=?").arg(selectFields);
     if (!query.prepare(queryString)) {
@@ -952,7 +953,7 @@ TimeLogEntry TimeLogHistoryWorker::getEntry(const QUuid &uuid) const
 
 QVector<TimeLogSyncData> TimeLogHistoryWorker::getSyncAffected(const QUuid &uuid) const
 {
-    QSqlDatabase db = QSqlDatabase::database("timelog");
+    QSqlDatabase db = QSqlDatabase::database(m_connectionName);
     QSqlQuery query(db);
     QString queryString("WITH result AS ( "
                         "    SELECT uuid, start, category, comment, mtime FROM timelog "
@@ -1042,7 +1043,7 @@ void TimeLogHistoryWorker::notifyEditUpdates(const TimeLogEntry &data, TimeLogHi
 
 void TimeLogHistoryWorker::notifyUpdates(const QString &queryString, const QMap<QString, QDateTime> &values, TimeLogHistory::Fields fields) const
 {
-    QSqlDatabase db = QSqlDatabase::database("timelog");
+    QSqlDatabase db = QSqlDatabase::database(m_connectionName);
     QSqlQuery query(db);
     if (!query.prepare(QString("%1 ORDER BY start ASC").arg(queryString))) {
         qCCritical(HISTORY_WORKER_CATEGORY) << "Fail to prepare query:" << query.lastError().text()
@@ -1066,7 +1067,7 @@ void TimeLogHistoryWorker::notifyUpdates(const QString &queryString, const QMap<
 
 bool TimeLogHistoryWorker::updateSize()
 {
-    QSqlDatabase db = QSqlDatabase::database("timelog");
+    QSqlDatabase db = QSqlDatabase::database(m_connectionName);
     QSqlQuery query(db);
     QString queryString = QString("SELECT count(*) FROM timelog");
     if (!query.prepare(queryString)) {
@@ -1092,7 +1093,7 @@ bool TimeLogHistoryWorker::updateSize()
 
 bool TimeLogHistoryWorker::updateCategories(const QDateTime &begin, const QDateTime &end)
 {
-    QSqlDatabase db = QSqlDatabase::database("timelog");
+    QSqlDatabase db = QSqlDatabase::database(m_connectionName);
     QSqlQuery query(db);
     QString queryString("SELECT DISTINCT category FROM timelog"
                         " WHERE start BETWEEN ? AND ?");

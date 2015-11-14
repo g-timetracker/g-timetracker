@@ -8,7 +8,7 @@ class DataExporter : public AbstractDataInOut
 {
     Q_OBJECT
 public:
-    explicit DataExporter(QObject *parent = 0);
+    explicit DataExporter(TimeLogHistory *db, QObject *parent = 0);
 
 protected slots:
     virtual void startIO(const QString &path);

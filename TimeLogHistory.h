@@ -14,8 +14,6 @@ class TimeLogHistoryWorker;
 class TimeLogHistory : public QObject
 {
     Q_OBJECT
-protected:
-    explicit TimeLogHistory(QObject *parent = 0);
 public:
     enum Field {
         NoFields        = 0,
@@ -29,9 +27,8 @@ public:
     Q_DECLARE_FLAGS(Fields, Field)
     Q_FLAG(Fields)
 
+    explicit TimeLogHistory(QObject *parent = 0);
     virtual ~TimeLogHistory();
-
-    static TimeLogHistory *instance();
 
     bool init(const QString &dataPath);
 

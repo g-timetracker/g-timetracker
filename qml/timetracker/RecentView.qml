@@ -7,7 +7,9 @@ Item {
     ReverseProxyModel {
         id: timeLogModel
 
-        sourceModel: TimeLogRecentModel { }
+        sourceModel: TimeLogRecentModel {
+            timeTracker: TimeTracker
+        }
     }
 
     ColumnLayout {

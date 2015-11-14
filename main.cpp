@@ -11,12 +11,20 @@
 #include "TimeLogRecentModel.h"
 #include "TimeLogSearchModel.h"
 #include "ReverseProxyModel.h"
-#include "TimeLog.h"
+#include "TimeTracker.h"
 #include "DataImporter.h"
 #include "DataExporter.h"
 #include "DataSyncer.h"
 
 Q_LOGGING_CATEGORY(MAIN_CATEGORY, "main", QtInfoMsg)
+
+static QObject *timeTrackerSingletonTypeProvider(QQmlEngine *engine, QJSEngine *scriptEngine)
+{
+    Q_UNUSED(engine)
+    Q_UNUSED(scriptEngine)
+
+    return new TimeTracker();
+}
 
 int main(int argc, char *argv[])
 {
@@ -47,12 +55,6 @@ int main(int argc, char *argv[])
 
     parser.process(app);
 
-    if (!TimeLogHistory::instance()->init(parser.value(dataPathOption))) {
-        qCCritical(MAIN_CATEGORY) << "Fail to initialize db";
-        return EXIT_FAILURE;
-    }
-    DataSyncer::instance()->init(parser.value(dataPathOption));
-
     qRegisterMetaType<TimeLogData>();
     qRegisterMetaType<TimeLogEntry>();
     qRegisterMetaType<QVector<TimeLogEntry> >();
@@ -63,26 +65,39 @@ int main(int argc, char *argv[])
     qRegisterMetaType<QVector<TimeLogHistory::Fields> >();
 
     if (parser.isSet(importOption)) {
-        DataImporter importer;
+        TimeLogHistory history;
+        if (!history.init(parser.value(dataPathOption))) {
+            qCCritical(MAIN_CATEGORY) << "Fail to initialize db";
+            return EXIT_FAILURE;
+        }
+
+        DataImporter importer(&history);
         importer.setSeparator(parser.value(separatorOption));
         importer.start(parser.value(importOption));
         return app.exec();
     } else if (parser.isSet(exportOption)) {
-        DataExporter exporter;
+        TimeLogHistory history;
+        if (!history.init(parser.value(dataPathOption))) {
+            qCCritical(MAIN_CATEGORY) << "Fail to initialize db";
+            return EXIT_FAILURE;
+        }
+
+        DataExporter exporter(&history);
         exporter.setSeparator(parser.value(separatorOption));
         exporter.start(parser.value(exportOption));
         return app.exec();
     } else {
+        qmlRegisterSingletonType<TimeTracker>("TimeLog", 1, 0, "TimeTracker", timeTrackerSingletonTypeProvider);
         qmlRegisterType<TimeLogModel>("TimeLog", 1, 0, "TimeLogModel");
         qmlRegisterType<TimeLogRecentModel>("TimeLog", 1, 0, "TimeLogRecentModel");
         qmlRegisterType<TimeLogSearchModel>("TimeLog", 1, 0, "TimeLogSearchModel");
         qmlRegisterType<ReverseProxyModel>("TimeLog", 1, 0, "ReverseProxyModel");
+        qmlRegisterUncreatableType<DataSyncer>("TimeLog", 1, 0, "DataSyncer", "This is a DataSyncer object");
         qmlRegisterSingletonType(QUrl("qrc:/qml/timetracker/Settings.qml"), "TimeLog", 1, 0, "Settings");
 
         QQmlApplicationEngine engine;
         engine.addImportPath(QString("%1/qml").arg(app.applicationDirPath()));
-        engine.rootContext()->setContextProperty("TimeLog", TimeLog::instance());
-        engine.rootContext()->setContextProperty("DataSyncer", DataSyncer::instance());
+        engine.rootContext()->setContextProperty("TimeLogDataPath", parser.value(dataPathOption));
         engine.load(QUrl(QStringLiteral("qrc:/qml/timetracker/main.qml")));
         return app.exec();
     }

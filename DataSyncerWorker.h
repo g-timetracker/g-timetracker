@@ -12,7 +12,7 @@ class DataSyncerWorker : public AbstractDataInOut
 {
     Q_OBJECT
 public:
-    explicit DataSyncerWorker(QObject *parent = 0);
+    explicit DataSyncerWorker(TimeLogHistory *db, QObject *parent = 0);
 
     void init(const QString &dataPath);
 

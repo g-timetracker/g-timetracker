@@ -56,7 +56,7 @@ ApplicationWindow {
                     text: "Sync"
                     onClicked: {
                         drawer.close()
-                        DataSyncer.sync(Settings.syncPath)
+                        mainView.sync(Settings.syncPath)
                     }
                 }
                 Label {

@@ -6,17 +6,15 @@
 
 class QThread;
 
+class TimeLogHistory;
 class DataSyncerWorker;
 
 class DataSyncer : public QObject
 {
     Q_OBJECT
-protected:
-    explicit DataSyncer(QObject *parent = 0);
 public:
+    explicit DataSyncer(TimeLogHistory *history, QObject *parent = 0);
     virtual ~DataSyncer();
-
-    static DataSyncer *instance();
 
     void init(const QString &dataPath);
 

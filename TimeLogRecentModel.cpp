@@ -14,7 +14,7 @@ bool TimeLogRecentModel::canFetchMore(const QModelIndex &parent) const
         return false;
     }
 
-    return m_history->size() > m_timeLog.size();
+    return m_history ? m_history->size() > m_timeLog.size() : false;
 }
 
 void TimeLogRecentModel::fetchMore(const QModelIndex &parent)
@@ -88,6 +88,10 @@ int TimeLogRecentModel::findData(const TimeLogEntry &entry) const
 
 void TimeLogRecentModel::getMoreHistory()
 {
+    if (!m_history) {
+        return;
+    }
+
     if (!m_pendingRequests.isEmpty()) {
         qCDebug(TIME_LOG_MODEL_CATEGORY) << "Data already requested";
         return;

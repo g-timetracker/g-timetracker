@@ -49,7 +49,7 @@ Item {
             if (Util.calcDuration(timeAfter, timeBefore) > 1) {
                 newDialog.openDialog(indexBefore, timeAfter, timeBefore)
             } else {
-                TimeLog.error("Cannot insert between %1 and %2".arg(timeAfter).arg(timeBefore))
+                TimeTracker.error("Cannot insert between %1 and %2".arg(timeAfter).arg(timeBefore))
             }
         }
 
@@ -76,7 +76,7 @@ Item {
     TimeLogEditDialog {
         id: editDialog
 
-        onError: TimeLog.error(errorText)
+        onError: TimeTracker.error(errorText)
     }
 
     TimeLogNewDialog {
@@ -90,7 +90,7 @@ Item {
             }
         }
 
-        onError: TimeLog.error(errorText)
+        onError: TimeTracker.error(errorText)
     }
 
     Action {

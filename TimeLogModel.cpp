@@ -1,5 +1,5 @@
 #include "TimeLogModel.h"
-#include "TimeLog.h"
+#include "TimeTracker.h"
 
 Q_LOGGING_CATEGORY(TIME_LOG_MODEL_CATEGORY, "TimeLogModel", QtInfoMsg)
 
@@ -19,20 +19,10 @@ private:
 
 TimeLogModel::TimeLogModel(QObject *parent) :
     SUPER(parent),
-    m_history(TimeLogHistory::instance())
+    m_timeTracker(Q_NULLPTR),
+    m_history(Q_NULLPTR)
 {
-    connect(this, SIGNAL(error(QString)),
-            TimeLog::instance(), SIGNAL(error(QString)));
-    connect(m_history, SIGNAL(dataOutdated()),
-            this, SLOT(historyDataOutdated()));
-    connect(m_history, SIGNAL(historyRequestCompleted(QVector<TimeLogEntry>,qlonglong)),
-            this, SLOT(historyRequestCompleted(QVector<TimeLogEntry>,qlonglong)));
-    connect(m_history, SIGNAL(dataUpdated(QVector<TimeLogEntry>,QVector<TimeLogHistory::Fields>)),
-            this, SLOT(historyDataUpdated(QVector<TimeLogEntry>,QVector<TimeLogHistory::Fields>)));
-    connect(m_history, SIGNAL(dataInserted(TimeLogEntry)),
-            this, SLOT(historyDataInserted(TimeLogEntry)));
-    connect(m_history, SIGNAL(dataRemoved(TimeLogEntry)),
-            this, SLOT(historyDataRemoved(TimeLogEntry)));
+
 }
 
 int TimeLogModel::rowCount(const QModelIndex &parent) const
@@ -113,6 +103,10 @@ Qt::ItemFlags TimeLogModel::flags(const QModelIndex &index) const
 
 bool TimeLogModel::setData(const QModelIndex &index, const QVariant &value, int role)
 {
+    if (!m_history) {
+        return false;
+    }
+
     if (!index.isValid()) {
         return false;
     }
@@ -153,6 +147,10 @@ bool TimeLogModel::setData(const QModelIndex &index, const QVariant &value, int 
 
 bool TimeLogModel::removeRows(int row, int count, const QModelIndex &parent)
 {
+    if (!m_history) {
+        return false;
+    }
+
     if (parent != QModelIndex()) {
         return false;
     }
@@ -177,6 +175,10 @@ void TimeLogModel::removeItem(const QModelIndex &index)
 
 void TimeLogModel::appendItem(TimeLogData data)
 {
+    if (!m_history) {
+        return;
+    }
+
     if (!checkStartValid(m_timeLog.size() - 1, m_timeLog.size(), data.startTime)) {
         return;
     }
@@ -193,6 +195,10 @@ void TimeLogModel::appendItem(TimeLogData data)
 
 void TimeLogModel::insertItem(const QModelIndex &index, TimeLogData data)
 {
+    if (!m_history) {
+        return;
+    }
+
     if (!checkStartValid(index.row() - 1, index.row(), data.startTime)) {
         return;
     }
@@ -204,6 +210,73 @@ void TimeLogModel::insertItem(const QModelIndex &index, TimeLogData data)
     endInsertRows();
 
     m_history->insert(entry);
+}
+
+void TimeLogModel::setTimeTracker(TimeTracker *timeTracker)
+{
+    if (m_timeTracker == timeTracker) {
+        return;
+    }
+
+    if (m_timeTracker) {
+        disconnect(this, SIGNAL(error(QString)),
+                   m_timeTracker, SIGNAL(error(QString)));
+        disconnect(m_timeTracker, SIGNAL(historyChanged(TimeLogHistory*)),
+                   this, SLOT(setHistory(TimeLogHistory*)));
+    }
+
+    m_timeTracker = timeTracker;
+
+    if (m_timeTracker) {
+        connect(this, SIGNAL(error(QString)),
+                m_timeTracker, SIGNAL(error(QString)));
+        connect(m_timeTracker, SIGNAL(historyChanged(TimeLogHistory*)),
+                this, SLOT(setHistory(TimeLogHistory*)));
+    }
+
+    setHistory(m_timeTracker ? m_timeTracker->history() : Q_NULLPTR);
+
+    emit timeTrackerChanged(m_timeTracker);
+}
+
+void TimeLogModel::setHistory(TimeLogHistory *history)
+{
+    if (m_history == history) {
+        return;
+    }
+
+    if (m_history) {
+        disconnect(m_history, SIGNAL(dataOutdated()),
+                   this, SLOT(historyDataOutdated()));
+        disconnect(m_history, SIGNAL(historyRequestCompleted(QVector<TimeLogEntry>,qlonglong)),
+                   this, SLOT(historyRequestCompleted(QVector<TimeLogEntry>,qlonglong)));
+        disconnect(m_history, SIGNAL(dataUpdated(QVector<TimeLogEntry>,QVector<TimeLogHistory::Fields>)),
+                   this, SLOT(historyDataUpdated(QVector<TimeLogEntry>,QVector<TimeLogHistory::Fields>)));
+        disconnect(m_history, SIGNAL(dataInserted(TimeLogEntry)),
+                   this, SLOT(historyDataInserted(TimeLogEntry)));
+        disconnect(m_history, SIGNAL(dataRemoved(TimeLogEntry)),
+                   this, SLOT(historyDataRemoved(TimeLogEntry)));
+    }
+
+    m_history = history;
+
+    if (history) {
+        connect(m_history, SIGNAL(dataOutdated()),
+                this, SLOT(historyDataOutdated()));
+        connect(m_history, SIGNAL(historyRequestCompleted(QVector<TimeLogEntry>,qlonglong)),
+                this, SLOT(historyRequestCompleted(QVector<TimeLogEntry>,qlonglong)));
+        connect(m_history, SIGNAL(dataUpdated(QVector<TimeLogEntry>,QVector<TimeLogHistory::Fields>)),
+                this, SLOT(historyDataUpdated(QVector<TimeLogEntry>,QVector<TimeLogHistory::Fields>)));
+        connect(m_history, SIGNAL(dataInserted(TimeLogEntry)),
+                this, SLOT(historyDataInserted(TimeLogEntry)));
+        connect(m_history, SIGNAL(dataRemoved(TimeLogEntry)),
+                this, SLOT(historyDataRemoved(TimeLogEntry)));
+    }
+
+    m_pendingRequests.clear();
+    m_obsoleteRequests.clear();
+
+    clear();
 }
 
 void TimeLogModel::historyDataOutdated()
