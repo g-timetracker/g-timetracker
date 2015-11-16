@@ -14,6 +14,7 @@ public:
     bool isValid() const;
 
     QUuid uuid;
+    int durationTime;
     QDateTime precedingStart;
 };
 

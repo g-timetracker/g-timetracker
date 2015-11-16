@@ -2,16 +2,14 @@
 
 TimeLogData::TimeLogData() :
     startTime(QDateTime()),
-    durationTime(0),
     category(QString()),
     comment(QString())
 {
 
 }
 
-TimeLogData::TimeLogData(QDateTime startTime, int durationTime, QString category, QString comment) :
+TimeLogData::TimeLogData(QDateTime startTime, QString category, QString comment) :
     startTime(startTime),
-    durationTime(durationTime),
     category(category),
     comment(comment)
 {

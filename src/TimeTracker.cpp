@@ -97,10 +97,9 @@ QStringList TimeTracker::categories() const
     return m_categories;
 }
 
-TimeLogData TimeTracker::createTimeLogData(QDateTime startTime, int durationTime,
-                                       QString category, QString comment)
+TimeLogData TimeTracker::createTimeLogData(QDateTime startTime, QString category, QString comment)
 {
-    return TimeLogData(startTime, durationTime, category, comment);
+    return TimeLogData(startTime, category, comment);
 }
 
 void TimeTracker::editCategory(QString oldName, QString newName)

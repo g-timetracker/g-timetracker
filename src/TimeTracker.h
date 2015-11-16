@@ -30,8 +30,8 @@ public:
 
     QStringList categories() const;
 
-    Q_INVOKABLE static TimeLogData createTimeLogData(QDateTime startTime, int durationTime,
-                                                     QString category, QString comment);
+    Q_INVOKABLE static TimeLogData createTimeLogData(QDateTime startTime, QString category,
+                                                     QString comment);
     Q_INVOKABLE void editCategory(QString oldName, QString newName);
     Q_INVOKABLE void getStats(const QDateTime &begin = QDateTime::fromTime_t(0),
                               const QDateTime &end = QDateTime::currentDateTime(),

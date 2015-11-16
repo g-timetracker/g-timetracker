@@ -46,7 +46,7 @@ Dialog {
             return
         }
 
-        newDialog.dataAccepted(TimeTracker.createTimeLogData(delegateEditor.startTime, 0,
+        newDialog.dataAccepted(TimeTracker.createTimeLogData(delegateEditor.startTime,
                                                              delegateEditor.category,
                                                              delegateEditor.comment))
     }
