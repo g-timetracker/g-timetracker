@@ -3,6 +3,8 @@
 
 #include <QUuid>
 
+#include <QDebug>
+
 #include "TimeLogData.h"
 
 struct TimeLogEntry: public TimeLogData
@@ -13,10 +15,14 @@ public:
 
     bool isValid() const;
 
+    QString toString() const;
+
     QUuid uuid;
     int durationTime;
     QDateTime precedingStart;
 };
+
+QDebug &operator<<(QDebug &stream, const TimeLogEntry &data);
 
 Q_DECLARE_TYPEINFO(TimeLogEntry, Q_MOVABLE_TYPE);
 Q_DECLARE_METATYPE(TimeLogEntry)

@@ -1,8 +1,6 @@
 #ifndef TIMELOGSYNCDATA_H
 #define TIMELOGSYNCDATA_H
 
-#include <QDebug>
-
 #include "TimeLogEntry.h"
 
 struct TimeLogSyncData : public TimeLogEntry
