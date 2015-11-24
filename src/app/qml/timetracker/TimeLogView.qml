@@ -202,6 +202,13 @@ Item {
                     }
                 }
 
+                onPressAndHold:{
+                    if (mouse.button === Qt.LeftButton && listView.itemAt(mouse.x + listView.contentX,
+                                                                          mouse.y + listView.contentY)) {
+                        d.itemMenu.popup()
+                    }
+                }
+
                 onClicked: {
                     if (mouse.button === Qt.RightButton && listView.itemAt(mouse.x + listView.contentX,
                                                                            mouse.y + listView.contentY)) {
