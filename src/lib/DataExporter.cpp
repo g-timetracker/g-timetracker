@@ -51,7 +51,7 @@ void DataExporter::historyRequestCompleted(QVector<TimeLogEntry> data, qlonglong
         return;
     } else if (id == 1) {   // End of export period received
         m_lastDate = data.last().startTime.date();
-    } else if (m_currentDate == m_lastDate) {
+    } else if (m_currentDate > m_lastDate) {
         qCInfo(DATA_IO_CATEGORY) << "All data successfully exported";
         QCoreApplication::quit();
         return;
