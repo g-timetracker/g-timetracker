@@ -19,6 +19,10 @@ void TimeLogSearchModel::updateData()
         return;
     }
 
+    if (!m_begin.isValid() || !m_end.isValid()) {
+        return;
+    }
+
     clear();
     qlonglong id = QDateTime::currentMSecsSinceEpoch();
     m_pendingRequests.append(id);

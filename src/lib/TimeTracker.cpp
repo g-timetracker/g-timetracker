@@ -117,6 +117,10 @@ void TimeTracker::getStats(const QDateTime &begin, const QDateTime &end, const Q
         return;
     }
 
+    if (!begin.isValid() || !end.isValid()) {
+        return;
+    }
+
     m_history->getStats(begin, end, category, separator);
 }
 

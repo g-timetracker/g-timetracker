@@ -10,7 +10,7 @@ Item {
         target: TimeTracker
         onStatsDataAvailable: {
             if (until.valueOf() !== timeLogFilter.endDate.valueOf()) {
-                console.log("Discarding stats data for different period, end:", until)
+                console.log("Discarding outdated stats data, end:", until, timeLogFilter.endDate)
                 return
             }
 
