@@ -118,6 +118,12 @@ Item {
                 }
             }
 
+            Keys.onPressed: {
+                if (event.key === Qt.Key_F2 && renameAction.enabled) {
+                    renameAction.trigger()
+                }
+            }
+
             onPressAndHold: itemMenu.popup()
             onDoubleClicked: showEntriesAction.trigger()
         }
