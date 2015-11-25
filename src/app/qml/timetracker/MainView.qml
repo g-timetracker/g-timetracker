@@ -70,6 +70,18 @@ Item {
         property int statsIndex: -1
         property int historyIndex: -1
         property int categoriesIndex: -1
+
+        function clearIndex(index) {
+            if (index === statsIndex) {
+                statsIndex = -1;
+            } else if (index === historyIndex) {
+                historyIndex = -1
+            } else if (index === categoriesIndex) {
+                categoriesIndex = -1
+            } else if (index === searchIndex) {
+                searchIndex = -1;
+            }
+        }
     }
 
     Binding {
@@ -149,7 +161,10 @@ Item {
                         anchors.right: parent.right
                         visible: model.hasCloseButton
                         text: "x"
-                        onClicked: tabModel.remove(model.index)
+                        onClicked: {
+                            d.clearIndex(model.index)
+                            tabModel.remove(model.index)
+                        }
                     }
                 }
             }
