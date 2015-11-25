@@ -16,7 +16,8 @@ Row {
             "day",
             "month",
             "year",
-            "select..."
+            "select...",
+            "all"
         ]
     }
 
@@ -105,6 +106,28 @@ Row {
             property: "endDate"
             value: dateRangePicker.endDate
             when: dateRangePicker.isCurrent
+        }
+    }
+
+    Item {
+        id: dateAllPicker
+
+        property bool isCurrent: periodSelector.currentIndex == 4
+
+        visible: isCurrent
+
+        Binding {
+            target: datePeriodPicker
+            property: "beginDate"
+            value: new Date(0)
+            when: dateAllPicker.isCurrent
+        }
+
+        Binding {
+            target: datePeriodPicker
+            property: "endDate"
+            value: new Date()
+            when: dateAllPicker.isCurrent
         }
     }
 }
