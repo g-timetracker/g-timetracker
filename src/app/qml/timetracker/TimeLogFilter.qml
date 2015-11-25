@@ -27,6 +27,7 @@ GridLayout {
     ComboBox {
         id: categoryField
 
+        Layout.preferredWidth: 300
         model: [ "" ].concat(TimeTracker.categories)
 
         onCurrentTextChanged: {
