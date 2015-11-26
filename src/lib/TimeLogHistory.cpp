@@ -7,7 +7,8 @@ TimeLogHistory::TimeLogHistory(QObject *parent) :
     QObject(parent),
     m_thread(new QThread(this)),
     m_worker(new TimeLogHistoryWorker(this)),
-    m_size(0)
+    m_size(0),
+    m_undoCount(0)
 {
     connect(m_worker, SIGNAL(error(QString)),
             this, SIGNAL(error(QString)));
@@ -25,6 +26,8 @@ TimeLogHistory::TimeLogHistory(QObject *parent) :
             this, SIGNAL(dataRemoved(TimeLogEntry)));
     connect(m_worker, SIGNAL(sizeChanged(qlonglong)),
             this, SLOT(workerSizeChanged(qlonglong)));
+    connect(m_worker, SIGNAL(undoCountChanged(int)),
+            this, SLOT(workerUndoCountChanged(int)));
     connect(m_worker, SIGNAL(categoriesChanged(QSet<QString>)),
             this, SLOT(workerCategoriesChanged(QSet<QString>)));
     connect(m_worker, SIGNAL(statsDataAvailable(QVector<TimeLogStats>,QDateTime)),
@@ -73,6 +76,11 @@ QSet<QString> TimeLogHistory::categories() const
     return m_categories;
 }
 
+int TimeLogHistory::undoCount() const
+{
+    return m_undoCount;
+}
+
 void TimeLogHistory::insert(const TimeLogEntry &data)
 {
     QMetaObject::invokeMethod(m_worker, "insert", Qt::AutoConnection, Q_ARG(TimeLogEntry, data));
@@ -106,6 +114,11 @@ void TimeLogHistory::sync(const QVector<TimeLogSyncData> &updatedData, const QVe
     QMetaObject::invokeMethod(m_worker, "sync", Qt::AutoConnection,
                               Q_ARG(QVector<TimeLogSyncData>, updatedData),
                               Q_ARG(QVector<TimeLogSyncData>, removedData));
+}
+
+void TimeLogHistory::undo()
+{
+    QMetaObject::invokeMethod(m_worker, "undo", Qt::AutoConnection);
 }
 
 void TimeLogHistory::getHistoryBetween(qlonglong id, const QDateTime &begin, const QDateTime &end, const QString &category) const
@@ -149,6 +162,17 @@ void TimeLogHistory::workerCategoriesChanged(QSet<QString> categories)
     m_categories.swap(categories);
 
     emit categoriesChanged(m_categories);
+}
+
+void TimeLogHistory::workerUndoCountChanged(int undoCount)
+{
+    if (m_undoCount == undoCount) {
+        return;
+    }
+
+    m_undoCount = undoCount;
+
+    emit undoCountChanged(m_undoCount);
 }
 
 void TimeLogHistory::makeAsync()

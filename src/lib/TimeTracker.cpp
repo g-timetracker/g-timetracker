@@ -54,7 +54,8 @@ int calcTimeUnits(int duration)
 TimeTracker::TimeTracker(QObject *parent) :
     QObject(parent),
     m_history(Q_NULLPTR),
-    m_syncer(Q_NULLPTR)
+    m_syncer(Q_NULLPTR),
+    m_undoCount(0)
 {
 
 }
@@ -97,9 +98,23 @@ QStringList TimeTracker::categories() const
     return m_categories;
 }
 
+int TimeTracker::undoCount() const
+{
+    return m_undoCount;
+}
+
 TimeLogData TimeTracker::createTimeLogData(QDateTime startTime, QString category, QString comment)
 {
     return TimeLogData(startTime, category, comment);
+}
+
+void TimeTracker::undo()
+{
+    if (!m_history) {
+        return;
+    }
+
+    m_history->undo();
 }
 
 void TimeTracker::editCategory(QString oldName, QString newName)
@@ -189,6 +204,17 @@ void TimeTracker::updateCategories(QSet<QString> categories)
     emit categoriesChanged(m_categories);
 }
 
+void TimeTracker::updateUndoCount(int undoCount)
+{
+    if (m_undoCount == undoCount) {
+        return;
+    }
+
+    m_undoCount = undoCount;
+
+    emit undoCountChanged(m_undoCount);
+}
+
 void TimeTracker::setHistory(TimeLogHistory *history)
 {
     if (m_history == history) {
@@ -206,11 +232,14 @@ void TimeTracker::setHistory(TimeLogHistory *history)
                 this, SLOT(statsDataAvailable(QVector<TimeLogStats>,QDateTime)));
         connect(m_history, SIGNAL(categoriesChanged(QSet<QString>)),
                 this, SLOT(updateCategories(QSet<QString>)));
+        connect(m_history, SIGNAL(undoCountChanged(int)),
+                this, SLOT(updateUndoCount(int)));
     }
 
     emit historyChanged(m_history);
 
     updateCategories(m_history ? m_history->categories() : QSet<QString>());
+    updateUndoCount(m_history ? m_history->undoCount() : 0);
 
     if (oldHistory) {
         delete oldHistory;

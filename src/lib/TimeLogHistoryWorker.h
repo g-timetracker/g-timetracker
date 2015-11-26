@@ -4,6 +4,7 @@
 #include <QObject>
 #include <QSqlQuery>
 #include <QSet>
+#include <QStack>
 
 #include "TimeLogHistory.h"
 
@@ -26,6 +27,8 @@ public slots:
     void editCategory(QString oldName, QString newName);
     void sync(const QVector<TimeLogSyncData> &updatedData,
               const QVector<TimeLogSyncData> &removedData);
+
+    void undo();
 
     void getHistoryBetween(qlonglong id,
                            const QDateTime &begin = QDateTime::fromTime_t(0),
@@ -61,18 +64,41 @@ signals:
 
     void sizeChanged(qlonglong size) const;
     void categoriesChanged(QSet<QString> categories) const;
+    void undoCountChanged(int undoCount) const;
 
 private:
+    class Undo
+    {
+    public:
+        enum Type {
+            Insert,
+            Remove,
+            Edit,
+            EditCategory
+        };
+
+        Type type;
+        QVector<TimeLogEntry> data;
+        QVector<TimeLogHistory::Fields> fields;
+    };
+
     bool m_isInitialized;
     QString m_connectionName;
     qlonglong m_size;
     QSet<QString> m_categories;
+    QStack<Undo> m_undoStack;
 
     bool setupTable();
     bool setupTriggers();
     void setSize(qlonglong size);
     void removeFromCategories(QString category);
     void addToCategories(QString category);
+    void processFail();
+
+    void insertEntry(const TimeLogEntry &data);
+    void removeEntry(const TimeLogEntry &data);
+    bool editEntry(const TimeLogEntry &data, TimeLogHistory::Fields fields);
+    void editEntries(const QVector<TimeLogEntry> &data, const QVector<TimeLogHistory::Fields> &fields);
 
     bool insertData(const QVector<TimeLogEntry> &data);
     bool insertData(const TimeLogSyncData &data);
@@ -85,6 +111,7 @@ private:
     QVector<TimeLogStats> getStats(QSqlQuery &query) const;
     QVector<TimeLogSyncData> getSyncData(QSqlQuery &query) const;
     TimeLogEntry getEntry(const QUuid &uuid) const;
+    QVector<TimeLogEntry> getEntries(const QString &category) const;
     QVector<TimeLogSyncData> getSyncAffected(const QUuid &uuid) const;
     void notifyInsertUpdates(const TimeLogEntry &data) const;
     void notifyInsertUpdates(const QVector<TimeLogEntry> &data) const;
@@ -95,6 +122,7 @@ private:
     bool updateSize();
     bool updateCategories(const QDateTime &begin = QDateTime::fromTime_t(0),
                           const QDateTime &end = QDateTime::currentDateTime());
+    void pushUndo(const Undo undo);
 };
 
 #endif // TIMELOGHISTORYWORKER_H

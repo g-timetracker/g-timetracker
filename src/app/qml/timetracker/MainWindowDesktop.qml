@@ -35,6 +35,11 @@ ApplicationWindow {
                 onTriggered: mainView.sync(Settings.syncPath);
             }
             MenuItem {
+                text: "Undo"
+                enabled: TimeTracker.undoCount
+                onTriggered: TimeTracker.undo();
+            }
+            MenuItem {
                 text: qsTr("E&xit")
                 onTriggered: Qt.quit();
             }

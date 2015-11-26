@@ -59,6 +59,14 @@ ApplicationWindow {
                         mainView.sync(Settings.syncPath)
                     }
                 }
+                Button {
+                    text: "Undo"
+                    enabled: TimeTracker.undoCount
+                    onClicked: {
+                        drawer.close()
+                        TimeTracker.undo()
+                    }
+                }
                 Label {
                     text: "Settings"
                 }

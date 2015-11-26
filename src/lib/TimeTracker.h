@@ -20,6 +20,7 @@ class TimeTracker : public QObject
     Q_PROPERTY(QUrl dataPath MEMBER m_dataPath WRITE setDataPath NOTIFY dataPathChanged)
     Q_PROPERTY(DataSyncer* syncer MEMBER m_syncer NOTIFY syncerChanged)
     Q_PROPERTY(QStringList categories READ categories NOTIFY categoriesChanged)
+    Q_PROPERTY(int undoCount READ undoCount NOTIFY undoCountChanged)
 public:
     explicit TimeTracker(QObject *parent = 0);
     virtual ~TimeTracker();
@@ -29,9 +30,11 @@ public:
     TimeLogHistory *history();
 
     QStringList categories() const;
+    int undoCount() const;
 
     Q_INVOKABLE static TimeLogData createTimeLogData(QDateTime startTime, QString category,
                                                      QString comment);
+    Q_INVOKABLE void undo();
     Q_INVOKABLE void editCategory(QString oldName, QString newName);
     Q_INVOKABLE void getStats(const QDateTime &begin = QDateTime::fromTime_t(0),
                               const QDateTime &end = QDateTime::currentDateTime(),
@@ -47,10 +50,12 @@ signals:
     void error(const QString &errorText) const;
     void statsDataAvailable(QVariantMap data, QDateTime until) const;
     void categoriesChanged(QStringList newCategories) const;
+    void undoCountChanged(int newUndoCount) const;
 
 private slots:
     void statsDataAvailable(QVector<TimeLogStats> data, QDateTime until) const;
     void updateCategories(QSet<QString> categories);
+    void updateUndoCount(int undoCount);
 
 private:
     void setHistory(TimeLogHistory *history);
@@ -60,6 +65,7 @@ private:
     TimeLogHistory *m_history;
     DataSyncer *m_syncer;
     QStringList m_categories;
+    int m_undoCount;
 };
 
 #endif // TIMETRACKER_H

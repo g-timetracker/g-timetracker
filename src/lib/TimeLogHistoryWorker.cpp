@@ -8,6 +8,8 @@
 
 Q_LOGGING_CATEGORY(HISTORY_WORKER_CATEGORY, "TimeLogHistoryWorker", QtInfoMsg)
 
+const int maxUndoSize(10);
+
 const QString selectFields("SELECT uuid, start, category, comment, duration,"
                            " ifnull((SELECT start FROM timelog WHERE start < result.start ORDER BY start DESC LIMIT 1), 0)"
                            " FROM timelog AS result");
@@ -76,14 +78,12 @@ void TimeLogHistoryWorker::insert(const TimeLogEntry &data)
 {
     Q_ASSERT(m_isInitialized);
 
-    if (insertData(data)) {
-        emit dataInserted(data);
-        notifyInsertUpdates(data);
-    } else {
-        emit dataOutdated();
-    }
+    Undo undo;
+    undo.type = Undo::Insert;
+    undo.data.append(data);
+    pushUndo(undo);
 
-    return;
+    insertEntry(data);
 }
 
 void TimeLogHistoryWorker::import(const QVector<TimeLogEntry> &data)
@@ -93,7 +93,7 @@ void TimeLogHistoryWorker::import(const QVector<TimeLogEntry> &data)
     if (insertData(data)) {
         emit dataImported(data);
     } else {
-        emit dataOutdated();
+        processFail();
     }
 
     return;
@@ -103,46 +103,53 @@ void TimeLogHistoryWorker::remove(const TimeLogEntry &data)
 {
     Q_ASSERT(m_isInitialized);
 
-    if (removeData(data)) {
-        emit dataRemoved(data);
-        notifyRemoveUpdates(data);
-    } else {
-        emit dataOutdated();
-    }
+    TimeLogEntry entry = getEntry(data.uuid);
+    Undo undo;
+    undo.type = Undo::Remove;
+    undo.data.append(entry);
+    pushUndo(undo);
+
+    removeEntry(data);
 }
 
 void TimeLogHistoryWorker::edit(const TimeLogEntry &data, TimeLogHistory::Fields fields)
 {
     Q_ASSERT(m_isInitialized);
 
-    QDateTime oldStart;
-    if (fields == TimeLogHistory::NoFields) {
-        qCWarning(HISTORY_WORKER_CATEGORY) << "No fields specified";
-        return;
-    } else if (fields & TimeLogHistory::StartTime) {
-        TimeLogEntry oldData = getEntry(data.uuid);
-        if (!oldData.isValid()) {
-            qCCritical(HISTORY_WORKER_CATEGORY) << "Item to update not found:\n"
-                                                << data.startTime << data.category << data.uuid;
-            emit dataOutdated();
-            return;
-        }
-        oldStart = oldData.startTime;
-    }
+    TimeLogEntry entry = getEntry(data.uuid);
+    Undo undo;
+    undo.type = Undo::Edit;
+    undo.data.append(entry);
+    undo.fields.append(fields);
+    pushUndo(undo);
 
-    if (editData(data, fields)) {
-        notifyEditUpdates(data, fields, oldStart);
-    }  else {
-        emit dataOutdated();
-    }
+    editEntry(data, fields);
 }
 
 void TimeLogHistoryWorker::editCategory(QString oldName, QString newName)
 {
     Q_ASSERT(m_isInitialized);
 
+    if (newName.isEmpty()) {
+        qCCritical(HISTORY_WORKER_CATEGORY) << "Empty category name";
+        emit error("Empty category name");
+        return;
+    } else if (oldName == newName) {
+        qCWarning(HISTORY_WORKER_CATEGORY) << "Same category name:" << newName;
+        return;
+    }
+
+    QVector<TimeLogEntry> entries = getEntries(oldName);
+    Undo undo;
+    undo.type = Undo::EditCategory;
+    undo.data.swap(entries);
+    undo.fields.insert(0, undo.data.size(), TimeLogHistory::Category);
+    pushUndo(undo);
+
     if (editCategoryData(oldName, newName)) {
-        emit dataOutdated();
+        emit dataOutdated();    // TODO: more precise update signal
+    } else {
+        processFail();
     }
 }
 
@@ -194,6 +201,32 @@ void TimeLogHistoryWorker::sync(const QVector<TimeLogSyncData> &updatedData, con
     if (syncData(removedMerged, insertedNew, updatedNew, updatedOld)) {
         emit dataSynced(updatedData, removedData);
     }
+}
+
+void TimeLogHistoryWorker::undo()
+{
+    if (!m_undoStack.size()) {
+        qCCritical(HISTORY_WORKER_CATEGORY) << "Empty undo stack";
+        return;
+    }
+
+    Undo undo = m_undoStack.pop();
+    switch (undo.type) {
+    case Undo::Insert:
+        removeEntry(undo.data.constFirst());
+        break;
+    case Undo::Remove:
+        insertEntry(undo.data.constFirst());
+        break;
+    case Undo::Edit:
+        editEntry(undo.data.constFirst(), undo.fields.constFirst());
+        break;
+    case Undo::EditCategory:
+        editEntries(undo.data, undo.fields);
+        break;
+    }
+
+    emit undoCountChanged(m_undoStack.size());
 }
 
 void TimeLogHistoryWorker::getHistoryBetween(qlonglong id, const QDateTime &begin, const QDateTime &end, const QString &category) const
@@ -552,6 +585,70 @@ void TimeLogHistoryWorker::addToCategories(QString category)
     emit categoriesChanged(m_categories);
 }
 
+void TimeLogHistoryWorker::processFail()
+{
+    m_undoStack.clear();
+    emit undoCountChanged(0);
+
+    emit dataOutdated();
+}
+
+void TimeLogHistoryWorker::insertEntry(const TimeLogEntry &data)
+{
+    if (insertData(data)) {
+        emit dataInserted(data);
+        notifyInsertUpdates(data);
+    } else {
+        processFail();
+    }
+}
+
+void TimeLogHistoryWorker::removeEntry(const TimeLogEntry &data)
+{
+    if (removeData(data)) {
+        emit dataRemoved(data);
+        notifyRemoveUpdates(data);
+    } else {
+        processFail();
+    }
+}
+
+bool TimeLogHistoryWorker::editEntry(const TimeLogEntry &data, TimeLogHistory::Fields fields)
+{
+    QDateTime oldStart;
+    if (fields == TimeLogHistory::NoFields) {
+        qCWarning(HISTORY_WORKER_CATEGORY) << "No fields specified";
+        return false;
+    } else if (fields & TimeLogHistory::StartTime) {
+        TimeLogEntry oldData = getEntry(data.uuid);
+        if (!oldData.isValid()) {
+            qCCritical(HISTORY_WORKER_CATEGORY) << "Item to update not found:\n"
+                                                << data.startTime << data.category << data.uuid;
+            processFail();
+            return false;
+        }
+        oldStart = oldData.startTime;
+    }
+
+    if (editData(data, fields)) {
+        notifyEditUpdates(data, fields, oldStart);
+    }  else {
+        processFail();
+        return false;
+    }
+
+    return true;
+}
+
+void TimeLogHistoryWorker::editEntries(const QVector<TimeLogEntry> &data, const QVector<TimeLogHistory::Fields> &fields)
+{
+    for (int i = 0; i < data.size(); i++) {
+        if (!editEntry(data.at(i), fields.at(i))) {
+            break;
+        }
+    }
+}
+
 bool TimeLogHistoryWorker::insertData(const QVector<TimeLogEntry> &data)
 {
     QSqlDatabase db = QSqlDatabase::database(m_connectionName);
@@ -702,15 +799,6 @@ bool TimeLogHistoryWorker::editData(const TimeLogSyncData &data, TimeLogHistory:
 
 bool TimeLogHistoryWorker::editCategoryData(QString oldName, QString newName)
 {
-    if (newName.isEmpty()) {
-        qCCritical(HISTORY_WORKER_CATEGORY) << "Empty category name";
-        emit error("Empty category name");
-        return false;
-    } else if (oldName == newName) {
-        qCWarning(HISTORY_WORKER_CATEGORY) << "Same category name:" << newName;
-        return false;
-    }
-
     QSqlDatabase db = QSqlDatabase::database(m_connectionName);
     QSqlQuery query(db);
     QString queryString("SELECT count(*) FROM timelog WHERE category=?");
@@ -951,6 +1039,22 @@ TimeLogEntry TimeLogHistoryWorker::getEntry(const QUuid &uuid) const
     return entry;
 }
 
+QVector<TimeLogEntry> TimeLogHistoryWorker::getEntries(const QString &category) const
+{
+    QSqlDatabase db = QSqlDatabase::database(m_connectionName);
+    QSqlQuery query(db);
+    QString queryString = QString("%1 WHERE category=?").arg(selectFields);
+    if (!query.prepare(queryString)) {
+        qCCritical(HISTORY_WORKER_CATEGORY) << "Fail to prepare query:" << query.lastError().text()
+                                            << query.lastQuery();
+        emit error(query.lastError().text());
+        return QVector<TimeLogEntry>();
+    }
+    query.addBindValue(category);
+
+    return getHistory(query);
+}
+
 QVector<TimeLogSyncData> TimeLogHistoryWorker::getSyncAffected(const QUuid &uuid) const
 {
     QSqlDatabase db = QSqlDatabase::database(m_connectionName);
@@ -1125,4 +1229,15 @@ bool TimeLogHistoryWorker::updateCategories(const QDateTime &begin, const QDateT
     emit categoriesChanged(m_categories);
 
     return true;
+}
+
+void TimeLogHistoryWorker::pushUndo(const TimeLogHistoryWorker::Undo undo)
+{
+    m_undoStack.push(undo);
+
+    if (m_undoStack.size() > maxUndoSize) {
+        m_undoStack.takeFirst();
+    } else {
+        emit undoCountChanged(m_undoStack.size());
+    }
 }

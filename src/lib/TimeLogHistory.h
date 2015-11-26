@@ -34,6 +34,7 @@ public:
 
     qlonglong size() const;
     QSet<QString> categories() const;
+    int undoCount() const;
 
 public slots:
     void insert(const TimeLogEntry &data);
@@ -43,6 +44,8 @@ public slots:
     void editCategory(QString oldName, QString newName);
     void sync(const QVector<TimeLogSyncData> &updatedData,
               const QVector<TimeLogSyncData> &removedData);
+
+    void undo();
 
     void getHistoryBetween(qlonglong id,
                            const QDateTime &begin = QDateTime::fromTime_t(0),
@@ -77,10 +80,12 @@ signals:
     void dataSynced(QVector<TimeLogSyncData> updatedData, QVector<TimeLogSyncData> removedData);
 
     void categoriesChanged(QSet<QString> categories) const;
+    void undoCountChanged(int undoCount) const;
 
 private slots:
     void workerSizeChanged(qlonglong size);
     void workerCategoriesChanged(QSet<QString> categories);
+    void workerUndoCountChanged(int undoCount);
 
 private:
     void makeAsync();
@@ -90,6 +95,7 @@ private:
 
     qlonglong m_size;
     QSet<QString> m_categories;
+    int m_undoCount;
 };
 
 Q_DECLARE_OPERATORS_FOR_FLAGS(TimeLogHistory::Fields)

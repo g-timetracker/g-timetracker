@@ -161,7 +161,6 @@ Item {
 
         title: "Remove confirmation"
         text: "Are you sure want to delete this item?"
-        informativeText: "This item can not be restored"
         icon: StandardIcon.Question
         standardButtons: StandardButton.Yes | StandardButton.No
 
