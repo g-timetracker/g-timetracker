@@ -44,6 +44,15 @@ private slots:
     void editConflict_data();
     void renameCategory();
     void renameCategory_data();
+    void undoInsert();
+    void undoInsert_data();
+    void undoRemove();
+    void undoRemove_data();
+    void undoEdit();
+    void undoEdit_data();
+    void undoRenameCategory();
+    void undoRenameCategory_data();
+    void undoMultiple();
 
 private:
     void checkInsert(QSignalSpy &actionSpy, QSignalSpy &updateSpy, QVector<TimeLogEntry> &origData, int index);
@@ -543,6 +552,382 @@ void tst_DB::renameCategory_data()
     QTest::newRow("2 entries, first") << 2 << "CategoryOld" << "CategoryNew" << (QVector<int>() << 0);
     QTest::newRow("2 entries, last") << 2 << "CategoryOld" << "CategoryNew" << (QVector<int>() << 1);
     QTest::newRow("all items") << 6 << "CategoryOld" << "CategoryNew" << (QVector<int>() << 0 << 1 << 2 << 3 << 4 << 5);
+}
+
+void tst_DB::undoInsert()
+{
+    QFETCH(int, initialEntries);
+
+    QVector<TimeLogEntry> origData(defaultData.mid(0, initialEntries));
+
+    QSignalSpy errorSpy(history, SIGNAL(error(QString)));
+    QSignalSpy outdateSpy(history, SIGNAL(dataOutdated()));
+    QSignalSpy updateSpy(history, SIGNAL(dataUpdated(QVector<TimeLogEntry>,QVector<TimeLogHistory::Fields>)));
+    QSignalSpy insertSpy(history, SIGNAL(dataInserted(TimeLogEntry)));
+    QSignalSpy removeSpy(history, SIGNAL(dataRemoved(TimeLogEntry)));
+    QSignalSpy undoCountSpy(history, SIGNAL(undoCountChanged(int)));
+
+    if (initialEntries) {
+        QSignalSpy importSpy(history, SIGNAL(dataImported(QVector<TimeLogEntry>)));
+        history->import(origData);
+        QVERIFY(importSpy.wait());
+    }
+
+    QFETCH(int, index);
+    TimeLogEntry entry;
+    QFETCH(QDateTime, insertTime);
+    entry.startTime = insertTime;
+    entry.category = "CategoryNew";
+    entry.comment = "Test comment";
+    entry.uuid = QUuid::createUuid();
+    history->insert(entry);
+    QVERIFY(insertSpy.wait());
+    QVERIFY(!updateSpy.isEmpty() || updateSpy.wait());
+    QVERIFY(!undoCountSpy.isEmpty() || undoCountSpy.wait());
+    QCOMPARE(undoCountSpy.constFirst().at(0).value<int>(), 1);
+    QCOMPARE(history->undoCount(), 1);
+
+    updateSpy.clear();
+    undoCountSpy.clear();
+    history->undo();
+    QVERIFY(removeSpy.wait());
+    QVERIFY(!undoCountSpy.isEmpty() || undoCountSpy.wait());
+    QVERIFY(errorSpy.isEmpty());
+    QVERIFY(outdateSpy.isEmpty());
+    QCOMPARE(undoCountSpy.constFirst().at(0).value<int>(), 0);
+    QCOMPARE(history->undoCount(), 0);
+
+    if (initialEntries < 1) {
+        QVERIFY(updateSpy.isEmpty());
+        return;
+    }
+
+    origData.insert(index, entry);
+
+    checkFunction(checkRemove, removeSpy, updateSpy, origData, index);
+
+    checkFunction(checkDB, history, origData);
+}
+
+void tst_DB::undoInsert_data()
+{
+    QTest::addColumn<int>("initialEntries");
+    QTest::addColumn<int>("index");
+    QTest::addColumn<QDateTime>("insertTime");
+
+    QTest::newRow("empty db") << 0 << 0 << QDateTime::fromString("2015-11-01T15:00:00+0200", Qt::ISODate);
+    QTest::newRow("1 entry, begin") << 1 << 0 << QDateTime::fromString("2015-11-01T10:30:00+0200", Qt::ISODate);
+    QTest::newRow("1 entry, end") << 1 << 1 << QDateTime::fromString("2015-11-01T11:30:00+0200", Qt::ISODate);
+    QTest::newRow("2 entries") << 2 << 2 << QDateTime::fromString("2015-11-01T11:30:00+0200", Qt::ISODate);
+    QTest::newRow("6 entries") << 6 << 4 << QDateTime::fromString("2015-11-01T23:30:00+0200", Qt::ISODate);
+}
+
+void tst_DB::undoRemove()
+{
+    QFETCH(int, initialEntries);
+
+    QVector<TimeLogEntry> origData(defaultData.mid(0, initialEntries));
+
+    QSignalSpy errorSpy(history, SIGNAL(error(QString)));
+    QSignalSpy outdateSpy(history, SIGNAL(dataOutdated()));
+    QSignalSpy updateSpy(history, SIGNAL(dataUpdated(QVector<TimeLogEntry>,QVector<TimeLogHistory::Fields>)));
+    QSignalSpy removeSpy(history, SIGNAL(dataRemoved(TimeLogEntry)));
+    QSignalSpy insertSpy(history, SIGNAL(dataInserted(TimeLogEntry)));
+    QSignalSpy undoCountSpy(history, SIGNAL(undoCountChanged(int)));
+
+    QSignalSpy importSpy(history, SIGNAL(dataImported(QVector<TimeLogEntry>)));
+    history->import(origData);
+    QVERIFY(importSpy.wait());
+
+    QFETCH(int, index);
+    history->remove(origData.at(index));
+    QVERIFY(removeSpy.wait());
+    QVERIFY(!undoCountSpy.isEmpty() || undoCountSpy.wait());
+    QCOMPARE(undoCountSpy.constFirst().at(0).value<int>(), 1);
+    QCOMPARE(history->undoCount(), 1);
+
+    if (initialEntries < 2) {
+        QVERIFY(updateSpy.isEmpty());
+        return;
+    } else {
+        QVERIFY(!updateSpy.isEmpty() || updateSpy.wait());
+    }
+
+    updateSpy.clear();
+    undoCountSpy.clear();
+    history->undo();
+    QVERIFY(insertSpy.wait());
+    QVERIFY(!updateSpy.isEmpty() || updateSpy.wait());
+    QVERIFY(!undoCountSpy.isEmpty() || undoCountSpy.wait());
+    QVERIFY(errorSpy.isEmpty());
+    QVERIFY(outdateSpy.isEmpty());
+    QCOMPARE(undoCountSpy.constFirst().at(0).value<int>(), 0);
+    QCOMPARE(history->undoCount(), 0);
+
+    checkFunction(checkInsert, insertSpy, updateSpy, origData, index);
+
+    checkFunction(checkDB, history, origData);
+}
+
+void tst_DB::undoRemove_data()
+{
+    QTest::addColumn<int>("initialEntries");
+    QTest::addColumn<int>("index");
+
+    QTest::newRow("1 entry") << 1 << 0;
+    QTest::newRow("2 entries, first") << 2 << 0;
+    QTest::newRow("2 entries, last") << 2 << 1;
+    QTest::newRow("6 entries") << 6 << 3;
+}
+
+void tst_DB::undoEdit()
+{
+    QVector<TimeLogEntry> origData(defaultData);
+
+    QSignalSpy errorSpy(history, SIGNAL(error(QString)));
+    QSignalSpy outdateSpy(history, SIGNAL(dataOutdated()));
+    QSignalSpy updateSpy(history, SIGNAL(dataUpdated(QVector<TimeLogEntry>,QVector<TimeLogHistory::Fields>)));
+    QSignalSpy undoCountSpy(history, SIGNAL(undoCountChanged(int)));
+
+    QSignalSpy importSpy(history, SIGNAL(dataImported(QVector<TimeLogEntry>)));
+    history->import(origData);
+    QVERIFY(importSpy.wait());
+
+    QFETCH(int, index);
+    QFETCH(TimeLogEntry, newData);
+
+    TimeLogEntry entry = origData.at(index);
+    TimeLogHistory::Fields fields;
+    if (entry.startTime != newData.startTime) {
+        entry.startTime = newData.startTime;
+        fields |= TimeLogHistory::StartTime;
+    }
+    if (entry.category != newData.category) {
+        entry.category = newData.category;
+        fields |= TimeLogHistory::Category;
+    }
+    if (entry.comment != newData.comment) {
+        entry.comment = newData.comment;
+        fields |= TimeLogHistory::Comment;
+    }
+    history->edit(entry, fields);
+    QVERIFY(updateSpy.wait());
+    QVERIFY(!undoCountSpy.isEmpty() || undoCountSpy.wait());
+    QCOMPARE(undoCountSpy.constFirst().at(0).value<int>(), 1);
+    QCOMPARE(history->undoCount(), 1);
+
+    updateSpy.clear();
+    undoCountSpy.clear();
+    history->undo();
+    QVERIFY(updateSpy.wait());
+    QVERIFY(!undoCountSpy.isEmpty() || undoCountSpy.wait());
+    QVERIFY(errorSpy.isEmpty());
+    QVERIFY(outdateSpy.isEmpty());
+    QCOMPARE(undoCountSpy.constFirst().at(0).value<int>(), 0);
+    QCOMPARE(history->undoCount(), 0);
+
+    checkFunction(checkEdit, updateSpy, origData, fields, index);
+
+    checkFunction(checkDB, history, origData);
+}
+
+void tst_DB::undoEdit_data()
+{
+    QTest::addColumn<int>("index");
+    QTest::addColumn<TimeLogEntry>("newData");
+
+    int index = 4;
+    TimeLogEntry entry = defaultData.at(index);
+    entry.category = "CategoryNew";
+    QTest::newRow("category") << index << entry;
+
+    index = 1;
+    entry = defaultData.at(index);
+    entry.comment = "Test comment";
+    QTest::newRow("comment") << index << entry;
+
+    index = 2;
+    entry = defaultData.at(index);
+    entry.startTime = entry.startTime.addSecs(-100);
+    QTest::newRow("start") << index << entry;
+
+    index = 3;
+    entry = defaultData.at(index);
+    entry.category = "CategoryNew";
+    entry.comment = "Test comment";
+    QTest::newRow("category & comment") << index << entry;
+
+    index = 1;
+    entry = defaultData.at(index);
+    entry.startTime = entry.startTime.addSecs(1000);
+    entry.category = "CategoryNew";
+    QTest::newRow("start & category") << index << entry;
+
+    index = 2;
+    entry = defaultData.at(index);
+    entry.startTime = entry.startTime.addSecs(-100);
+    entry.comment = "Test comment";
+    QTest::newRow("start & comment") << index << entry;
+
+    index = 1;
+    entry = defaultData.at(index);
+    entry.startTime = entry.startTime.addSecs(1000);
+    entry.category = "CategoryNew";
+    entry.comment = "Test comment";
+    QTest::newRow("all") << index << entry;
+}
+
+void tst_DB::undoRenameCategory()
+{
+    QFETCH(int, initialEntries);
+
+    QVector<TimeLogEntry> origData(defaultData.mid(0, initialEntries));
+
+    QSignalSpy errorSpy(history, SIGNAL(error(QString)));
+    QSignalSpy outdateSpy(history, SIGNAL(dataOutdated()));
+    QSignalSpy updateSpy(history, SIGNAL(dataUpdated(QVector<TimeLogEntry>,QVector<TimeLogHistory::Fields>)));
+    QSignalSpy undoCountSpy(history, SIGNAL(undoCountChanged(int)));
+
+    QFETCH(QString, categoryOld);
+    QFETCH(QString, categoryNew);
+    QFETCH(QVector<int>, indexes);
+    foreach (int index, indexes) {
+        origData[index].category = categoryOld;
+    }
+
+    QSignalSpy importSpy(history, SIGNAL(dataImported(QVector<TimeLogEntry>)));
+    history->import(origData);
+    QVERIFY(importSpy.wait());
+
+    history->editCategory(categoryOld, categoryNew);
+    QVERIFY(outdateSpy.wait());
+    QVERIFY(!undoCountSpy.isEmpty() || undoCountSpy.wait());
+    QCOMPARE(undoCountSpy.constFirst().at(0).value<int>(), 1);
+    QCOMPARE(history->undoCount(), 1);
+
+    updateSpy.clear();
+    outdateSpy.clear();
+    history->undo();
+    QVERIFY(errorSpy.isEmpty());
+    QVERIFY(outdateSpy.isEmpty());
+
+    while (updateSpy.size() < indexes.size()) {
+        QVERIFY(updateSpy.wait());
+    }
+
+    for (int i = 0; i < indexes.size(); i++) {
+        QVector<TimeLogEntry> updateData = updateSpy.at(i).at(0).value<QVector<TimeLogEntry> >();
+        QVector<TimeLogHistory::Fields> updateFields = updateSpy.at(i).at(1).value<QVector<TimeLogHistory::Fields> >();
+        QCOMPARE(updateData.size(), 1);
+        QCOMPARE(updateData.constFirst().category, origData.at(indexes.at(i)).category);
+        QCOMPARE(updateFields.constFirst(), TimeLogHistory::Category);
+    }
+}
+
+void tst_DB::undoRenameCategory_data()
+{
+    QTest::addColumn<int>("initialEntries");
+    QTest::addColumn<QString>("categoryOld");
+    QTest::addColumn<QString>("categoryNew");
+    QTest::addColumn<QVector<int> >("indexes");
+
+    QTest::newRow("different category") << 6 << "CategoryOld" << "CategoryNew" << (QVector<int>() << 1 << 3);
+    QTest::newRow("1 entry") << 1 << "CategoryOld" << "CategoryNew" << (QVector<int>() << 0);
+    QTest::newRow("2 entries, first") << 2 << "CategoryOld" << "CategoryNew" << (QVector<int>() << 0);
+    QTest::newRow("2 entries, last") << 2 << "CategoryOld" << "CategoryNew" << (QVector<int>() << 1);
+    QTest::newRow("all items") << 6 << "CategoryOld" << "CategoryNew" << (QVector<int>() << 0 << 1 << 2 << 3 << 4 << 5);
+}
+
+void tst_DB::undoMultiple()
+{
+    QVector<TimeLogEntry> origData(defaultData);
+
+    QSignalSpy errorSpy(history, SIGNAL(error(QString)));
+    QSignalSpy outdateSpy(history, SIGNAL(dataOutdated()));
+    QSignalSpy insertSpy(history, SIGNAL(dataInserted(TimeLogEntry)));
+    QSignalSpy removeSpy(history, SIGNAL(dataRemoved(TimeLogEntry)));
+    QSignalSpy updateSpy(history, SIGNAL(dataUpdated(QVector<TimeLogEntry>,QVector<TimeLogHistory::Fields>)));
+    QSignalSpy undoCountSpy(history, SIGNAL(undoCountChanged(int)));
+
+    QSignalSpy importSpy(history, SIGNAL(dataImported(QVector<TimeLogEntry>)));
+    history->import(origData);
+    QVERIFY(importSpy.wait());
+
+    // edit
+    TimeLogEntry entry = origData.at(2);
+    entry.category = "CategoryNew";
+    history->edit(entry, TimeLogHistory::Category);
+    QVERIFY(updateSpy.wait());
+    QVERIFY(!undoCountSpy.isEmpty() || undoCountSpy.wait());
+    QCOMPARE(undoCountSpy.constFirst().at(0).value<int>(), 1);
+    QCOMPARE(history->undoCount(), 1);
+
+    // insert
+    updateSpy.clear();
+    undoCountSpy.clear();
+    entry.startTime = origData.constLast().startTime.addSecs(150);
+    entry.category = "CategoryNew";
+    entry.comment = "Test comment";
+    entry.uuid = QUuid::createUuid();
+    history->insert(entry);
+    QVERIFY(insertSpy.wait());
+    QVERIFY(!updateSpy.isEmpty() || updateSpy.wait());
+    QVERIFY(!undoCountSpy.isEmpty() || undoCountSpy.wait());
+    QCOMPARE(undoCountSpy.constFirst().at(0).value<int>(), 2);
+    QCOMPARE(history->undoCount(), 2);
+
+    // remove
+    updateSpy.clear();
+    undoCountSpy.clear();
+    history->remove(origData.at(4));
+    QVERIFY(removeSpy.wait());
+    QVERIFY(!undoCountSpy.isEmpty() || undoCountSpy.wait());
+    QCOMPARE(undoCountSpy.constFirst().at(0).value<int>(), 3);
+    QCOMPARE(history->undoCount(), 3);
+
+    // undo remove
+    insertSpy.clear();
+    updateSpy.clear();
+    undoCountSpy.clear();
+    history->undo();
+    QVERIFY(insertSpy.wait());
+    QVERIFY(!updateSpy.isEmpty() || updateSpy.wait());
+    QVERIFY(!undoCountSpy.isEmpty() || undoCountSpy.wait());
+    QVERIFY(errorSpy.isEmpty());
+    QVERIFY(outdateSpy.isEmpty());
+    QCOMPARE(undoCountSpy.constFirst().at(0).value<int>(), 2);
+    QCOMPARE(history->undoCount(), 2);
+
+    QVERIFY(compareData(insertSpy.constFirst().at(0).value<TimeLogEntry>(), origData.at(4)));
+
+    // undo insert
+    removeSpy.clear();
+    updateSpy.clear();
+    undoCountSpy.clear();
+    history->undo();
+    QVERIFY(removeSpy.wait());
+    QVERIFY(!undoCountSpy.isEmpty() || undoCountSpy.wait());
+    QVERIFY(errorSpy.isEmpty());
+    QVERIFY(outdateSpy.isEmpty());
+    QCOMPARE(undoCountSpy.constFirst().at(0).value<int>(), 1);
+    QCOMPARE(history->undoCount(), 1);
+
+    QVERIFY(compareData(removeSpy.constFirst().at(0).value<TimeLogEntry>(), entry));
+
+    // undo edit
+    updateSpy.clear();
+    undoCountSpy.clear();
+    history->undo();
+    QVERIFY(updateSpy.wait());
+    QVERIFY(!undoCountSpy.isEmpty() || undoCountSpy.wait());
+    QVERIFY(errorSpy.isEmpty());
+    QVERIFY(outdateSpy.isEmpty());
+    QCOMPARE(undoCountSpy.constFirst().at(0).value<int>(), 0);
+    QCOMPARE(history->undoCount(), 0);
+
+    checkFunction(checkEdit, updateSpy, origData, TimeLogHistory::Category, 2);
+
+    checkFunction(checkDB, history, origData);
 }
 
 void tst_DB::checkInsert(QSignalSpy &actionSpy, QSignalSpy &updateSpy, QVector<TimeLogEntry> &origData, int index)
