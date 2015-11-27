@@ -5,6 +5,13 @@
 #include "TimeLogHistory.h"
 #include "TimeLogEntry.h"
 
+#define checkFunction(func, ...) do {   \
+    func(__VA_ARGS__);                  \
+    if (QTest::currentTestFailed()) {   \
+        QFAIL("Subtest failed");        \
+    }                                   \
+} while (0)
+
 QTemporaryDir *dataDir = Q_NULLPTR;
 TimeLogHistory *history = Q_NULLPTR;
 
@@ -39,9 +46,16 @@ private slots:
     void renameCategory_data();
 
 private:
+    void checkInsert(QSignalSpy &actionSpy, QSignalSpy &updateSpy, QVector<TimeLogEntry> &origData, int index);
+    void checkRemove(QSignalSpy &actionSpy, QSignalSpy &updateSpy, QVector<TimeLogEntry> &origData, int index);
+    void checkEdit(QSignalSpy &updateSpy, QVector<TimeLogEntry> &origData, TimeLogHistory::Fields fields, int index);
+
+    void checkDB(TimeLogHistory *history, const QVector<TimeLogEntry> &data) const;
+
     void initDefaultData();
     void dumpData(const QVector<TimeLogEntry> &data) const;
     bool checkData(const QVector<TimeLogEntry> &data) const;
+
     bool compareData(const TimeLogEntry &t1, const TimeLogEntry &t2) const;
     bool compareData(const QVector<TimeLogEntry> &d1, const QVector<TimeLogEntry> &d2) const;
 };
@@ -102,17 +116,7 @@ void tst_DB::import()
     QCOMPARE(history->size(), origData.size());
     QVERIFY(compareData(importSpy.constFirst().at(0).value<QVector<TimeLogEntry> >(), origData));
 
-    QSignalSpy dataSpy(history, SIGNAL(historyRequestCompleted(QVector<TimeLogEntry>,qlonglong)));
-    qlonglong id = QDateTime::currentMSecsSinceEpoch();
-    history->getHistoryBetween(id);
-    QVERIFY(dataSpy.wait());
-    QVERIFY(errorSpy.isEmpty());
-    QVERIFY(outdateSpy.isEmpty());
-    QCOMPARE(dataSpy.constFirst().at(1).toLongLong(), id);
-    QVector<TimeLogEntry> historyData = dataSpy.constFirst().at(0).value<QVector<TimeLogEntry> >();
-    QCOMPARE(historyData.size(), origData.size());
-    QVERIFY(checkData(historyData));
-    QVERIFY(compareData(historyData, origData));
+    checkFunction(checkDB, history, origData);
 }
 
 void tst_DB::import_data()
@@ -133,12 +137,8 @@ void tst_DB::insert()
 
     QSignalSpy errorSpy(history, SIGNAL(error(QString)));
     QSignalSpy outdateSpy(history, SIGNAL(dataOutdated()));
-    QSignalSpy dataSpy(history, SIGNAL(historyRequestCompleted(QVector<TimeLogEntry>,qlonglong)));
     QSignalSpy updateSpy(history, SIGNAL(dataUpdated(QVector<TimeLogEntry>,QVector<TimeLogHistory::Fields>)));
     QSignalSpy insertSpy(history, SIGNAL(dataInserted(TimeLogEntry)));
-
-    qlonglong id;
-    QVector<TimeLogEntry> historyData;
 
     if (initialEntries) {
         QSignalSpy importSpy(history, SIGNAL(dataImported(QVector<TimeLogEntry>)));
@@ -160,44 +160,11 @@ void tst_DB::insert()
     QVERIFY(outdateSpy.isEmpty());
     QVERIFY(compareData(insertSpy.constFirst().at(0).value<TimeLogEntry>(), entry));
 
-    dataSpy.clear();
-    id = QDateTime::currentMSecsSinceEpoch();
-    history->getHistoryBetween(id);
-    QVERIFY(dataSpy.wait());
-    QVERIFY(errorSpy.isEmpty());
-    QVERIFY(outdateSpy.isEmpty());
-    QCOMPARE(dataSpy.constFirst().at(1).toLongLong(), id);
-    historyData = dataSpy.constFirst().at(0).value<QVector<TimeLogEntry> >();
-    QVERIFY(checkData(historyData));
     origData.insert(index, entry);
-    QCOMPARE(history->size(), origData.size());
-    QVERIFY(compareData(historyData, origData));
 
-    QVector<TimeLogEntry> updateData = updateSpy.constFirst().at(0).value<QVector<TimeLogEntry> >();
-    QVector<TimeLogHistory::Fields> updateFields = updateSpy.constFirst().at(1).value<QVector<TimeLogHistory::Fields> >();
+    checkFunction(checkInsert, insertSpy, updateSpy, origData, index);
 
-    int resultIndex = 0;
-    if (index != 0) {
-        resultIndex = 1;
-        QVERIFY(updateFields.at(1) & TimeLogHistory::PrecedingStart);
-        QVERIFY(updateFields.at(0) & TimeLogHistory::DurationTime);
-        QCOMPARE(updateData.at(1).precedingStart, updateData.at(0).startTime);
-        QCOMPARE(updateData.at(0).durationTime, updateData.at(0).startTime.secsTo(updateData.at(1).startTime));
-    } else {
-        QCOMPARE(updateData.at(0).precedingStart, QDateTime::fromTime_t(0));
-    }
-    if (index < origData.size()-1) {
-        resultIndex = updateData.size() - 2;
-        QVERIFY(updateFields.at(resultIndex+1) & TimeLogHistory::PrecedingStart);
-        QVERIFY(updateFields.at(resultIndex) & TimeLogHistory::DurationTime);
-        QCOMPARE(updateData.at(resultIndex+1).precedingStart, updateData.at(resultIndex).startTime);
-        QCOMPARE(updateData.at(resultIndex).durationTime, updateData.at(resultIndex).startTime.secsTo(updateData.at(resultIndex+1).startTime));
-    } else {
-        resultIndex = updateData.size() - 1;
-        QCOMPARE(updateData.at(resultIndex).durationTime, -1);
-    }
-    QCOMPARE(updateData.at(resultIndex).startTime, origData.at(index).startTime);
-    QVERIFY(updateFields.at(resultIndex) & (TimeLogHistory::PrecedingStart | TimeLogHistory::DurationTime));
+    checkFunction(checkDB, history, origData);
 }
 
 void tst_DB::insert_data()
@@ -253,19 +220,7 @@ void tst_DB::insertConflict()
     QVERIFY(insertSpy.isEmpty());
     QVERIFY(updateSpy.isEmpty());
 
-    dataSpy.clear();
-    errorSpy.clear();
-    outdateSpy.clear();
-    id = QDateTime::currentMSecsSinceEpoch();
-    history->getHistoryBetween(id);
-    QVERIFY(dataSpy.wait());
-    QVERIFY(errorSpy.isEmpty());
-    QVERIFY(outdateSpy.isEmpty());
-    QCOMPARE(dataSpy.constFirst().at(1).toLongLong(), id);
-    historyData = dataSpy.constFirst().at(0).value<QVector<TimeLogEntry> >();
-    QVERIFY(checkData(historyData));
-    QCOMPARE(history->size(), origData.size());
-    QVERIFY(compareData(historyData, origData));
+    checkFunction(checkDB, history, origData);
 }
 
 void tst_DB::insertConflict_data()
@@ -313,51 +268,15 @@ void tst_DB::remove()
     QVERIFY(errorSpy.isEmpty());
     QVERIFY(outdateSpy.isEmpty());
     QCOMPARE(removeSpy.constFirst().at(0).value<TimeLogEntry>().uuid, origData.at(index).uuid);
-    dataSpy.clear();
-    id = QDateTime::currentMSecsSinceEpoch();
-    history->getHistoryBetween(id);
-    QVERIFY(dataSpy.wait());
-    QVERIFY(errorSpy.isEmpty());
-    QVERIFY(outdateSpy.isEmpty());
-    QCOMPARE(dataSpy.constFirst().at(1).toLongLong(), id);
-    historyData = dataSpy.constFirst().at(0).value<QVector<TimeLogEntry> >();
-    QVERIFY(checkData(historyData));
-    origData.remove(index);
-    QCOMPARE(history->size(), origData.size());
-    QVERIFY(compareData(historyData, origData));
 
     if (initialEntries < 2) {
         QVERIFY(updateSpy.isEmpty());
         return;
     }
 
-    QVector<TimeLogEntry> updateData = updateSpy.constFirst().at(0).value<QVector<TimeLogEntry> >();
-    QVector<TimeLogHistory::Fields> updateFields = updateSpy.constFirst().at(1).value<QVector<TimeLogHistory::Fields> >();
+    checkFunction(checkRemove, removeSpy, updateSpy, origData, index);
 
-    int resultIndex = 0;
-    if (index != 0) {
-        QVERIFY(updateFields.at(0) & TimeLogHistory::DurationTime);
-        if (index != origData.size()) {
-            QCOMPARE(updateData.at(0).durationTime, updateData.at(0).startTime.secsTo(updateData.at(1).startTime));
-        } else {
-            QCOMPARE(updateData.at(0).durationTime, -1);
-        }
-    } else {
-        QCOMPARE(updateData.at(0).precedingStart, QDateTime::fromTime_t(0));
-    }
-    if (index < origData.size()-1) {
-        if (index != 0) {
-            QVERIFY(updateFields.at(1) & TimeLogHistory::PrecedingStart);
-            QCOMPARE(updateData.at(1).precedingStart, updateData.at(0).startTime);
-        } else {
-            QVERIFY(updateFields.at(0) & TimeLogHistory::PrecedingStart);
-            QCOMPARE(updateData.at(0).precedingStart.toTime_t(), static_cast<uint>(0));
-        }
-    } else {
-        resultIndex = updateData.size() - 1;
-        QCOMPARE(updateData.at(resultIndex).durationTime, -1);
-    }
-    QVERIFY(updateFields.at(resultIndex) & (TimeLogHistory::PrecedingStart | TimeLogHistory::DurationTime));
+    checkFunction(checkDB, history, origData);
 }
 
 void tst_DB::remove_data()
@@ -418,49 +337,11 @@ void tst_DB::edit()
     QVERIFY(errorSpy.isEmpty());
     QVERIFY(outdateSpy.isEmpty());
 
-    QVector<TimeLogEntry> updateData = updateSpy.constFirst().at(0).value<QVector<TimeLogEntry> >();
-    QVector<TimeLogHistory::Fields> updateFields = updateSpy.constFirst().at(1).value<QVector<TimeLogHistory::Fields> >();
-
-    int resultIndex = 0;
-    if (fields & TimeLogHistory::StartTime) {
-        if (index != 0) {
-            resultIndex = 1;
-            QVERIFY(updateFields.at(0) & TimeLogHistory::PrecedingStart);
-            QVERIFY(updateFields.at(1) & TimeLogHistory::DurationTime);
-            QCOMPARE(updateData.at(1).precedingStart, updateData.at(0).startTime);
-            QCOMPARE(updateData.at(0).durationTime, updateData.at(0).startTime.secsTo(updateData.at(1).startTime));
-        }
-        if (index != origData.size()-1) {
-            resultIndex = updateData.size() - 2;
-            QVERIFY(updateFields.at(resultIndex+1) & TimeLogHistory::PrecedingStart);
-            QVERIFY(updateFields.at(resultIndex) & TimeLogHistory::DurationTime);
-            QCOMPARE(updateData.at(resultIndex+1).precedingStart, updateData.at(resultIndex).startTime);
-            QCOMPARE(updateData.at(resultIndex).durationTime, updateData.at(resultIndex).startTime.secsTo(updateData.at(resultIndex+1).startTime));
-        }
-        QCOMPARE(updateData.at(resultIndex).startTime, entry.startTime);
-//        QEXPECT_FAIL("", "All flags are the same for all items", Continue);
-//        QVERIFY(updateFields.at(resultIndex) == (fields | TimeLogHistory::DurationTime));   // FIXME
-    }
-    QVERIFY((updateFields.at(resultIndex) & TimeLogHistory::AllFieldsMask) == fields);
-    if (fields & TimeLogHistory::Category) {
-        QCOMPARE(updateData.at(resultIndex).category, entry.category);
-    }
-    if (fields & TimeLogHistory::Comment) {
-        QCOMPARE(updateData.at(resultIndex).comment, entry.comment);
-    }
-
-    dataSpy.clear();
-    id = QDateTime::currentMSecsSinceEpoch();
-    history->getHistoryBetween(id);
-    QVERIFY(dataSpy.wait());
-    QVERIFY(errorSpy.isEmpty());
-    QVERIFY(outdateSpy.isEmpty());
-    QCOMPARE(dataSpy.constFirst().at(1).toLongLong(), id);
-    historyData = dataSpy.constFirst().at(0).value<QVector<TimeLogEntry> >();
-    QCOMPARE(historyData.size(), origData.size());
     origData[index] = entry;
-    QVERIFY(checkData(historyData));
-    QVERIFY(compareData(historyData, origData));
+
+    checkFunction(checkEdit, updateSpy, origData, fields, index);
+
+    checkFunction(checkDB, history, origData);
 }
 
 void tst_DB::edit_data()
@@ -560,19 +441,7 @@ void tst_DB::editConflict()
     QVERIFY(!outdateSpy.isEmpty() || outdateSpy.wait());
     QVERIFY(updateSpy.isEmpty());
 
-    dataSpy.clear();
-    id = QDateTime::currentMSecsSinceEpoch();
-    errorSpy.clear();
-    outdateSpy.clear();
-    history->getHistoryBetween(id);
-    QVERIFY(dataSpy.wait());
-    QVERIFY(errorSpy.isEmpty());
-    QVERIFY(outdateSpy.isEmpty());
-    QCOMPARE(dataSpy.constFirst().at(1).toLongLong(), id);
-    historyData = dataSpy.constFirst().at(0).value<QVector<TimeLogEntry> >();
-    QCOMPARE(historyData.size(), origData.size());
-    QVERIFY(checkData(historyData));
-    QVERIFY(compareData(historyData, origData));
+    checkFunction(checkDB, history, origData);
 }
 
 void tst_DB::editConflict_data()
@@ -657,19 +526,7 @@ void tst_DB::renameCategory()
         }
     }
 
-    QSignalSpy dataSpy(history, SIGNAL(historyRequestCompleted(QVector<TimeLogEntry>,qlonglong)));
-    errorSpy.clear();
-    outdateSpy.clear();
-    qlonglong id = QDateTime::currentMSecsSinceEpoch();
-    history->getHistoryBetween(id);
-    QVERIFY(dataSpy.wait());
-    QVERIFY(errorSpy.isEmpty());
-    QVERIFY(outdateSpy.isEmpty());
-    QCOMPARE(dataSpy.constFirst().at(1).toLongLong(), id);
-    QVector<TimeLogEntry> resultData = dataSpy.constFirst().at(0).value<QVector<TimeLogEntry> >();
-    QCOMPARE(resultData.size(), origData.size());
-    QVERIFY(checkData(resultData));
-    QVERIFY(compareData(resultData, origData));
+    checkFunction(checkDB, history, origData);
 }
 
 void tst_DB::renameCategory_data()
@@ -686,6 +543,127 @@ void tst_DB::renameCategory_data()
     QTest::newRow("2 entries, first") << 2 << "CategoryOld" << "CategoryNew" << (QVector<int>() << 0);
     QTest::newRow("2 entries, last") << 2 << "CategoryOld" << "CategoryNew" << (QVector<int>() << 1);
     QTest::newRow("all items") << 6 << "CategoryOld" << "CategoryNew" << (QVector<int>() << 0 << 1 << 2 << 3 << 4 << 5);
+}
+
+void tst_DB::checkInsert(QSignalSpy &actionSpy, QSignalSpy &updateSpy, QVector<TimeLogEntry> &origData, int index)
+{
+    QVERIFY(actionSpy.size() == 1 || actionSpy.wait());
+    QVERIFY(compareData(actionSpy.constFirst().at(0).value<TimeLogEntry>(), origData.at(index)));
+
+    int resultIndex = 0;
+    QVERIFY(!updateSpy.isEmpty() || updateSpy.wait());
+    QVector<TimeLogEntry> updateData = updateSpy.constFirst().at(0).value<QVector<TimeLogEntry> >();
+    QVector<TimeLogHistory::Fields> updateFields = updateSpy.constFirst().at(1).value<QVector<TimeLogHistory::Fields> >();
+    if (index != 0) {
+        resultIndex = 1;
+        QVERIFY(updateFields.at(1) & TimeLogHistory::PrecedingStart);
+        QVERIFY(updateFields.at(0) & TimeLogHistory::DurationTime);
+        QCOMPARE(updateData.at(1).precedingStart, updateData.at(0).startTime);
+        QCOMPARE(updateData.at(0).durationTime, updateData.at(0).startTime.secsTo(updateData.at(1).startTime));
+    } else {
+        QCOMPARE(updateData.at(0).precedingStart, QDateTime::fromTime_t(0));
+    }
+    if (index < origData.size()-1) {
+        resultIndex = updateData.size() - 2;
+        QVERIFY(updateFields.at(resultIndex+1) & TimeLogHistory::PrecedingStart);
+        QVERIFY(updateFields.at(resultIndex) & TimeLogHistory::DurationTime);
+        QCOMPARE(updateData.at(resultIndex+1).precedingStart, updateData.at(resultIndex).startTime);
+        QCOMPARE(updateData.at(resultIndex).durationTime, updateData.at(resultIndex).startTime.secsTo(updateData.at(resultIndex+1).startTime));
+    } else {
+        resultIndex = updateData.size() - 1;
+        QCOMPARE(updateData.at(resultIndex).durationTime, -1);
+    }
+    QCOMPARE(updateData.at(resultIndex).startTime, origData.at(index).startTime);
+    QVERIFY(updateFields.at(resultIndex) & (TimeLogHistory::PrecedingStart | TimeLogHistory::DurationTime));
+}
+
+void tst_DB::checkRemove(QSignalSpy &actionSpy, QSignalSpy &updateSpy, QVector<TimeLogEntry> &origData, int index)
+{
+    QVERIFY(actionSpy.size() == 1 || actionSpy.wait());
+    QCOMPARE(actionSpy.constFirst().at(0).value<TimeLogEntry>().uuid, origData.at(index).uuid);
+    origData.remove(index);
+
+    int resultIndex = 0;
+    if (origData.size() == 0) {
+        QVERIFY(updateSpy.isEmpty());
+    } else {
+        QVERIFY(!updateSpy.isEmpty() || updateSpy.wait());
+        QVector<TimeLogEntry> updateData = updateSpy.constFirst().at(0).value<QVector<TimeLogEntry> >();
+        QVector<TimeLogHistory::Fields> updateFields = updateSpy.constFirst().at(1).value<QVector<TimeLogHistory::Fields> >();
+
+        resultIndex = 0;
+        if (index != 0) {
+            QVERIFY(updateFields.at(0) & TimeLogHistory::DurationTime);
+            if (index != origData.size()) {
+                QCOMPARE(updateData.at(0).durationTime, updateData.at(0).startTime.secsTo(updateData.at(1).startTime));
+            } else {
+                QCOMPARE(updateData.at(0).durationTime, -1);
+            }
+        } else {
+            QCOMPARE(updateData.at(0).precedingStart, QDateTime::fromTime_t(0));
+        }
+        if (index < origData.size()-1) {
+            if (index != 0) {
+                QVERIFY(updateFields.at(1) & TimeLogHistory::PrecedingStart);
+                QCOMPARE(updateData.at(1).precedingStart, updateData.at(0).startTime);
+            } else {
+                QVERIFY(updateFields.at(0) & TimeLogHistory::PrecedingStart);
+                QCOMPARE(updateData.at(0).precedingStart.toTime_t(), static_cast<uint>(0));
+            }
+        } else {
+            resultIndex = updateData.size() - 1;
+            QCOMPARE(updateData.at(resultIndex).durationTime, -1);
+        }
+        QVERIFY(updateFields.at(resultIndex) & (TimeLogHistory::PrecedingStart | TimeLogHistory::DurationTime));
+    }
+}
+
+void tst_DB::checkEdit(QSignalSpy &updateSpy, QVector<TimeLogEntry> &origData, TimeLogHistory::Fields fields, int index)
+{
+    QVERIFY(!updateSpy.isEmpty() || updateSpy.wait());
+    QVector<TimeLogEntry> updateData = updateSpy.constFirst().at(0).value<QVector<TimeLogEntry> >();
+    QVector<TimeLogHistory::Fields> updateFields = updateSpy.constFirst().at(1).value<QVector<TimeLogHistory::Fields> >();
+
+    int resultIndex = 0;
+    if (fields & TimeLogHistory::StartTime) {
+        if (index != 0) {
+            resultIndex = 1;
+            QVERIFY(updateFields.at(0) & TimeLogHistory::PrecedingStart);
+            QVERIFY(updateFields.at(1) & TimeLogHistory::DurationTime);
+            QCOMPARE(updateData.at(1).precedingStart, updateData.at(0).startTime);
+            QCOMPARE(updateData.at(0).durationTime, updateData.at(0).startTime.secsTo(updateData.at(1).startTime));
+        }
+        if (index != origData.size()-1) {
+            resultIndex = updateData.size() - 2;
+            QVERIFY(updateFields.at(resultIndex+1) & TimeLogHistory::PrecedingStart);
+            QVERIFY(updateFields.at(resultIndex) & TimeLogHistory::DurationTime);
+            QCOMPARE(updateData.at(resultIndex+1).precedingStart, updateData.at(resultIndex).startTime);
+            QCOMPARE(updateData.at(resultIndex).durationTime, updateData.at(resultIndex).startTime.secsTo(updateData.at(resultIndex+1).startTime));
+        }
+        QCOMPARE(updateData.at(resultIndex).startTime, origData.at(index).startTime);
+//        QEXPECT_FAIL("", "All flags are the same for all items", Continue);
+//        QVERIFY(updateFields.at(resultIndex) == (fields | TimeLogHistory::DurationTime));   // FIXME
+    }
+    QVERIFY((updateFields.at(resultIndex) & TimeLogHistory::AllFieldsMask) == fields);
+    if (fields & TimeLogHistory::Category) {
+        QCOMPARE(updateData.at(resultIndex).category, origData.at(index).category);
+    }
+    if (fields & TimeLogHistory::Comment) {
+        QCOMPARE(updateData.at(resultIndex).comment, origData.at(index).comment);
+    }
+}
+
+void tst_DB::checkDB(TimeLogHistory *history, const QVector<TimeLogEntry> &data) const
+{
+    QSignalSpy historyDataSpy(history, SIGNAL(historyRequestCompleted(QVector<TimeLogEntry>,qlonglong)));
+    QSignalSpy historyErrorSpy(history, SIGNAL(error(QString)));
+    qlonglong id = QDateTime::currentMSecsSinceEpoch();
+    history->getHistoryBetween(id);
+    QVERIFY(historyDataSpy.wait());
+    QVERIFY(historyErrorSpy.isEmpty());
+    QCOMPARE(historyDataSpy.constFirst().at(1).toLongLong(), id);
+    QVector<TimeLogEntry> historyData = historyDataSpy.constFirst().at(0).value<QVector<TimeLogEntry> >();
+    QVERIFY(compareData(historyData, data));
 }
 
 void tst_DB::initDefaultData()
