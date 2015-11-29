@@ -1,6 +1,8 @@
 TEMPLATE = subdirs
 SUBDIRS += \
     auto \
-    common
+    common \
+    benchmarks
 
 auto.depends = common
+benchmarks.depends = common

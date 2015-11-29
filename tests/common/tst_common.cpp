@@ -1,3 +1,5 @@
+#include <functional>
+
 #include "tst_common.h"
 
 QVector<TimeLogEntry> defaultDataset = QVector<TimeLogEntry>()
@@ -19,6 +21,17 @@ QVector<TimeLogEntry> defaultDataset = QVector<TimeLogEntry>()
         << TimeLogEntry(QUuid::createUuid(), TimeLogData(QDateTime::fromString("2015-11-02T00:00:00+0200",
                                                                                Qt::ISODate),
                                                          "Category5", ""));
+
+const int minDuration = 1;
+const int maxDuration = 20000;
+
+const int minCategories = 1;
+const int maxCategories = 100;
+
+const int minDepth = 1;
+const int maxDepth = 5;
+
+const QString separator = ">";
 
 void checkInsert(QSignalSpy &actionSpy, QSignalSpy &updateSpy, QVector<TimeLogEntry> &origData, int index)
 {
@@ -144,6 +157,74 @@ void checkDB(TimeLogHistory *history, const QVector<TimeLogEntry> &data)
 const QVector<TimeLogEntry> &defaultData()
 {
     return defaultDataset;
+}
+
+QStringList genCategories(int count)
+{
+    QVector<QStringList> categories(maxDepth - minDepth + 1);
+
+    int categoriesLeft(count);
+    QString prefix;
+
+    for (int depth = minDepth-1; depth < maxDepth; depth++) {
+        int categoriesCount = std::ceil(count / (maxDepth - minDepth + 1.0));
+
+        for (int i = 0; i < categoriesCount && categoriesLeft; i++, categoriesLeft--) {
+            QString category = QString("%1Category%2").arg(prefix).arg(i);
+
+            if (depth) {
+                category.prepend(QString("%1 %2 ").arg(categories.at(depth-1).at(i)).arg(separator));
+            }
+
+            categories[depth].append(category);
+        }
+
+        prefix.append("Sub");
+    }
+
+    QStringList result;
+
+    for (int i = 0; i < categories.size(); i++) {
+        result.append(categories.at(i));
+    }
+
+    return result;
+}
+
+QVector<TimeLogEntry> genData(int count)
+{
+    if (count == 0) {
+        return QVector<TimeLogEntry>();
+    }
+
+    int categoryCount = std::ceil(std::log(count + 1));
+    int categoriesCount = count / categoryCount;
+    if (categoriesCount < minCategories) {
+        categoriesCount = minCategories;
+    } else if (categoriesCount > maxCategories) {
+        categoriesCount = maxCategories;
+    }
+    categoryCount = std::ceil(count / categoriesCount);
+    QStringList categories = genCategories(categoriesCount);
+
+    QVector<TimeLogEntry> result;
+
+    QDateTime startDate = QDateTime::fromTime_t(QDateTime::currentDateTime().toTime_t()).addSecs(-(maxDuration * count));
+
+    std::uniform_int_distribution<> durationDistribution(minDuration, maxDuration);
+    std::function<int()> randomDuration = std::bind(durationDistribution, std::default_random_engine());
+
+    std::uniform_int_distribution<> categoryDistribution(0, categories.size() - 1);
+    std::function<int()> randomCategory = std::bind(categoryDistribution, std::default_random_engine());
+
+    for (int i = 0; i < count; i++) {
+        TimeLogData data(startDate, categories.at(randomCategory()), "");
+        TimeLogEntry entry(QUuid::createUuid(), data);
+        result.append(entry);
+        startDate = startDate.addSecs(randomDuration());
+    }
+
+    return result;
 }
 
 void dumpData(const QVector<TimeLogEntry> &data)

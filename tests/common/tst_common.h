@@ -20,6 +20,9 @@ void checkEdit(QSignalSpy &updateSpy, QVector<TimeLogEntry> &origData, TimeLogHi
 void checkDB(TimeLogHistory *history, const QVector<TimeLogEntry> &data);
 
 const QVector<TimeLogEntry> &defaultData();
+QStringList genCategories(int count);
+QVector<TimeLogEntry> genData(int count);
+
 void dumpData(const QVector<TimeLogEntry> &data);
 bool checkData(const QVector<TimeLogEntry> &data);
 
