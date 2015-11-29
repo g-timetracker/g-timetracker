@@ -2,20 +2,10 @@
 
 #include <QTemporaryDir>
 
-#include "TimeLogHistory.h"
-#include "TimeLogEntry.h"
-
-#define checkFunction(func, ...) do {   \
-    func(__VA_ARGS__);                  \
-    if (QTest::currentTestFailed()) {   \
-        QFAIL("Subtest failed");        \
-    }                                   \
-} while (0)
+#include "tst_common.h"
 
 QTemporaryDir *dataDir = Q_NULLPTR;
 TimeLogHistory *history = Q_NULLPTR;
-
-QVector<TimeLogEntry> defaultData;
 
 class tst_DB : public QObject
 {
@@ -53,20 +43,6 @@ private slots:
     void undoRenameCategory();
     void undoRenameCategory_data();
     void undoMultiple();
-
-private:
-    void checkInsert(QSignalSpy &actionSpy, QSignalSpy &updateSpy, QVector<TimeLogEntry> &origData, int index);
-    void checkRemove(QSignalSpy &actionSpy, QSignalSpy &updateSpy, QVector<TimeLogEntry> &origData, int index);
-    void checkEdit(QSignalSpy &updateSpy, QVector<TimeLogEntry> &origData, TimeLogHistory::Fields fields, int index);
-
-    void checkDB(TimeLogHistory *history, const QVector<TimeLogEntry> &data) const;
-
-    void initDefaultData();
-    void dumpData(const QVector<TimeLogEntry> &data) const;
-    bool checkData(const QVector<TimeLogEntry> &data) const;
-
-    bool compareData(const TimeLogEntry &t1, const TimeLogEntry &t2) const;
-    bool compareData(const QVector<TimeLogEntry> &d1, const QVector<TimeLogEntry> &d2) const;
 };
 
 tst_DB::tst_DB()
@@ -104,15 +80,13 @@ void tst_DB::initTestCase()
     qRegisterMetaType<QVector<TimeLogEntry> >();
     qRegisterMetaType<TimeLogHistory::Fields>();
     qRegisterMetaType<QVector<TimeLogHistory::Fields> >();
-
-    initDefaultData();
 }
 
 void tst_DB::import()
 {
     QFETCH(int, entriesCount);
 
-    QVector<TimeLogEntry> origData(defaultData.mid(0, entriesCount));
+    QVector<TimeLogEntry> origData(defaultData().mid(0, entriesCount));
 
     QSignalSpy errorSpy(history, SIGNAL(error(QString)));
     QSignalSpy outdateSpy(history, SIGNAL(dataOutdated()));
@@ -142,7 +116,7 @@ void tst_DB::insert()
 {
     QFETCH(int, initialEntries);
 
-    QVector<TimeLogEntry> origData(defaultData.mid(0, initialEntries));
+    QVector<TimeLogEntry> origData(defaultData().mid(0, initialEntries));
 
     QSignalSpy errorSpy(history, SIGNAL(error(QString)));
     QSignalSpy outdateSpy(history, SIGNAL(dataOutdated()));
@@ -193,7 +167,7 @@ void tst_DB::insertConflict()
 {
     QFETCH(int, initialEntries);
 
-    QVector<TimeLogEntry> origData(defaultData.mid(0, initialEntries));
+    QVector<TimeLogEntry> origData(defaultData().mid(0, initialEntries));
 
     QSignalSpy errorSpy(history, SIGNAL(error(QString)));
     QSignalSpy outdateSpy(history, SIGNAL(dataOutdated()));
@@ -246,7 +220,7 @@ void tst_DB::remove()
 {
     QFETCH(int, initialEntries);
 
-    QVector<TimeLogEntry> origData(defaultData.mid(0, initialEntries));
+    QVector<TimeLogEntry> origData(defaultData().mid(0, initialEntries));
 
     QSignalSpy errorSpy(history, SIGNAL(error(QString)));
     QSignalSpy outdateSpy(history, SIGNAL(dataOutdated()));
@@ -301,7 +275,7 @@ void tst_DB::remove_data()
 
 void tst_DB::edit()
 {
-    QVector<TimeLogEntry> origData(defaultData);
+    QVector<TimeLogEntry> origData(defaultData());
 
     QSignalSpy errorSpy(history, SIGNAL(error(QString)));
     QSignalSpy outdateSpy(history, SIGNAL(dataOutdated()));
@@ -359,40 +333,40 @@ void tst_DB::edit_data()
     QTest::addColumn<TimeLogEntry>("newData");
 
     int index = 4;
-    TimeLogEntry entry = defaultData.at(index);
+    TimeLogEntry entry = defaultData().at(index);
     entry.category = "CategoryNew";
     QTest::newRow("category") << index << entry;
 
     index = 1;
-    entry = defaultData.at(index);
+    entry = defaultData().at(index);
     entry.comment = "Test comment";
     QTest::newRow("comment") << index << entry;
 
     index = 2;
-    entry = defaultData.at(index);
+    entry = defaultData().at(index);
     entry.startTime = entry.startTime.addSecs(-100);
     QTest::newRow("start") << index << entry;
 
     index = 3;
-    entry = defaultData.at(index);
+    entry = defaultData().at(index);
     entry.category = "CategoryNew";
     entry.comment = "Test comment";
     QTest::newRow("category & comment") << index << entry;
 
     index = 1;
-    entry = defaultData.at(index);
+    entry = defaultData().at(index);
     entry.startTime = entry.startTime.addSecs(1000);
     entry.category = "CategoryNew";
     QTest::newRow("start & category") << index << entry;
 
     index = 2;
-    entry = defaultData.at(index);
+    entry = defaultData().at(index);
     entry.startTime = entry.startTime.addSecs(-100);
     entry.comment = "Test comment";
     QTest::newRow("start & comment") << index << entry;
 
     index = 1;
-    entry = defaultData.at(index);
+    entry = defaultData().at(index);
     entry.startTime = entry.startTime.addSecs(1000);
     entry.category = "CategoryNew";
     entry.comment = "Test comment";
@@ -403,7 +377,7 @@ void tst_DB::editConflict()
 {
     QFETCH(int, initialEntries);
 
-    QVector<TimeLogEntry> origData(defaultData.mid(0, initialEntries));
+    QVector<TimeLogEntry> origData(defaultData().mid(0, initialEntries));
 
     QSignalSpy errorSpy(history, SIGNAL(error(QString)));
     QSignalSpy outdateSpy(history, SIGNAL(dataOutdated()));
@@ -460,35 +434,35 @@ void tst_DB::editConflict_data()
     QTest::addColumn<TimeLogEntry>("newData");
 
     int index = 1;
-    TimeLogEntry entry = defaultData.at(index);
-    entry.startTime = defaultData.at(0).startTime;
+    TimeLogEntry entry = defaultData().at(index);
+    entry.startTime = defaultData().at(0).startTime;
     QTest::newRow("2 entries, first") << 2 << index << entry;
 
     index = 0;
-    entry = defaultData.at(index);
-    entry.startTime = defaultData.at(1).startTime;
+    entry = defaultData().at(index);
+    entry.startTime = defaultData().at(1).startTime;
     QTest::newRow("2 entries, last") << 2 << index << entry;
 
     index = 3;
-    entry = defaultData.at(index);
-    entry.startTime = defaultData.at(4).startTime;
+    entry = defaultData().at(index);
+    entry.startTime = defaultData().at(4).startTime;
     QTest::newRow("6 entries, middle") << 6 << index << entry;
 
     index = 5;
-    entry = defaultData.at(index);
-    entry.startTime = defaultData.at(2).startTime;
+    entry = defaultData().at(index);
+    entry.startTime = defaultData().at(2).startTime;
     entry.category = "CategoryNew";
     QTest::newRow("6 entries, category") << 6 << index << entry;
 
     index = 1;
-    entry = defaultData.at(index);
-    entry.startTime = defaultData.at(3).startTime;
+    entry = defaultData().at(index);
+    entry.startTime = defaultData().at(3).startTime;
     entry.comment = "Test comment";
     QTest::newRow("6 entries, comment") << 6 << index << entry;
 
     index = 2;
-    entry = defaultData.at(index);
-    entry.startTime = defaultData.at(0).startTime;
+    entry = defaultData().at(index);
+    entry.startTime = defaultData().at(0).startTime;
     entry.category = "CategoryNew";
     entry.comment = "Test comment";
     QTest::newRow("6 entries, all") << 6 << index << entry;
@@ -498,7 +472,7 @@ void tst_DB::renameCategory()
 {
     QFETCH(int, initialEntries);
 
-    QVector<TimeLogEntry> origData(defaultData.mid(0, initialEntries));
+    QVector<TimeLogEntry> origData(defaultData().mid(0, initialEntries));
 
     QSignalSpy errorSpy(history, SIGNAL(error(QString)));
     QSignalSpy outdateSpy(history, SIGNAL(dataOutdated()));
@@ -558,7 +532,7 @@ void tst_DB::undoInsert()
 {
     QFETCH(int, initialEntries);
 
-    QVector<TimeLogEntry> origData(defaultData.mid(0, initialEntries));
+    QVector<TimeLogEntry> origData(defaultData().mid(0, initialEntries));
 
     QSignalSpy errorSpy(history, SIGNAL(error(QString)));
     QSignalSpy outdateSpy(history, SIGNAL(dataOutdated()));
@@ -626,7 +600,7 @@ void tst_DB::undoRemove()
 {
     QFETCH(int, initialEntries);
 
-    QVector<TimeLogEntry> origData(defaultData.mid(0, initialEntries));
+    QVector<TimeLogEntry> origData(defaultData().mid(0, initialEntries));
 
     QSignalSpy errorSpy(history, SIGNAL(error(QString)));
     QSignalSpy outdateSpy(history, SIGNAL(dataOutdated()));
@@ -682,7 +656,7 @@ void tst_DB::undoRemove_data()
 
 void tst_DB::undoEdit()
 {
-    QVector<TimeLogEntry> origData(defaultData);
+    QVector<TimeLogEntry> origData(defaultData());
 
     QSignalSpy errorSpy(history, SIGNAL(error(QString)));
     QSignalSpy outdateSpy(history, SIGNAL(dataOutdated()));
@@ -737,40 +711,40 @@ void tst_DB::undoEdit_data()
     QTest::addColumn<TimeLogEntry>("newData");
 
     int index = 4;
-    TimeLogEntry entry = defaultData.at(index);
+    TimeLogEntry entry = defaultData().at(index);
     entry.category = "CategoryNew";
     QTest::newRow("category") << index << entry;
 
     index = 1;
-    entry = defaultData.at(index);
+    entry = defaultData().at(index);
     entry.comment = "Test comment";
     QTest::newRow("comment") << index << entry;
 
     index = 2;
-    entry = defaultData.at(index);
+    entry = defaultData().at(index);
     entry.startTime = entry.startTime.addSecs(-100);
     QTest::newRow("start") << index << entry;
 
     index = 3;
-    entry = defaultData.at(index);
+    entry = defaultData().at(index);
     entry.category = "CategoryNew";
     entry.comment = "Test comment";
     QTest::newRow("category & comment") << index << entry;
 
     index = 1;
-    entry = defaultData.at(index);
+    entry = defaultData().at(index);
     entry.startTime = entry.startTime.addSecs(1000);
     entry.category = "CategoryNew";
     QTest::newRow("start & category") << index << entry;
 
     index = 2;
-    entry = defaultData.at(index);
+    entry = defaultData().at(index);
     entry.startTime = entry.startTime.addSecs(-100);
     entry.comment = "Test comment";
     QTest::newRow("start & comment") << index << entry;
 
     index = 1;
-    entry = defaultData.at(index);
+    entry = defaultData().at(index);
     entry.startTime = entry.startTime.addSecs(1000);
     entry.category = "CategoryNew";
     entry.comment = "Test comment";
@@ -781,7 +755,7 @@ void tst_DB::undoRenameCategory()
 {
     QFETCH(int, initialEntries);
 
-    QVector<TimeLogEntry> origData(defaultData.mid(0, initialEntries));
+    QVector<TimeLogEntry> origData(defaultData().mid(0, initialEntries));
 
     QSignalSpy errorSpy(history, SIGNAL(error(QString)));
     QSignalSpy outdateSpy(history, SIGNAL(dataOutdated()));
@@ -840,7 +814,7 @@ void tst_DB::undoRenameCategory_data()
 
 void tst_DB::undoMultiple()
 {
-    QVector<TimeLogEntry> origData(defaultData);
+    QVector<TimeLogEntry> origData(defaultData());
 
     QSignalSpy errorSpy(history, SIGNAL(error(QString)));
     QSignalSpy outdateSpy(history, SIGNAL(dataOutdated()));
@@ -928,220 +902,6 @@ void tst_DB::undoMultiple()
     checkFunction(checkEdit, updateSpy, origData, TimeLogHistory::Category, 2);
 
     checkFunction(checkDB, history, origData);
-}
-
-void tst_DB::checkInsert(QSignalSpy &actionSpy, QSignalSpy &updateSpy, QVector<TimeLogEntry> &origData, int index)
-{
-    QVERIFY(actionSpy.size() == 1 || actionSpy.wait());
-    QVERIFY(compareData(actionSpy.constFirst().at(0).value<TimeLogEntry>(), origData.at(index)));
-
-    int resultIndex = 0;
-    QVERIFY(!updateSpy.isEmpty() || updateSpy.wait());
-    QVector<TimeLogEntry> updateData = updateSpy.constFirst().at(0).value<QVector<TimeLogEntry> >();
-    QVector<TimeLogHistory::Fields> updateFields = updateSpy.constFirst().at(1).value<QVector<TimeLogHistory::Fields> >();
-    if (index != 0) {
-        resultIndex = 1;
-        QVERIFY(updateFields.at(1) & TimeLogHistory::PrecedingStart);
-        QVERIFY(updateFields.at(0) & TimeLogHistory::DurationTime);
-        QCOMPARE(updateData.at(1).precedingStart, updateData.at(0).startTime);
-        QCOMPARE(updateData.at(0).durationTime, updateData.at(0).startTime.secsTo(updateData.at(1).startTime));
-    } else {
-        QCOMPARE(updateData.at(0).precedingStart, QDateTime::fromTime_t(0));
-    }
-    if (index < origData.size()-1) {
-        resultIndex = updateData.size() - 2;
-        QVERIFY(updateFields.at(resultIndex+1) & TimeLogHistory::PrecedingStart);
-        QVERIFY(updateFields.at(resultIndex) & TimeLogHistory::DurationTime);
-        QCOMPARE(updateData.at(resultIndex+1).precedingStart, updateData.at(resultIndex).startTime);
-        QCOMPARE(updateData.at(resultIndex).durationTime, updateData.at(resultIndex).startTime.secsTo(updateData.at(resultIndex+1).startTime));
-    } else {
-        resultIndex = updateData.size() - 1;
-        QCOMPARE(updateData.at(resultIndex).durationTime, -1);
-    }
-    QCOMPARE(updateData.at(resultIndex).startTime, origData.at(index).startTime);
-    QVERIFY(updateFields.at(resultIndex) & (TimeLogHistory::PrecedingStart | TimeLogHistory::DurationTime));
-}
-
-void tst_DB::checkRemove(QSignalSpy &actionSpy, QSignalSpy &updateSpy, QVector<TimeLogEntry> &origData, int index)
-{
-    QVERIFY(actionSpy.size() == 1 || actionSpy.wait());
-    QCOMPARE(actionSpy.constFirst().at(0).value<TimeLogEntry>().uuid, origData.at(index).uuid);
-    origData.remove(index);
-
-    int resultIndex = 0;
-    if (origData.size() == 0) {
-        QVERIFY(updateSpy.isEmpty());
-    } else {
-        QVERIFY(!updateSpy.isEmpty() || updateSpy.wait());
-        QVector<TimeLogEntry> updateData = updateSpy.constFirst().at(0).value<QVector<TimeLogEntry> >();
-        QVector<TimeLogHistory::Fields> updateFields = updateSpy.constFirst().at(1).value<QVector<TimeLogHistory::Fields> >();
-
-        resultIndex = 0;
-        if (index != 0) {
-            QVERIFY(updateFields.at(0) & TimeLogHistory::DurationTime);
-            if (index != origData.size()) {
-                QCOMPARE(updateData.at(0).durationTime, updateData.at(0).startTime.secsTo(updateData.at(1).startTime));
-            } else {
-                QCOMPARE(updateData.at(0).durationTime, -1);
-            }
-        } else {
-            QCOMPARE(updateData.at(0).precedingStart, QDateTime::fromTime_t(0));
-        }
-        if (index < origData.size()-1) {
-            if (index != 0) {
-                QVERIFY(updateFields.at(1) & TimeLogHistory::PrecedingStart);
-                QCOMPARE(updateData.at(1).precedingStart, updateData.at(0).startTime);
-            } else {
-                QVERIFY(updateFields.at(0) & TimeLogHistory::PrecedingStart);
-                QCOMPARE(updateData.at(0).precedingStart.toTime_t(), static_cast<uint>(0));
-            }
-        } else {
-            resultIndex = updateData.size() - 1;
-            QCOMPARE(updateData.at(resultIndex).durationTime, -1);
-        }
-        QVERIFY(updateFields.at(resultIndex) & (TimeLogHistory::PrecedingStart | TimeLogHistory::DurationTime));
-    }
-}
-
-void tst_DB::checkEdit(QSignalSpy &updateSpy, QVector<TimeLogEntry> &origData, TimeLogHistory::Fields fields, int index)
-{
-    QVERIFY(!updateSpy.isEmpty() || updateSpy.wait());
-    QVector<TimeLogEntry> updateData = updateSpy.constFirst().at(0).value<QVector<TimeLogEntry> >();
-    QVector<TimeLogHistory::Fields> updateFields = updateSpy.constFirst().at(1).value<QVector<TimeLogHistory::Fields> >();
-
-    int resultIndex = 0;
-    if (fields & TimeLogHistory::StartTime) {
-        if (index != 0) {
-            resultIndex = 1;
-            QVERIFY(updateFields.at(0) & TimeLogHistory::PrecedingStart);
-            QVERIFY(updateFields.at(1) & TimeLogHistory::DurationTime);
-            QCOMPARE(updateData.at(1).precedingStart, updateData.at(0).startTime);
-            QCOMPARE(updateData.at(0).durationTime, updateData.at(0).startTime.secsTo(updateData.at(1).startTime));
-        }
-        if (index != origData.size()-1) {
-            resultIndex = updateData.size() - 2;
-            QVERIFY(updateFields.at(resultIndex+1) & TimeLogHistory::PrecedingStart);
-            QVERIFY(updateFields.at(resultIndex) & TimeLogHistory::DurationTime);
-            QCOMPARE(updateData.at(resultIndex+1).precedingStart, updateData.at(resultIndex).startTime);
-            QCOMPARE(updateData.at(resultIndex).durationTime, updateData.at(resultIndex).startTime.secsTo(updateData.at(resultIndex+1).startTime));
-        }
-        QCOMPARE(updateData.at(resultIndex).startTime, origData.at(index).startTime);
-//        QEXPECT_FAIL("", "All flags are the same for all items", Continue);
-//        QVERIFY(updateFields.at(resultIndex) == (fields | TimeLogHistory::DurationTime));   // FIXME
-    }
-    QVERIFY((updateFields.at(resultIndex) & TimeLogHistory::AllFieldsMask) == fields);
-    if (fields & TimeLogHistory::Category) {
-        QCOMPARE(updateData.at(resultIndex).category, origData.at(index).category);
-    }
-    if (fields & TimeLogHistory::Comment) {
-        QCOMPARE(updateData.at(resultIndex).comment, origData.at(index).comment);
-    }
-}
-
-void tst_DB::checkDB(TimeLogHistory *history, const QVector<TimeLogEntry> &data) const
-{
-    QSignalSpy historyDataSpy(history, SIGNAL(historyRequestCompleted(QVector<TimeLogEntry>,qlonglong)));
-    QSignalSpy historyErrorSpy(history, SIGNAL(error(QString)));
-    qlonglong id = QDateTime::currentMSecsSinceEpoch();
-    history->getHistoryBetween(id);
-    QVERIFY(historyDataSpy.wait());
-    QVERIFY(historyErrorSpy.isEmpty());
-    QCOMPARE(historyDataSpy.constFirst().at(1).toLongLong(), id);
-    QVector<TimeLogEntry> historyData = historyDataSpy.constFirst().at(0).value<QVector<TimeLogEntry> >();
-    QVERIFY(compareData(historyData, data));
-}
-
-void tst_DB::initDefaultData()
-{
-    defaultData.append(TimeLogEntry(QUuid::createUuid(), TimeLogData(QDateTime::fromString("2015-11-01T11:00:00+0200",
-                                                                                           Qt::ISODate),
-                                                                     "Category0", "")));
-    defaultData.append(TimeLogEntry(QUuid::createUuid(), TimeLogData(QDateTime::fromString("2015-11-01T11:00:01+0200",
-                                                                                           Qt::ISODate),
-                                                                     "Category1", "")));
-    defaultData.append(TimeLogEntry(QUuid::createUuid(), TimeLogData(QDateTime::fromString("2015-11-01T11:59:59+0200",
-                                                                                           Qt::ISODate),
-                                                                     "Category2", "")));
-    defaultData.append(TimeLogEntry(QUuid::createUuid(), TimeLogData(QDateTime::fromString("2015-11-01T12:00:00+0200",
-                                                                                           Qt::ISODate),
-                                                                     "Category3", "")));
-    defaultData.append(TimeLogEntry(QUuid::createUuid(), TimeLogData(QDateTime::fromString("2015-11-01T23:59:59+0200",
-                                                                                           Qt::ISODate),
-                                                                     "Category4", "")));
-    defaultData.append(TimeLogEntry(QUuid::createUuid(), TimeLogData(QDateTime::fromString("2015-11-02T00:00:00+0200",
-                                                                                           Qt::ISODate),
-                                                                     "Category5", "")));
-}
-
-void tst_DB::dumpData(const QVector<TimeLogEntry> &data) const
-{
-    for (int i = 0; i < data.size(); i++) {
-        qDebug() << i << data.at(i) << endl;
-    }
-}
-
-bool tst_DB::checkData(const QVector<TimeLogEntry> &data) const
-{
-    for (int i = 0; i < data.size(); i++) {
-        if (!data.at(i).isValid()) {
-            qCritical() << "Data not valid at index" << i;
-            dumpData(data);
-            return false;
-        }
-
-        if (i > 0) {
-            if (data.at(i).precedingStart != data.at(i-1).startTime) {
-                qCritical() << "Wrong preceding start at index" << i;
-                dumpData(data);
-                return false;
-            }
-        } else if (data.at(i).precedingStart.toTime_t() != 0) {
-            qCritical() << "Wrong preceding start at index" << i;
-            dumpData(data);
-            return false;
-        }
-
-        if (i < data.size()-1) {
-            if (data.at(i).durationTime != data.at(i).startTime.secsTo(data.at(i+1).startTime)) {
-                qCritical() << "Wrong duration at index" << i;
-                dumpData(data);
-                return false;
-            }
-        }
-    }
-
-    return true;
-}
-
-bool tst_DB::compareData(const TimeLogEntry &t1, const TimeLogEntry &t2) const
-{
-    if (t1.uuid != t2.uuid || t1.startTime != t2.startTime || t1.category != t2.category
-        || t1.comment != t2.comment) {
-        qCritical() << "Data does not match" << endl << t1 << endl << t2 << endl;
-        return false;
-    }
-
-    return true;
-}
-
-bool tst_DB::compareData(const QVector<TimeLogEntry> &d1, const QVector<TimeLogEntry> &d2) const
-{
-    if (d1.size() != d2.size()) {
-        qCritical() << "Sizes does not match" << d1.size() << d2.size();
-        dumpData(d1);
-        dumpData(d2);
-        return false;
-    }
-
-    for (int i = 0; i < d1.size() - 1; i++) {
-        if (!compareData(d1.at(i), d2.at(i))) {
-            dumpData(d1);
-            dumpData(d2);
-            return false;
-        }
-    }
-
-    return true;
 }
 
 QTEST_MAIN(tst_DB)
