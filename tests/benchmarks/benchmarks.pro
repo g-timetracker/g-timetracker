@@ -1,4 +1,5 @@
 TEMPLATE = subdirs
 
 SUBDIRS += \
-    db_benchmark
+    db_benchmark \
+    sync_benchmark
