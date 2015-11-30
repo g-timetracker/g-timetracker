@@ -65,7 +65,8 @@ Item {
             width: listView.width
             category: model.category
             startTime: model.startTime
-            durationTime: model.durationTime
+            durationTime: (model.durationTime === -1 ? Util.calcDuration(startTime, new Date())
+                                                     : model.durationTime)
             comment: model.comment
             precedingStart: model.precedingStart
             succeedingStart: model.succeedingStart
