@@ -95,6 +95,10 @@ int main(int argc, char *argv[])
         qmlRegisterUncreatableType<DataSyncer>("TimeLog", 1, 0, "DataSyncer", "This is a DataSyncer object");
         qmlRegisterSingletonType(QUrl("qrc:/qml/timetracker/Settings.qml"), "TimeLog", 1, 0, "Settings");
 
+        if (!qputenv("QT_LABS_CONTROLS_STYLE", "material")) {
+            qCCritical(MAIN_CATEGORY) << "Fail to set style";
+        }
+
         QQmlApplicationEngine engine;
         engine.addImportPath(QString("%1/qml").arg(app.applicationDirPath()));
         engine.rootContext()->setContextProperty("TimeLogDataPath", parser.value(dataPathOption));
