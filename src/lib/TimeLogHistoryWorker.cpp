@@ -24,7 +24,8 @@ TimeLogHistoryWorker::TimeLogHistoryWorker(QObject *parent) :
     m_notifyRemoveQuery(Q_NULLPTR),
     m_notifyEditQuery(Q_NULLPTR),
     m_notifyEditStartQuery(Q_NULLPTR),
-    m_syncAffectedQuery(Q_NULLPTR)
+    m_syncAffectedQuery(Q_NULLPTR),
+    m_entryQuery(Q_NULLPTR)
 {
 
 }
@@ -38,6 +39,7 @@ TimeLogHistoryWorker::~TimeLogHistoryWorker()
     delete m_notifyEditQuery;
     delete m_notifyEditStartQuery;
     delete m_syncAffectedQuery;
+    delete m_entryQuery;
 
     QSqlDatabase::database(m_connectionName).close();
     QSqlDatabase::removeDatabase(m_connectionName);
@@ -1050,22 +1052,29 @@ QVector<TimeLogSyncData> TimeLogHistoryWorker::getSyncData(QSqlQuery &query) con
     return result;
 }
 
-TimeLogEntry TimeLogHistoryWorker::getEntry(const QUuid &uuid) const
+TimeLogEntry TimeLogHistoryWorker::getEntry(const QUuid &uuid)
 {
     TimeLogEntry entry;
 
-    QSqlDatabase db = QSqlDatabase::database(m_connectionName);
-    QSqlQuery query(db);
-    QString queryString = QString("%1 WHERE uuid=?").arg(selectFields);
-    if (!query.prepare(queryString)) {
-        qCCritical(HISTORY_WORKER_CATEGORY) << "Fail to prepare query:" << query.lastError().text()
-                                            << query.lastQuery();
-        emit error(query.lastError().text());
-        return entry;
-    }
-    query.addBindValue(uuid.toRfc4122());
+    if (!m_entryQuery) {
+        QSqlDatabase db = QSqlDatabase::database(m_connectionName);
+        QSqlQuery *query = new QSqlQuery(db);
+        QString queryString = QString("%1 WHERE uuid=:uuid").arg(selectFields);
+        if (!query->prepare(queryString)) {
+            qCCritical(HISTORY_WORKER_CATEGORY) << "Fail to prepare query:"
+                                                << query->lastError().text()
+                                                << query->lastQuery();
+            emit error(query->lastError().text());
+            delete query;
+            return entry;
+        }
 
-    QVector<TimeLogEntry> data = getHistory(query);
+        m_entryQuery = query;
+    }
+
+    m_entryQuery->bindValue(":uuid", uuid.toRfc4122());
+
+    QVector<TimeLogEntry> data = getHistory(*m_entryQuery);
     if (!data.empty()) {
         entry = data.first();
     }

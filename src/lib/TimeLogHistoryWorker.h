@@ -95,6 +95,7 @@ private:
     QSqlQuery *m_notifyEditQuery;
     QSqlQuery *m_notifyEditStartQuery;
     QSqlQuery *m_syncAffectedQuery;
+    QSqlQuery *m_entryQuery;
 
     bool setupTable();
     bool setupTriggers();
@@ -118,7 +119,7 @@ private:
     QVector<TimeLogEntry> getHistory(QSqlQuery &query) const;
     QVector<TimeLogStats> getStats(QSqlQuery &query) const;
     QVector<TimeLogSyncData> getSyncData(QSqlQuery &query) const;
-    TimeLogEntry getEntry(const QUuid &uuid) const;
+    TimeLogEntry getEntry(const QUuid &uuid);
     QVector<TimeLogEntry> getEntries(const QString &category) const;
     QVector<TimeLogSyncData> getSyncAffected(const QUuid &uuid);
     void notifyInsertUpdates(const TimeLogEntry &data);
