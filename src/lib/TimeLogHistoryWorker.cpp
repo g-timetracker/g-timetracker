@@ -23,7 +23,8 @@ TimeLogHistoryWorker::TimeLogHistoryWorker(QObject *parent) :
     m_notifyInsertQuery(Q_NULLPTR),
     m_notifyRemoveQuery(Q_NULLPTR),
     m_notifyEditQuery(Q_NULLPTR),
-    m_notifyEditStartQuery(Q_NULLPTR)
+    m_notifyEditStartQuery(Q_NULLPTR),
+    m_syncAffectedQuery(Q_NULLPTR)
 {
 
 }
@@ -36,6 +37,7 @@ TimeLogHistoryWorker::~TimeLogHistoryWorker()
     delete m_notifyRemoveQuery;
     delete m_notifyEditQuery;
     delete m_notifyEditStartQuery;
+    delete m_syncAffectedQuery;
 
     QSqlDatabase::database(m_connectionName).close();
     QSqlDatabase::removeDatabase(m_connectionName);
@@ -1086,27 +1088,34 @@ QVector<TimeLogEntry> TimeLogHistoryWorker::getEntries(const QString &category) 
     return getHistory(query);
 }
 
-QVector<TimeLogSyncData> TimeLogHistoryWorker::getSyncAffected(const QUuid &uuid) const
+QVector<TimeLogSyncData> TimeLogHistoryWorker::getSyncAffected(const QUuid &uuid)
 {
-    QSqlDatabase db = QSqlDatabase::database(m_connectionName);
-    QSqlQuery query(db);
-    QString queryString("WITH result AS ( "
-                        "    SELECT uuid, start, category, comment, mtime FROM timelog "
-                        "    WHERE uuid=:uuid "
-                        "UNION ALL "
-                        "    SELECT uuid, NULL, NULL, NULL, mtime FROM removed "
-                        "    WHERE uuid=:uuid "
-                        ") "
-                        "SELECT * FROM result ORDER BY mtime DESC LIMIT 1");
-    if (!query.prepare(queryString)) {
-        qCCritical(HISTORY_WORKER_CATEGORY) << "Fail to prepare query:" << query.lastError().text()
-                                            << query.lastQuery();
-        emit error(query.lastError().text());
-        return QVector<TimeLogSyncData>();
-    }
-    query.bindValue(":uuid", uuid.toRfc4122());
+    if (!m_syncAffectedQuery) {
+        QSqlDatabase db = QSqlDatabase::database(m_connectionName);
+        QSqlQuery *query = new QSqlQuery(db);
+        QString queryString("WITH result AS ( "
+                            "    SELECT uuid, start, category, comment, mtime FROM timelog "
+                            "    WHERE uuid=:uuid "
+                            "UNION ALL "
+                            "    SELECT uuid, NULL, NULL, NULL, mtime FROM removed "
+                            "    WHERE uuid=:uuid "
+                            ") "
+                            "SELECT * FROM result ORDER BY mtime DESC LIMIT 1");
+        if (!query->prepare(queryString)) {
+            qCCritical(HISTORY_WORKER_CATEGORY) << "Fail to prepare query:"
+                                                << query->lastError().text()
+                                                << query->lastQuery();
+            emit error(query->lastError().text());
+            delete query;
+            return QVector<TimeLogSyncData>();
+        }
 
-    return getSyncData(query);
+        m_syncAffectedQuery = query;
+    }
+
+    m_syncAffectedQuery->bindValue(":uuid", uuid.toRfc4122());
+
+    return getSyncData(*m_syncAffectedQuery);
 }
 
 void TimeLogHistoryWorker::notifyInsertUpdates(const TimeLogEntry &data)
