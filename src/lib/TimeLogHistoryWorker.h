@@ -90,6 +90,10 @@ private:
 
     QSqlQuery *m_insertQuery;
     QSqlQuery *m_removeQuery;
+    QSqlQuery *m_notifyInsertQuery;
+    QSqlQuery *m_notifyRemoveQuery;
+    QSqlQuery *m_notifyEditQuery;
+    QSqlQuery *m_notifyEditStartQuery;
 
     bool setupTable();
     bool setupTriggers();
@@ -116,11 +120,11 @@ private:
     TimeLogEntry getEntry(const QUuid &uuid) const;
     QVector<TimeLogEntry> getEntries(const QString &category) const;
     QVector<TimeLogSyncData> getSyncAffected(const QUuid &uuid) const;
-    void notifyInsertUpdates(const TimeLogEntry &data) const;
-    void notifyInsertUpdates(const QVector<TimeLogEntry> &data) const;
-    void notifyRemoveUpdates(const TimeLogEntry &data) const;
-    void notifyEditUpdates(const TimeLogEntry &data, TimeLogHistory::Fields fields, QDateTime oldStart = QDateTime()) const;
-    void notifyUpdates(const QString &queryString, const QMap<QString, QDateTime> &values,
+    void notifyInsertUpdates(const TimeLogEntry &data);
+    void notifyInsertUpdates(const QVector<TimeLogEntry> &data);
+    void notifyRemoveUpdates(const TimeLogEntry &data);
+    void notifyEditUpdates(const TimeLogEntry &data, TimeLogHistory::Fields fields, QDateTime oldStart = QDateTime());
+    void notifyUpdates(QSqlQuery &query,
                        TimeLogHistory::Fields fields = TimeLogHistory::DurationTime | TimeLogHistory::PrecedingStart) const;
     bool updateSize();
     bool updateCategories(const QDateTime &begin = QDateTime::fromTime_t(0),
