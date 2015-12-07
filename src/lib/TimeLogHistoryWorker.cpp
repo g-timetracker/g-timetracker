@@ -18,7 +18,8 @@ TimeLogHistoryWorker::TimeLogHistoryWorker(QObject *parent) :
     QObject(parent),
     m_isInitialized(false),
     m_size(0),
-    m_insertQuery(Q_NULLPTR)
+    m_insertQuery(Q_NULLPTR),
+    m_removeQuery(Q_NULLPTR)
 {
 
 }
@@ -26,6 +27,7 @@ TimeLogHistoryWorker::TimeLogHistoryWorker(QObject *parent) :
 TimeLogHistoryWorker::~TimeLogHistoryWorker()
 {
     delete m_insertQuery;
+    delete m_removeQuery;
 
     QSqlDatabase::database(m_connectionName).close();
     QSqlDatabase::removeDatabase(m_connectionName);
@@ -732,27 +734,36 @@ bool TimeLogHistoryWorker::removeData(const TimeLogSyncData &data)
 {
     Q_ASSERT(!data.uuid.isNull());
 
-    QSqlDatabase db = QSqlDatabase::database(m_connectionName);
-    QSqlQuery query(db);
-    QString queryString("INSERT OR REPLACE INTO removed (uuid, mtime) VALUES(?,?);");
-    if (!query.prepare(queryString)) {
-        qCCritical(HISTORY_WORKER_CATEGORY) << "Fail to prepare query:" << query.lastError().text()
-                                            << query.lastQuery();
-        emit error(query.lastError().text());
-        return false;
-    }
-    query.addBindValue(data.uuid.toRfc4122());
-    query.addBindValue(data.mTime.isValid() ? data.mTime.toMSecsSinceEpoch()
-                                            : QDateTime::currentMSecsSinceEpoch());
+    if (!m_removeQuery) {
+        QSqlDatabase db = QSqlDatabase::database(m_connectionName);
+        QSqlQuery *query = new QSqlQuery(db);
+        QString queryString("INSERT OR REPLACE INTO removed (uuid, mtime) VALUES(:uuid,:mtime);");
+        if (!query->prepare(queryString)) {
+            qCCritical(HISTORY_WORKER_CATEGORY) << "Fail to prepare query:"
+                                                << query->lastError().text()
+                                                << query->lastQuery();
+            emit error(query->lastError().text());
+            delete query;
+            return false;
+        }
 
-    if (!query.exec()) {
-        qCWarning(HISTORY_WORKER_CATEGORY) << "Fail to execute query:" << query.lastError().text()
-                                           << query.executedQuery() << query.boundValues();
-        emit error(query.lastError().text());
-        return false;
+        m_removeQuery = query;
     }
 
-    setSize(m_size - query.numRowsAffected());
+    m_removeQuery->bindValue(":uuid", data.uuid.toRfc4122());
+    m_removeQuery->bindValue(":mtime", data.mTime.isValid() ? data.mTime.toMSecsSinceEpoch()
+                                                            : QDateTime::currentMSecsSinceEpoch());
+
+    if (!m_removeQuery->exec()) {
+        qCWarning(HISTORY_WORKER_CATEGORY) << "Fail to execute query:"
+                                           << m_removeQuery->lastError().text()
+                                           << m_removeQuery->executedQuery()
+                                           << m_removeQuery->boundValues();
+        emit error(m_removeQuery->lastError().text());
+        return false;
+    }
+
+    setSize(m_size - m_removeQuery->numRowsAffected());
 
     return true;
 }

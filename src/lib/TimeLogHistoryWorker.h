@@ -89,6 +89,7 @@ private:
     QStack<Undo> m_undoStack;
 
     QSqlQuery *m_insertQuery;
+    QSqlQuery *m_removeQuery;
 
     bool setupTable();
     bool setupTriggers();
