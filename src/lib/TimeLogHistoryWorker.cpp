@@ -17,13 +17,16 @@ const QString selectFields("SELECT uuid, start, category, comment, duration,"
 TimeLogHistoryWorker::TimeLogHistoryWorker(QObject *parent) :
     QObject(parent),
     m_isInitialized(false),
-    m_size(0)
+    m_size(0),
+    m_insertQuery(Q_NULLPTR)
 {
 
 }
 
 TimeLogHistoryWorker::~TimeLogHistoryWorker()
 {
+    delete m_insertQuery;
+
     QSqlDatabase::database(m_connectionName).close();
     QSqlDatabase::removeDatabase(m_connectionName);
 }
@@ -686,31 +689,40 @@ bool TimeLogHistoryWorker::insertData(const TimeLogSyncData &data)
 {
     Q_ASSERT(data.isValid());
 
-    QSqlDatabase db = QSqlDatabase::database(m_connectionName);
-    QSqlQuery query(db);
-    QString queryString = QString("INSERT INTO timelog (uuid, start, category, comment, mtime)"
-                                  " VALUES (?,?,?,?,?);");
-    if (!query.prepare(queryString)) {
-        qCCritical(HISTORY_WORKER_CATEGORY) << "Fail to prepare query:" << query.lastError().text()
-                                            << query.lastQuery();
-        emit error(query.lastError().text());
-        return false;
+    if (!m_insertQuery) {
+        QSqlDatabase db = QSqlDatabase::database(m_connectionName);
+        QSqlQuery *query = new QSqlQuery(db);
+        QString queryString = QString("INSERT INTO timelog (uuid, start, category, comment, mtime)"
+                                      " VALUES (:uuid, :start, :category, :comment, :mtime);");
+        if (!query->prepare(queryString)) {
+            qCCritical(HISTORY_WORKER_CATEGORY) << "Fail to prepare query:"
+                                                << query->lastError().text()
+                                                << query->lastQuery();
+            emit error(query->lastError().text());
+            delete query;
+            return false;
+        }
+
+        m_insertQuery = query;
     }
-    query.addBindValue(data.uuid.toRfc4122());
-    query.addBindValue(data.startTime.toTime_t());
-    query.addBindValue(data.category);
-    query.addBindValue(data.comment);
-    query.addBindValue(data.mTime.isValid() ? data.mTime.toMSecsSinceEpoch()
+
+    m_insertQuery->bindValue(":uuid", data.uuid.toRfc4122());
+    m_insertQuery->bindValue(":start", data.startTime.toTime_t());
+    m_insertQuery->bindValue(":category", data.category);
+    m_insertQuery->bindValue(":comment", data.comment);
+    m_insertQuery->bindValue(":mtime", data.mTime.isValid() ? data.mTime.toMSecsSinceEpoch()
                                             : QDateTime::currentMSecsSinceEpoch());
 
-    if (!query.exec()) {
-        qCCritical(HISTORY_WORKER_CATEGORY) << "Fail to execute query:" << query.lastError().text()
-                                            << query.executedQuery() << query.boundValues();
-        emit error(query.lastError().text());
+    if (!m_insertQuery->exec()) {
+        qCCritical(HISTORY_WORKER_CATEGORY) << "Fail to execute query:"
+                                            << m_insertQuery->lastError().text()
+                                            << m_insertQuery->executedQuery()
+                                            << m_insertQuery->boundValues();
+        emit error(m_insertQuery->lastError().text());
         return false;
     }
 
-    setSize(m_size + query.numRowsAffected());
+    setSize(m_size + m_insertQuery->numRowsAffected());
     addToCategories(data.category);
 
     return true;

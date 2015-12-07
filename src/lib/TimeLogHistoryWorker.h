@@ -88,6 +88,8 @@ private:
     QSet<QString> m_categories;
     QStack<Undo> m_undoStack;
 
+    QSqlQuery *m_insertQuery;
+
     bool setupTable();
     bool setupTriggers();
     void setSize(qlonglong size);
