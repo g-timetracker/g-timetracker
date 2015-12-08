@@ -394,7 +394,7 @@ bool TimeLogHistoryWorker::setupTable()
         return false;
     }
 
-    queryString = "CREATE TABLE IF NOT EXISTS removed (uuid BLOB UNIQUE, mtime INTEGER);";
+    queryString = "CREATE TABLE IF NOT EXISTS removed (uuid BLOB PRIMARY KEY, mtime INTEGER) WITHOUT ROWID;";
     if (!query.prepare(queryString)) {
         qCCritical(HISTORY_WORKER_CATEGORY) << "Fail to prepare query:" << query.lastError().text()
                                             << query.lastQuery();
