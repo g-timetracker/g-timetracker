@@ -394,7 +394,33 @@ bool TimeLogHistoryWorker::setupTable()
         return false;
     }
 
+    queryString = "CREATE INDEX IF NOT EXISTS timelog_mtime_index ON timelog (mtime);";
+    if (!query.prepare(queryString)) {
+        qCCritical(HISTORY_WORKER_CATEGORY) << "Fail to prepare query:" << query.lastError().text()
+                                            << query.lastQuery();
+        return false;
+    }
+
+    if (!query.exec()) {
+        qCCritical(HISTORY_WORKER_CATEGORY) << "Fail to execute query:" << query.lastError().text()
+                                            << query.executedQuery();
+        return false;
+    }
+
     queryString = "CREATE TABLE IF NOT EXISTS removed (uuid BLOB PRIMARY KEY, mtime INTEGER) WITHOUT ROWID;";
+    if (!query.prepare(queryString)) {
+        qCCritical(HISTORY_WORKER_CATEGORY) << "Fail to prepare query:" << query.lastError().text()
+                                            << query.lastQuery();
+        return false;
+    }
+
+    if (!query.exec()) {
+        qCCritical(HISTORY_WORKER_CATEGORY) << "Fail to execute query:" << query.lastError().text()
+                                            << query.executedQuery();
+        return false;
+    }
+
+    queryString = "CREATE INDEX IF NOT EXISTS removed_mtime_index ON removed (mtime);";
     if (!query.prepare(queryString)) {
         qCCritical(HISTORY_WORKER_CATEGORY) << "Fail to prepare query:" << query.lastError().text()
                                             << query.lastQuery();
