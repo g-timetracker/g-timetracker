@@ -3,6 +3,7 @@
 #include <QTemporaryDir>
 
 #include "tst_common.h"
+#include "TimeLogCategory.h"
 
 QTemporaryDir *dataDir = Q_NULLPTR;
 TimeLogHistory *history = Q_NULLPTR;
@@ -80,6 +81,7 @@ void tst_DB::initTestCase()
     qRegisterMetaType<QVector<TimeLogEntry> >();
     qRegisterMetaType<TimeLogHistory::Fields>();
     qRegisterMetaType<QVector<TimeLogHistory::Fields> >();
+    qRegisterMetaType<QSharedPointer<TimeLogCategory> >();
 }
 
 void tst_DB::import()

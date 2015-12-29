@@ -11,7 +11,10 @@
 #include "TimeLogRecentModel.h"
 #include "TimeLogSearchModel.h"
 #include "ReverseProxyModel.h"
+#include "TimeLogCategoryTreeModel.h"
+#include "TimeLogCategoryDepthModel.h"
 #include "TimeTracker.h"
+#include "TimeLogCategory.h"
 #include "DataImporter.h"
 #include "DataExporter.h"
 #include "DataSyncer.h"
@@ -63,6 +66,7 @@ int main(int argc, char *argv[])
     qRegisterMetaType<QSet<QString> >();
     qRegisterMetaType<TimeLogHistory::Fields>();
     qRegisterMetaType<QVector<TimeLogHistory::Fields> >();
+    qRegisterMetaType<QSharedPointer<TimeLogCategory> >();
 
     if (parser.isSet(importOption)) {
         TimeLogHistory history;
@@ -92,6 +96,8 @@ int main(int argc, char *argv[])
         qmlRegisterType<TimeLogRecentModel>("TimeLog", 1, 0, "TimeLogRecentModel");
         qmlRegisterType<TimeLogSearchModel>("TimeLog", 1, 0, "TimeLogSearchModel");
         qmlRegisterType<ReverseProxyModel>("TimeLog", 1, 0, "ReverseProxyModel");
+        qmlRegisterType<TimeLogCategoryTreeModel>("TimeLog", 1, 0, "TimeLogCategoryTreeModel");
+        qmlRegisterType<TimeLogCategoryDepthModel>("TimeLog", 1, 0, "TimeLogCategoryDepthModel");
         qmlRegisterUncreatableType<DataSyncer>("TimeLog", 1, 0, "DataSyncer", "This is a DataSyncer object");
         qmlRegisterSingletonType(QUrl("qrc:/qml/timetracker/Settings.qml"), "TimeLog", 1, 0, "Settings");
 

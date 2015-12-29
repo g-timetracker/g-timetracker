@@ -21,7 +21,10 @@ SOURCES += \
     DataSyncerWorker.cpp \
     DataSyncer.cpp \
     TimeLogStats.cpp \
-    TimeTracker.cpp
+    TimeTracker.cpp \
+    TimeLogCategory.cpp \
+    TimeLogCategoryTreeModel.cpp \
+    TimeLogCategoryDepthModel.cpp
 
 HEADERS += \
     TimeLogEntry.h \
@@ -39,4 +42,7 @@ HEADERS += \
     DataSyncerWorker.h \
     DataSyncer.h \
     TimeLogStats.h \
-    TimeTracker.h
+    TimeTracker.h \
+    TimeLogCategory.h \
+    TimeLogCategoryTreeModel.h \
+    TimeLogCategoryDepthModel.h

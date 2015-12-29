@@ -11,11 +11,11 @@ GridLayout {
     property date startTimeBefore
     property var startTimeCurrent: new Date()
 
-    property string category
+    property alias category: categoryPicker.category
     property var startTime: new Date()
     property string comment
 
-    property bool acceptable: categoryEditor.acceptableInput
+    property bool acceptable: !!category
 
     QtObject {
         id: d
@@ -27,31 +27,8 @@ GridLayout {
     columnSpacing: 10
     rowSpacing: 10
 
-    Label {
-        Layout.alignment: Qt.AlignVCenter | Qt.AlignRight
-        text: "Category:"
-    }
-
-    ComboBox {
-        id: categoryEditor
-
-        property alias origCategory: delegateEditor.category
-
-        Layout.fillWidth: true
-        Layout.alignment: Qt.AlignVCenter
-        editable: true
-        model: TimeTracker.categories
-        validator: RegExpValidator {
-            regExp: /\S+.*/
-        }
-
-        onEditTextChanged: delegateEditor.category = editText
-
-        onOrigCategoryChanged: {
-            if (editText !== origCategory) {
-                currentIndex = find(origCategory)
-            }
-        }
+    CategoryPicker {
+        id: categoryPicker
     }
 
     Label {

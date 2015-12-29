@@ -3,6 +3,7 @@
 
 #include "TimeTracker.h"
 #include "TimeLogHistory.h"
+#include "TimeLogCategory.h"
 #include "DataSyncer.h"
 
 enum TimeUnits {
@@ -60,11 +61,6 @@ TimeTracker::TimeTracker(QObject *parent) :
 
 }
 
-TimeTracker::~TimeTracker()
-{
-
-}
-
 void TimeTracker::setDataPath(const QUrl &dataPathUrl)
 {
     if (m_dataPath.path() == dataPathUrl.path() && m_history && m_syncer) {
@@ -93,7 +89,7 @@ TimeLogHistory *TimeTracker::history()
     return m_history;
 }
 
-QStringList TimeTracker::categories() const
+QSharedPointer<TimeLogCategory> TimeTracker::categories() const
 {
     return m_categories;
 }
@@ -196,10 +192,9 @@ void TimeTracker::statsDataAvailable(QVector<TimeLogStats> data, QDateTime until
     emit statsDataAvailable(result, until);
 }
 
-void TimeTracker::updateCategories(QSet<QString> categories)
+void TimeTracker::updateCategories(const QSharedPointer<TimeLogCategory> &categories)
 {
-    m_categories = categories.toList();
-    std::sort(m_categories.begin(), m_categories.end());
+    m_categories = categories;
 
     emit categoriesChanged(m_categories);
 }
@@ -230,15 +225,15 @@ void TimeTracker::setHistory(TimeLogHistory *history)
                 this, SIGNAL(error(QString)));
         connect(m_history, SIGNAL(statsDataAvailable(QVector<TimeLogStats>,QDateTime)),
                 this, SLOT(statsDataAvailable(QVector<TimeLogStats>,QDateTime)));
-        connect(m_history, SIGNAL(categoriesChanged(QSet<QString>)),
-                this, SLOT(updateCategories(QSet<QString>)));
+        connect(m_history, SIGNAL(categoriesChanged(QSharedPointer<TimeLogCategory>)),
+                this, SLOT(updateCategories(QSharedPointer<TimeLogCategory>)));
         connect(m_history, SIGNAL(undoCountChanged(int)),
                 this, SLOT(updateUndoCount(int)));
     }
 
     emit historyChanged(m_history);
 
-    updateCategories(m_history ? m_history->categories() : QSet<QString>());
+    updateCategories(m_history ? m_history->categories() : QSharedPointer<TimeLogCategory>());
     updateUndoCount(m_history ? m_history->undoCount() : 0);
 
     if (oldHistory) {

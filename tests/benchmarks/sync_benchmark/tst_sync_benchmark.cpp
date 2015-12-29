@@ -4,6 +4,7 @@
 
 #include "tst_common.h"
 #include "DataSyncer.h"
+#include "TimeLogCategory.h"
 
 QLoggingCategory::CategoryFilter oldCategoryFilter;
 
@@ -124,6 +125,7 @@ void tst_Sync_benchmark::initTestCase()
     qRegisterMetaType<TimeLogHistory::Fields>();
     qRegisterMetaType<QVector<TimeLogHistory::Fields> >();
     qRegisterMetaType<QVector<TimeLogSyncData> >();
+    qRegisterMetaType<QSharedPointer<TimeLogCategory> >();
 
     oldCategoryFilter = QLoggingCategory::installFilter(Q_NULLPTR);
     QLoggingCategory::installFilter(syncerCategoryFilter);

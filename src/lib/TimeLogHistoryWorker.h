@@ -5,8 +5,12 @@
 #include <QSqlQuery>
 #include <QSet>
 #include <QStack>
+#include <QSharedPointer>
+#include <QRegularExpression>
 
 #include "TimeLogHistory.h"
+
+class TimeLogCategory;
 
 class TimeLogHistoryWorker : public QObject
 {
@@ -17,7 +21,7 @@ public:
 
     bool init(const QString &dataPath);
     qlonglong size() const;
-    QSet<QString> categories() const;
+    QSharedPointer<TimeLogCategory> categories() const;
 
 public slots:
     void insert(const TimeLogEntry &data);
@@ -63,7 +67,7 @@ signals:
     void dataSynced(QVector<TimeLogSyncData> updatedData, QVector<TimeLogSyncData> removedData);
 
     void sizeChanged(qlonglong size) const;
-    void categoriesChanged(QSet<QString> categories) const;
+    void categoriesChanged(QSharedPointer<TimeLogCategory> categories) const;
     void undoCountChanged(int undoCount) const;
 
 private:
@@ -85,7 +89,9 @@ private:
     bool m_isInitialized;
     QString m_connectionName;
     qlonglong m_size;
-    QSet<QString> m_categories;
+    QSet<QString> m_categorySet;
+    QSharedPointer<TimeLogCategory> m_categoryTree;
+    QRegularExpression m_categorySplitRegexp;
     QStack<Undo> m_undoStack;
 
     QSqlQuery *m_insertQuery;
@@ -131,6 +137,7 @@ private:
     bool updateSize();
     bool updateCategories(const QDateTime &begin = QDateTime::fromTime_t(0),
                           const QDateTime &end = QDateTime::currentDateTime());
+    QSharedPointer<TimeLogCategory> parseCategories(const QSet<QString> &categories) const;
     void pushUndo(const Undo undo);
 };
 

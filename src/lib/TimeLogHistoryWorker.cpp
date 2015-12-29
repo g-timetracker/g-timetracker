@@ -5,8 +5,11 @@
 #include <QLoggingCategory>
 
 #include "TimeLogHistoryWorker.h"
+#include "TimeLogCategory.h"
 
 Q_LOGGING_CATEGORY(HISTORY_WORKER_CATEGORY, "TimeLogHistoryWorker", QtInfoMsg)
+
+const QString categorySplitPattern("\\s*>\\s*");
 
 const int maxUndoSize(10);
 
@@ -18,6 +21,7 @@ TimeLogHistoryWorker::TimeLogHistoryWorker(QObject *parent) :
     QObject(parent),
     m_isInitialized(false),
     m_size(0),
+    m_categorySplitRegexp(categorySplitPattern),
     m_insertQuery(Q_NULLPTR),
     m_removeQuery(Q_NULLPTR),
     m_notifyInsertQuery(Q_NULLPTR),
@@ -86,9 +90,9 @@ qlonglong TimeLogHistoryWorker::size() const
     return m_size;
 }
 
-QSet<QString> TimeLogHistoryWorker::categories() const
+QSharedPointer<TimeLogCategory> TimeLogHistoryWorker::categories() const
 {
-    return m_categories;
+    return m_categoryTree;
 }
 
 void TimeLogHistoryWorker::insert(const TimeLogEntry &data)
@@ -608,24 +612,26 @@ void TimeLogHistoryWorker::setSize(qlonglong size)
 
 void TimeLogHistoryWorker::removeFromCategories(QString category)
 {
-    if (!m_categories.contains(category)) {
+    if (!m_categorySet.contains(category)) {
         return;
     }
 
-    m_categories.remove(category);
+    m_categorySet.remove(category);
+    m_categoryTree = parseCategories(m_categorySet);
 
-    emit categoriesChanged(m_categories);
+    emit categoriesChanged(m_categoryTree);
 }
 
 void TimeLogHistoryWorker::addToCategories(QString category)
 {
-    if (m_categories.contains(category)) {
+    if (m_categorySet.contains(category)) {
         return;
     }
 
-    m_categories.insert(category);
+    m_categorySet.insert(category);
+    m_categoryTree = parseCategories(m_categorySet);
 
-    emit categoriesChanged(m_categories);
+    emit categoriesChanged(m_categoryTree);
 }
 
 void TimeLogHistoryWorker::processFail()
@@ -1336,10 +1342,34 @@ bool TimeLogHistoryWorker::updateCategories(const QDateTime &begin, const QDateT
 
     query.finish();
 
-    m_categories.swap(result);
-    emit categoriesChanged(m_categories);
+    m_categorySet.swap(result);
+    m_categoryTree = parseCategories(m_categorySet);
+
+    emit categoriesChanged(m_categoryTree);
 
     return true;
+}
+
+QSharedPointer<TimeLogCategory> TimeLogHistoryWorker::parseCategories(const QSet<QString> &categories) const
+{
+    QStringList categoriesList = categories.toList();
+    std::sort(categoriesList.begin(), categoriesList.end());
+
+    TimeLogCategory *rootCategory = new TimeLogCategory("RootCategory");
+
+    foreach (const QString &category, categoriesList) {
+        QStringList categoryFields = category.split(m_categorySplitRegexp, QString::SkipEmptyParts);
+        TimeLogCategory *parentCategory = rootCategory;
+        foreach (const QString &categoryField, categoryFields) {
+            TimeLogCategory *categoryObject = parentCategory->children().value(categoryField);
+            if (!categoryObject) {
+                categoryObject = new TimeLogCategory(categoryField, parentCategory);
+            }
+            parentCategory = categoryObject;
+        }
+    }
+
+    return QSharedPointer<TimeLogCategory>(rootCategory);
 }
 
 void TimeLogHistoryWorker::pushUndo(const TimeLogHistoryWorker::Undo undo)

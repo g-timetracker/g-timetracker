@@ -28,8 +28,8 @@ TimeLogHistory::TimeLogHistory(QObject *parent) :
             this, SLOT(workerSizeChanged(qlonglong)));
     connect(m_worker, SIGNAL(undoCountChanged(int)),
             this, SLOT(workerUndoCountChanged(int)));
-    connect(m_worker, SIGNAL(categoriesChanged(QSet<QString>)),
-            this, SLOT(workerCategoriesChanged(QSet<QString>)));
+    connect(m_worker, SIGNAL(categoriesChanged(QSharedPointer<TimeLogCategory>)),
+            this, SLOT(workerCategoriesChanged(QSharedPointer<TimeLogCategory>)));
     connect(m_worker, SIGNAL(statsDataAvailable(QVector<TimeLogStats>,QDateTime)),
             this, SIGNAL(statsDataAvailable(QVector<TimeLogStats>,QDateTime)));
     connect(m_worker, SIGNAL(syncDataAvailable(QVector<TimeLogSyncData>,QDateTime)),
@@ -71,7 +71,7 @@ qlonglong TimeLogHistory::size() const
     return m_size;
 }
 
-QSet<QString> TimeLogHistory::categories() const
+QSharedPointer<TimeLogCategory> TimeLogHistory::categories() const
 {
     return m_categories;
 }
@@ -157,9 +157,9 @@ void TimeLogHistory::workerSizeChanged(qlonglong size)
     m_size = size;
 }
 
-void TimeLogHistory::workerCategoriesChanged(QSet<QString> categories)
+void TimeLogHistory::workerCategoriesChanged(QSharedPointer<TimeLogCategory> categories)
 {
-    m_categories.swap(categories);
+    m_categories = categories;
 
     emit categoriesChanged(m_categories);
 }

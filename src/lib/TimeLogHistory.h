@@ -2,7 +2,7 @@
 #define TIMELOGHISTORY_H
 
 #include <QObject>
-#include <QSet>
+#include <QSharedPointer>
 
 #include "TimeLogStats.h"
 #include "TimeLogSyncData.h"
@@ -10,6 +10,7 @@
 class QThread;
 
 class TimeLogHistoryWorker;
+class TimeLogCategory;
 
 class TimeLogHistory : public QObject
 {
@@ -33,7 +34,7 @@ public:
     bool init(const QString &dataPath);
 
     qlonglong size() const;
-    QSet<QString> categories() const;
+    QSharedPointer<TimeLogCategory> categories() const;
     int undoCount() const;
 
 public slots:
@@ -79,12 +80,12 @@ signals:
                             QVector<TimeLogSyncData> updatedOld, QVector<TimeLogSyncData> updatedNew) const;
     void dataSynced(QVector<TimeLogSyncData> updatedData, QVector<TimeLogSyncData> removedData);
 
-    void categoriesChanged(QSet<QString> categories) const;
+    void categoriesChanged(const QSharedPointer<TimeLogCategory> &categories) const;
     void undoCountChanged(int undoCount) const;
 
 private slots:
     void workerSizeChanged(qlonglong size);
-    void workerCategoriesChanged(QSet<QString> categories);
+    void workerCategoriesChanged(QSharedPointer<TimeLogCategory> categories);
     void workerUndoCountChanged(int undoCount);
 
 private:
@@ -94,7 +95,7 @@ private:
     TimeLogHistoryWorker *m_worker;
 
     qlonglong m_size;
-    QSet<QString> m_categories;
+    QSharedPointer<TimeLogCategory> m_categories;
     int m_undoCount;
 };
 

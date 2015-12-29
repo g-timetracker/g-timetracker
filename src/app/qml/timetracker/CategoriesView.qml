@@ -2,12 +2,19 @@ import QtQuick 2.0
 import QtQuick.Controls 1.4
 import QtQuick.Layouts 1.1
 import QtQuick.Dialogs 1.2
+import QtQml.Models 2.2
 import TimeLog 1.0
 
 Item {
     id: categoryView
 
     property MainView mainView
+
+    TimeLogCategoryTreeModel {
+        id: categoryModel
+
+        timeTracker: TimeTracker
+    }
 
     Dialog {
         id: renameDialog
@@ -48,9 +55,10 @@ Item {
 
         text: "Rename"
         tooltip: "Rename category"
-        enabled: tableView.currentRow !== -1
+        enabled: treeView.isCurrentIndexValid
 
-        onTriggered: renameDialog.openDialog(tableView.model[tableView.currentRow])
+        onTriggered: renameDialog.openDialog(categoryModel.data(treeView.selection.currentIndex,
+                                                                TimeLogCategoryTreeModel.FullNameRole))
     }
 
     Action {
@@ -58,9 +66,10 @@ Item {
 
         text: "Show entries"
         tooltip: "Show entries for this category"
-        enabled: tableView.currentRow !== -1
+        enabled: treeView.isCurrentIndexValid
 
-        onTriggered: categoryView.mainView.showSearch((tableView.model[tableView.currentRow]))
+        onTriggered: categoryView.mainView.showSearch(categoryModel.data(treeView.selection.currentIndex,
+                                                                         TimeLogCategoryTreeModel.FullNameRole))
     }
 
     Action {
@@ -68,9 +77,10 @@ Item {
 
         text: "Show statistics"
         tooltip: "Show statistics for this category"
-        enabled: tableView.currentRow !== -1
+        enabled: treeView.isCurrentIndexValid
 
-        onTriggered: categoryView.mainView.showStats((tableView.model[tableView.currentRow]))
+        onTriggered: categoryView.mainView.showStats(categoryModel.data(treeView.selection.currentIndex,
+                                                                        TimeLogCategoryTreeModel.FullNameRole))
     }
 
     Menu {
@@ -90,15 +100,27 @@ Item {
     ColumnLayout {
         anchors.fill: parent
 
-        TableView {
-            id: tableView
+        TreeView {
+            id: treeView
+
+            property bool isCurrentIndexValid: selection.currentIndex.valid
 
             Layout.fillWidth: true
             Layout.fillHeight: true
-            model: TimeTracker.categories
-            headerVisible: false
+            model: categoryModel
+            headerVisible: true
+            selectionMode: SelectionMode.SingleSelection
+            selection: ItemSelectionModel {
+                model: categoryModel
+            }
 
-            TableViewColumn { }
+            TableViewColumn {
+                role: "name"
+            }
+
+            TableViewColumn {
+                role: "fullName"
+            }
 
             MouseArea {
                 id: mouseArea
@@ -108,11 +130,9 @@ Item {
                 propagateComposedEvents: true
 
                 onClicked: {
-                    var index = tableView.rowAt(mouse.x, mouse.y)
-                    if (index !== -1) {
-                        tableView.currentRow = index
-                        tableView.selection.clear()
-                        tableView.selection.select(index)
+                    var index = treeView.indexAt(mouse.x, mouse.y)
+                    if (index.valid) {
+                        treeView.selection.setCurrentIndex(index, ItemSelectionModel.SelectCurrent)
                         itemMenu.popup()
                     }
                 }
