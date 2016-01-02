@@ -152,6 +152,7 @@ void DataSyncerWorker::startImport()
     }
 
     std::sort(m_fileList.begin(), m_fileList.end());
+    std::reverse(m_fileList.begin(), m_fileList.end());
     m_currentIndex = 0;
     importCurrentFile();
 }
