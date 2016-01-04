@@ -8,7 +8,7 @@ import TimeLog 1.0
 Item {
     id: categoryView
 
-    property MainView mainView
+    property MainWindow mainWindow
 
     TimeLogCategoryTreeModel {
         id: categoryModel
@@ -68,7 +68,7 @@ Item {
         tooltip: "Show entries for this category"
         enabled: treeView.isCurrentIndexValid
 
-        onTriggered: categoryView.mainView.showSearch(categoryModel.data(treeView.selection.currentIndex,
+        onTriggered: categoryView.mainWindow.showSearch(categoryModel.data(treeView.selection.currentIndex,
                                                                          TimeLogCategoryTreeModel.FullNameRole))
     }
 
@@ -79,7 +79,7 @@ Item {
         tooltip: "Show statistics for this category"
         enabled: treeView.isCurrentIndexValid
 
-        onTriggered: categoryView.mainView.showStats(categoryModel.data(treeView.selection.currentIndex,
+        onTriggered: categoryView.mainWindow.showStats(categoryModel.data(treeView.selection.currentIndex,
                                                                         TimeLogCategoryTreeModel.FullNameRole))
     }
 
