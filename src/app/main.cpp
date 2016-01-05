@@ -100,6 +100,7 @@ int main(int argc, char *argv[])
         qmlRegisterType<TimeLogCategoryDepthModel>("TimeLog", 1, 0, "TimeLogCategoryDepthModel");
         qmlRegisterUncreatableType<DataSyncer>("TimeLog", 1, 0, "DataSyncer", "This is a DataSyncer object");
         qmlRegisterSingletonType(QUrl("qrc:/qml/timetracker/Settings.qml"), "TimeLog", 1, 0, "Settings");
+        qmlRegisterSingletonType(QUrl("qrc:/qml/timetracker/MainWindow.qml"), "TimeLog", 1, 0, "MainWindow");
 
         if (!qputenv("QT_LABS_CONTROLS_STYLE", "material")) {
             qCCritical(MAIN_CATEGORY) << "Fail to set style";

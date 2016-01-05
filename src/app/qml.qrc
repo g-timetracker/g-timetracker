@@ -37,5 +37,11 @@
         <file>qml/timetracker/DateYearPicker.qml</file>
         <file>qml/timetracker/DateRangePicker.qml</file>
         <file>qml/timetracker/CategoryPicker.qml</file>
+        <file>qml/timetracker/TimeLogNewDialogDesktop.qml</file>
+        <file>qml/timetracker/TimeLogNewDialogMobile.qml</file>
+        <file>qml/timetracker/+android/TimeLogNewDialog.qml</file>
+        <file>qml/timetracker/TimeLogEditDialogDesktop.qml</file>
+        <file>qml/timetracker/TimeLogEditDialogMobile.qml</file>
+        <file>qml/timetracker/+android/TimeLogEditDialog.qml</file>
     </qresource>
 </RCC>

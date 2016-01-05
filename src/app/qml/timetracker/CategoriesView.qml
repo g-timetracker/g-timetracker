@@ -6,10 +6,6 @@ import QtQml.Models 2.2
 import TimeLog 1.0
 
 Item {
-    id: categoryView
-
-    property MainWindow mainWindow
-
     TimeLogCategoryTreeModel {
         id: categoryModel
 
@@ -68,7 +64,7 @@ Item {
         tooltip: "Show entries for this category"
         enabled: treeView.isCurrentIndexValid
 
-        onTriggered: categoryView.mainWindow.showSearch(categoryModel.data(treeView.selection.currentIndex,
+        onTriggered: MainWindow.showSearch(categoryModel.data(treeView.selection.currentIndex,
                                                                          TimeLogCategoryTreeModel.FullNameRole))
     }
 
@@ -79,7 +75,7 @@ Item {
         tooltip: "Show statistics for this category"
         enabled: treeView.isCurrentIndexValid
 
-        onTriggered: categoryView.mainWindow.showStats(categoryModel.data(treeView.selection.currentIndex,
+        onTriggered: MainWindow.showStats(categoryModel.data(treeView.selection.currentIndex,
                                                                         TimeLogCategoryTreeModel.FullNameRole))
     }
 

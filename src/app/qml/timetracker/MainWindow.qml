@@ -1,1 +1,3 @@
+pragma Singleton
+
 MainWindowDesktop { }

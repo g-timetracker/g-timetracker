@@ -13,7 +13,6 @@ ApplicationWindow {
             mainView.searchIndex = tabModel.count
             tabModel.append({ "text": "Search", "source": "SearchView.qml",
                                 "hasCloseButton": true })
-            stackLayout.children[mainView.searchIndex].item.mainWindow = mainWindow
         }
         tabBar.setCurrentIndex(mainView.searchIndex)
         if (category !== undefined) {
@@ -51,13 +50,16 @@ ApplicationWindow {
             mainView.categoriesIndex = tabModel.count
             tabModel.append({ "text": "Categories", "source": "CategoriesView.qml",
                                 "hasCloseButton": true })
-            stackLayout.children[mainView.categoriesIndex].item.mainWindow = mainWindow
         }
         tabBar.setCurrentIndex(mainView.categoriesIndex)
     }
 
     function changeSyncPath() {
         syncPathDialog.open()
+    }
+
+    function showDialog(dialog) {
+        dialog.open()
     }
 
     width: 640

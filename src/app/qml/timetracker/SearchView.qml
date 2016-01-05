@@ -4,7 +4,6 @@ import QtQuick.Controls 1.4
 import TimeLog 1.0
 
 Item {
-    property MainWindow mainWindow
     property alias category: timeLogFilter.category
 
     TimeLogSearchModel {
@@ -26,7 +25,7 @@ Item {
             var item = timeLogView.pointedItem()
             var beginDate = new Date(Math.max(item.startTime.valueOf() - 6 * 60 * 60 * 1000, 0))
             var endDate = new Date(Math.min(item.succeedingStart.valueOf() - 1000 + 6 * 60 * 60 * 1000, Date.now()))
-            mainWindow.showHistory(beginDate, endDate)
+            MainWindow.showHistory(beginDate, endDate)
         }
     }
 

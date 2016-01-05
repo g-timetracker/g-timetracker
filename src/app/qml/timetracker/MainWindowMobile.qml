@@ -58,9 +58,9 @@ ApplicationWindow {
 
     function showSearch(category) {
         if (category) {
-            mainView.pushPage("SearchView.qml", { "mainWindow": mainWindow, "category": category })
+            mainView.pushPage("SearchView.qml", { "category": category })
         } else {
-            mainView.switchToPage("searchPage", "SearchView.qml", { "mainWindow": mainWindow })
+            mainView.switchToPage("searchPage", "SearchView.qml")
         }
     }
 
@@ -81,11 +81,19 @@ ApplicationWindow {
     }
 
     function showCategories() {
-        mainView.switchToPage("categoriesPage", "CategoriesView.qml", { "mainWindow": mainWindow })
+        mainView.switchToPage("categoriesPage", "CategoriesView.qml")
     }
 
     function changeSyncPath() {
         syncPathDialog.open()
+    }
+
+    function showDialog(dialog) {
+        stackView.push(dialog)
+    }
+
+    function back() {
+        stackView.pop()
     }
 
     Drawer {
