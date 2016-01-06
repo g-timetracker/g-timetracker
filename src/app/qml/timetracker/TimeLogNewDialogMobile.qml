@@ -1,15 +1,49 @@
 import QtQuick 2.4
+import QtQuick.Layouts 1.3
 import Qt.labs.controls 1.0
 import TimeLog 1.0
 
 Item {
     id: newDialog
 
+    property bool isModified: checkIsModified()
+
+    property Component toolBar: Component {
+        ToolBar {
+            RowLayout {
+                anchors.fill: parent
+
+                ToolButton {
+                    text: newDialog.isModified ? "\u00D7"  // multiplication sign
+                                               : "\u2190"  // left arrow
+                    onClicked: newDialog.close()
+                }
+
+                Label {
+                    Layout.fillWidth: true
+                    text: "New entry"
+                }
+
+                ToolButton {
+                    enabled: newDialog.isModified && delegateEditor.acceptable
+                    text: "Create"
+                    onClicked: newDialog.accept()
+                }
+            }
+        }
+    }
+
     property string title: "New entry"
 
     property alias startTimeAfter: delegateEditor.startTimeAfter
     property alias startTimeBefore: delegateEditor.startTimeBefore
     property int indexBefore
+
+    function checkIsModified() {
+        return (!!delegateEditor.category
+                || delegateEditor.startTime.valueOf() !== newDialog.startTimeBefore.valueOf() - 1000
+                || !!delegateEditor.comment)
+    }
 
     function setData(indexBefore, timeAfter, timeBefore) {
         newDialog.indexBefore = indexBefore
@@ -39,32 +73,11 @@ Item {
 
     visible: false
 
-    Column {
+    TimeLogEntryEditor {
+        id: delegateEditor
+
         anchors.left: parent.left
         anchors.right: parent.right
-        spacing: 10
-
-        TimeLogEntryEditor {
-            id: delegateEditor
-
-            anchors.left: parent.left
-            anchors.right: parent.right
-        }
-
-        Row {
-            anchors.right: parent.right
-            spacing: 10
-
-            Button {
-                text: "Discard"
-                onClicked: newDialog.close()
-            }
-
-            Button {
-                text: "Create"
-                onClicked: newDialog.accept()
-            }
-        }
     }
 
     onVisibleChanged: {

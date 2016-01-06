@@ -4,6 +4,8 @@ import QtQuick.Controls 1.4
 import TimeLog 1.0
 
 Item {
+    property string title: "Recent"
+
     ReverseProxyModel {
         id: timeLogModel
 

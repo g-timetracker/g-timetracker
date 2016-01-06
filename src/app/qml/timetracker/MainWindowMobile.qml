@@ -1,4 +1,5 @@
 import QtQuick 2.0
+import QtQuick.Layouts 1.3
 import QtQuick.Dialogs 1.2
 import QtQml.Models 2.2
 import Qt.labs.controls 1.0
@@ -29,7 +30,7 @@ ApplicationWindow {
                         id: menuButtonComponent
 
                         ToolButton {
-                            text: "\u2630"  // trigram for heaven
+                            text: "\u2261"  // identical to
                             onClicked: drawer.open()
                         }
                     }
@@ -53,7 +54,9 @@ ApplicationWindow {
     }
 
     function showRecent() {
-        stackView.pop(null)
+        if (stackView.currentItem != recentView) {
+            stackView.replace(null, recentView)
+        }
     }
 
     function showSearch(category) {
@@ -93,7 +96,11 @@ ApplicationWindow {
     }
 
     function back() {
-        stackView.pop()
+        if (stackView.depth > 1) {
+            stackView.pop()
+        } else {
+            mainWindow.showRecent()
+        }
     }
 
     Drawer {
@@ -251,13 +258,8 @@ ApplicationWindow {
                 return item.objectName === pageName
             })
             var isPageExists = !!page
-            if (stackView.depth > 1) {
-                page = stackView.replace(stackView.get(1), isPageExists ? page : Qt.resolvedUrl(sourceName),
-                                         isPageExists ? {} : { "objectName": pageName })
-            } else {
-                page = stackView.push(isPageExists ? page : Qt.resolvedUrl(sourceName),
-                                      isPageExists ? {} : { "objectName": pageName })
-            }
+            page = stackView.replace(null, isPageExists ? page : Qt.resolvedUrl(sourceName),
+                                     isPageExists ? {} : { "objectName": pageName })
             if (!isPageExists) {
                 for (var key in parameters) {
                     page[key] = parameters[key]
@@ -272,7 +274,7 @@ ApplicationWindow {
             if (drawer.position) {
                 drawer.close()
             } else {
-                stackView.pop()
+                mainWindow.back()
             }
         }
 

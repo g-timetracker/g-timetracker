@@ -4,6 +4,7 @@ import TimeLog 1.0
 import "ChartColors.js" as ChartColors
 
 Item {
+    property string title: "Statistics"
     property alias category: timeLogFilter.category
 
     Connections {

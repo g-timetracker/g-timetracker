@@ -4,6 +4,7 @@ import QtQuick.Controls 1.4
 import TimeLog 1.0
 
 Item {
+    property string title: "Search"
     property alias category: timeLogFilter.category
 
     TimeLogSearchModel {

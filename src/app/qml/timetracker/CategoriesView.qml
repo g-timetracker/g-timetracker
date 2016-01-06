@@ -6,6 +6,8 @@ import QtQml.Models 2.2
 import TimeLog 1.0
 
 Item {
+    property string title: "Categories"
+
     TimeLogCategoryTreeModel {
         id: categoryModel
 
