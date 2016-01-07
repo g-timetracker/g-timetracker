@@ -17,13 +17,15 @@ GridLayout {
 
     property bool acceptable: !!category
 
+    property bool singleColumn: false
+
     QtObject {
         id: d
 
         property int durationTime: Util.calcDuration(startTime, startTimeBefore)
     }
 
-    columns: 2
+    columns: singleColumn ? 1 : 2
     columnSpacing: 10
     rowSpacing: 10
 
@@ -32,7 +34,7 @@ GridLayout {
     }
 
     Label {
-        Layout.alignment: Qt.AlignVCenter | Qt.AlignRight
+        Layout.alignment: Qt.AlignVCenter | (singleColumn ? Qt.AlignLeft : Qt.AlignRight)
         text: "Start date:"
     }
 
@@ -51,7 +53,7 @@ GridLayout {
     }
 
     Label {
-        Layout.alignment: Qt.AlignVCenter | Qt.AlignRight
+        Layout.alignment: Qt.AlignVCenter | (singleColumn ? Qt.AlignLeft : Qt.AlignRight)
         text: "Start time:"
     }
 
@@ -73,7 +75,7 @@ GridLayout {
     }
 
     Label {
-        Layout.alignment: Qt.AlignVCenter | Qt.AlignRight
+        Layout.alignment: Qt.AlignVCenter | (singleColumn ? Qt.AlignLeft : Qt.AlignRight)
         text: "Duration:"
     }
 
@@ -86,7 +88,7 @@ GridLayout {
     }
 
     Label {
-        Layout.alignment: Qt.AlignVCenter | Qt.AlignRight
+        Layout.alignment: Qt.AlignVCenter | (singleColumn ? Qt.AlignLeft : Qt.AlignRight)
         text: "Comment:"
     }
 

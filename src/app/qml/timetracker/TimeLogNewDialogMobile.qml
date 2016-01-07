@@ -83,6 +83,7 @@ Item {
 
         anchors.left: parent.left
         anchors.right: parent.right
+        singleColumn: true
     }
 
     onVisibleChanged: {
