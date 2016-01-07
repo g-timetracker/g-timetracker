@@ -43,5 +43,17 @@
         <file>qml/timetracker/TimeLogEditDialogDesktop.qml</file>
         <file>qml/timetracker/TimeLogEditDialogMobile.qml</file>
         <file>qml/timetracker/+android/TimeLogEditDialog.qml</file>
+        <file>qml/timetracker/images/ic_arrow_back_white_24dp.png</file>
+        <file>qml/timetracker/images/ic_arrow_back_white_24dp@2x.png</file>
+        <file>qml/timetracker/images/ic_arrow_back_white_24dp@3x.png</file>
+        <file>qml/timetracker/images/ic_arrow_back_white_24dp@4x.png</file>
+        <file>qml/timetracker/images/ic_close_white_24dp.png</file>
+        <file>qml/timetracker/images/ic_close_white_24dp@2x.png</file>
+        <file>qml/timetracker/images/ic_close_white_24dp@3x.png</file>
+        <file>qml/timetracker/images/ic_close_white_24dp@4x.png</file>
+        <file>qml/timetracker/images/ic_menu_white_24dp.png</file>
+        <file>qml/timetracker/images/ic_menu_white_24dp@2x.png</file>
+        <file>qml/timetracker/images/ic_menu_white_24dp@3x.png</file>
+        <file>qml/timetracker/images/ic_menu_white_24dp@4x.png</file>
     </qresource>
 </RCC>

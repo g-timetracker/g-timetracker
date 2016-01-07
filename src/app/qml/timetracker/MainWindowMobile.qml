@@ -30,7 +30,12 @@ ApplicationWindow {
                         id: menuButtonComponent
 
                         ToolButton {
-                            text: "\u2261"  // identical to
+                            text: "menu"
+                            label: Image {
+                                anchors.centerIn: parent
+                                source: "images/ic_menu_white_24dp.png"
+                            }
+
                             onClicked: drawer.open()
                         }
                     }
@@ -39,7 +44,12 @@ ApplicationWindow {
                         id: backButtonComponent
 
                         ToolButton {
-                            text: "\u2190"  // left arrow
+                            text: "back"
+                            label: Image {
+                                anchors.centerIn: parent
+                                source: "images/ic_arrow_back_white_24dp.png"
+                            }
+
                             onClicked: mainWindow.back()
                         }
                     }

@@ -14,8 +14,13 @@ Item {
                 anchors.fill: parent
 
                 ToolButton {
-                    text: newDialog.isModified ? "\u00D7"  // multiplication sign
-                                               : "\u2190"  // left arrow
+                    text: newDialog.isModified ? "discard" : "back"
+                    label: Image {
+                        anchors.centerIn: parent
+                        source: newDialog.isModified ? "images/ic_close_white_24dp.png"
+                                                     : "images/ic_arrow_back_white_24dp.png"
+                    }
+
                     onClicked: newDialog.close()
                 }
 
