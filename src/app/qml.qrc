@@ -58,5 +58,8 @@
         <file>qml/timetracker/CategoryPickerDesktop.qml</file>
         <file>qml/timetracker/CategoryPickerMobile.qml</file>
         <file>qml/timetracker/+android/CategoryPicker.qml</file>
+        <file>qml/timetracker/TimeLogEntryEditorDesktop.qml</file>
+        <file>qml/timetracker/TimeLogEntryEditorMobile.qml</file>
+        <file>qml/timetracker/+android/TimeLogEntryEditor.qml</file>
     </qresource>
 </RCC>
