@@ -1,6 +1,7 @@
 import QtQuick 2.4
 import QtQuick.Layouts 1.3
 import Qt.labs.controls 1.0
+import Qt.labs.controls.material 1.0
 import TimeLog 1.0
 
 Item {
@@ -26,11 +27,15 @@ Item {
 
                 Label {
                     Layout.fillWidth: true
+                    Material.theme: Material.Dark
+                    font.pixelSize: 20
                     text: "Edit"
                 }
 
                 ToolButton {
                     enabled: editDialog.isModified && delegateEditor.acceptable
+                    Material.theme: Material.Dark
+                    font.pixelSize: 14
                     text: "Save"
                     onClicked: editDialog.accept()
                 }

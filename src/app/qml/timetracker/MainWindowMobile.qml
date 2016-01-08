@@ -3,6 +3,7 @@ import QtQuick.Layouts 1.3
 import QtQuick.Dialogs 1.2
 import QtQml.Models 2.2
 import Qt.labs.controls 1.0
+import Qt.labs.controls.material 1.0
 import TimeLog 1.0
 
 ApplicationWindow {
@@ -57,6 +58,8 @@ ApplicationWindow {
 
                 Label {
                     Layout.fillWidth: true
+                    Material.theme: Material.Dark
+                    font.pixelSize: 20
                     text: stackView.currentItem.title ? stackView.currentItem.title : ""
                 }
             }
