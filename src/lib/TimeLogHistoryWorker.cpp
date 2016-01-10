@@ -54,7 +54,12 @@ bool TimeLogHistoryWorker::init(const QString &dataPath)
     QString path(QString("%1/timelog")
                  .arg(!dataPath.isEmpty() ? dataPath
                                           : QStandardPaths::writableLocation(QStandardPaths::AppDataLocation)));
-    QDir().mkpath(path);
+
+    if (!(QDir().mkpath(path))) {
+        qCCritical(HISTORY_WORKER_CATEGORY) << "Fail to create directory for db";
+        return false;
+    }
+
     m_connectionName = QString("timelog_%1").arg(qHash(dataPath));
     QSqlDatabase db = QSqlDatabase::addDatabase("QSQLITE", m_connectionName);
     db.setDatabaseName(QString("%1/%2.sqlite").arg(path).arg("db"));
