@@ -29,6 +29,8 @@ GridLayout {
 
     CategoryPicker {
         id: categoryPicker
+
+        Layout.columnSpan: 2
     }
 
     Label {

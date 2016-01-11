@@ -55,9 +55,6 @@
         <file>qml/timetracker/images/ic_menu_white_24dp@2x.png</file>
         <file>qml/timetracker/images/ic_menu_white_24dp@3x.png</file>
         <file>qml/timetracker/images/ic_menu_white_24dp@4x.png</file>
-        <file>qml/timetracker/CategoryPickerDesktop.qml</file>
-        <file>qml/timetracker/CategoryPickerMobile.qml</file>
-        <file>qml/timetracker/+android/CategoryPicker.qml</file>
         <file>qml/timetracker/TimeLogEntryEditorDesktop.qml</file>
         <file>qml/timetracker/TimeLogEntryEditorMobile.qml</file>
         <file>qml/timetracker/+android/TimeLogEntryEditor.qml</file>
