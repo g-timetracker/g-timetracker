@@ -1,5 +1,6 @@
 import QtQuick 2.0
 import QtQuick.Controls 1.4
+import "Texts.js" as Texts
 
 ItemPositioner {
     property var beginDate: fromField.selectedDate
@@ -8,7 +9,7 @@ ItemPositioner {
     spacing: 10
 
     Label {
-        text: "From:"
+        text: Texts.labelText("From")
     }
 
     DatePicker {
@@ -19,7 +20,7 @@ ItemPositioner {
     }
 
     Label {
-        text: "To:"
+        text: Texts.labelText("To")
     }
 
     DatePicker {

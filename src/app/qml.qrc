@@ -63,5 +63,7 @@
         <file>qml/timetracker/+android/TimeLogEntryEditor.qml</file>
         <file>qml/timetracker/ItemPositioner.qml</file>
         <file>qml/timetracker/+android/ItemPositioner.qml</file>
+        <file>qml/timetracker/Texts.js</file>
+        <file>qml/timetracker/+android/Texts.js</file>
     </qresource>
 </RCC>
