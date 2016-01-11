@@ -1,7 +1,7 @@
 import QtQuick 2.0
 import QtQuick.Controls 1.4
 
-Row {
+ItemPositioner {
     property var beginDate: new Date()
     property var endDate: new Date()
 
@@ -35,7 +35,6 @@ Row {
 
         visible: periodSelector.currentIndex == 2
 
-        anchors.verticalCenter: parent.verticalCenter
         inputMask: "9999"
         text: beginDate.toLocaleDateString(Qt.locale(), "yyyy")
 

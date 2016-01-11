@@ -1,7 +1,7 @@
 import QtQuick 2.0
 import QtQuick.Controls 1.4
 
-Row {
+ItemPositioner {
     property var beginDate: dateField.selectedDate
     property var endDate: new Date(dateField.selectedDate.valueOf() + 86399000)
 
@@ -33,7 +33,6 @@ Row {
 
         visible: periodSelector.currentIndex == 2
 
-        anchors.verticalCenter: parent.verticalCenter
         minimumDate: new Date(0)
         maximumDate: new Date()
     }

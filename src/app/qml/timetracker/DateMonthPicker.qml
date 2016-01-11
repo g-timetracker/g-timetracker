@@ -1,7 +1,7 @@
 import QtQuick 2.0
 import QtQuick.Controls 1.4
 
-Row {
+ItemPositioner {
     property var beginDate: new Date()
     property var endDate: new Date()
 
