@@ -35,9 +35,10 @@ Item {
             Layout.fillWidth: true
             implicitHeight: 50
 
-            Button {
+            PushButton {
                 anchors.centerIn: parent
-                action: timeLogView.appendAction
+                text: timeLogView.appendAction.text
+                onClicked: timeLogView.appendAction.trigger()
             }
         }
     }

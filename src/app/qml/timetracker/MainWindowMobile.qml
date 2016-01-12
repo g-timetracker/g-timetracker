@@ -132,49 +132,49 @@ ApplicationWindow {
                 anchors.fill: parent
                 spacing: 10
 
-                Button {
+                PushButton {
                     text: "Recent"
                     onClicked: {
                         drawer.close()
                         mainWindow.showRecent()
                     }
                 }
-                Button {
+                PushButton {
                     text: "Search"
                     onClicked: {
                         drawer.close()
                         mainWindow.showSearch()
                     }
                 }
-                Button {
+                PushButton {
                     text: "Statistics"
                     onClicked: {
                         drawer.close()
                         mainWindow.showStats()
                     }
                 }
-                Button {
+                PushButton {
                     text: "Categories"
                     onClicked: {
                         drawer.close()
                         mainWindow.showCategories()
                     }
                 }
-                Button {
+                PushButton {
                     text: "History"
                     onClicked: {
                         drawer.close()
                         mainWindow.showHistory()
                     }
                 }
-                Button {
+                PushButton {
                     text: "Sync"
                     onClicked: {
                         drawer.close()
                         TimeTracker.syncer.sync(Settings.syncPath)
                     }
                 }
-                Button {
+                PushButton {
                     text: "Undo"
                     enabled: TimeTracker.undoCount
                     onClicked: {
@@ -191,7 +191,7 @@ ApplicationWindow {
                     checked: Settings.isConfirmationsEnabled
                     onCheckedChanged: Settings.isConfirmationsEnabled = checked
                 }
-                Button {
+                PushButton {
                     text: "Sync path"
                     onClicked: {
                         drawer.close()

@@ -151,17 +151,20 @@ Item {
             Layout.fillHeight: false
             spacing: 10
 
-            Button {
+            PushButton {
                 anchors.verticalCenter: parent.verticalCenter
-                action: renameAction
+                text: renameAction.text
+                onClicked: renameAction.trigger()
             }
-            Button {
+            PushButton {
                 anchors.verticalCenter: parent.verticalCenter
-                action: showEntriesAction
+                text: showEntriesAction.text
+                onClicked: showEntriesAction.trigger()
             }
-            Button {
+            PushButton {
                 anchors.verticalCenter: parent.verticalCenter
-                action: showStatsAction
+                text: showStatsAction.text
+                onClicked: showStatsAction.trigger()
             }
         }
     }

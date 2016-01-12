@@ -62,5 +62,7 @@
         <file>qml/timetracker/+android/ItemPositioner.qml</file>
         <file>qml/timetracker/Texts.js</file>
         <file>qml/timetracker/+android/Texts.js</file>
+        <file>qml/timetracker/PushButton.qml</file>
+        <file>qml/timetracker/+android/PushButton.qml</file>
     </qresource>
 </RCC>
