@@ -217,6 +217,11 @@ ApplicationWindow {
             errorDialog.text = errorText
             errorDialog.open()
         }
+        onShowSearchRequested: showSearch(category)
+        onShowStatsRequested: showStats(category)
+        onShowHistoryRequested: showHistory(begin, end)
+        onShowDialogRequested: showDialog(dialog)
+        onBackRequested: back()
     }
 
     Connections {

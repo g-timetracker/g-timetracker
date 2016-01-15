@@ -53,6 +53,12 @@ signals:
     void categoriesChanged(const QSharedPointer<TimeLogCategory> newCategories) const;
     void undoCountChanged(int newUndoCount) const;
 
+    void showSearchRequested(const QString &category) const;
+    void showStatsRequested(const QString &category) const;
+    void showHistoryRequested(const QDateTime &begin, const QDateTime &end) const;
+    void showDialogRequested(QObject *dialog) const;
+    void backRequested() const;
+
 private slots:
     void statsDataAvailable(QVector<TimeLogStats> data, QDateTime until) const;
     void updateCategories(const QSharedPointer<TimeLogCategory> &categories);

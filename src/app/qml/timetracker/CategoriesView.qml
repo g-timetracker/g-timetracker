@@ -66,8 +66,8 @@ Item {
         tooltip: "Show entries for this category"
         enabled: treeView.isCurrentIndexValid
 
-        onTriggered: MainWindow.showSearch(categoryModel.data(treeView.selection.currentIndex,
-                                                                         TimeLogCategoryTreeModel.FullNameRole))
+        onTriggered: TimeTracker.showSearchRequested(categoryModel.data(treeView.selection.currentIndex,
+                                                                        TimeLogCategoryTreeModel.FullNameRole))
     }
 
     Action {
@@ -77,8 +77,8 @@ Item {
         tooltip: "Show statistics for this category"
         enabled: treeView.isCurrentIndexValid
 
-        onTriggered: MainWindow.showStats(categoryModel.data(treeView.selection.currentIndex,
-                                                                        TimeLogCategoryTreeModel.FullNameRole))
+        onTriggered: TimeTracker.showStatsRequested(categoryModel.data(treeView.selection.currentIndex,
+                                                                       TimeLogCategoryTreeModel.FullNameRole))
     }
 
     Menu {

@@ -88,7 +88,7 @@ Item {
     }
 
     function close() {
-        MainWindow.back()
+        TimeTracker.backRequested()
     }
 
     signal error(string errorText)

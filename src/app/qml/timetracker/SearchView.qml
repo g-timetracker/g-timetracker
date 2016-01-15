@@ -26,7 +26,7 @@ Item {
             var item = timeLogView.pointedItem()
             var beginDate = new Date(Math.max(item.startTime.valueOf() - 6 * 60 * 60 * 1000, 0))
             var endDate = new Date(Math.min(item.succeedingStart.valueOf() - 1000 + 6 * 60 * 60 * 1000, Date.now()))
-            MainWindow.showHistory(beginDate, endDate)
+            TimeTracker.showHistoryRequested(beginDate, endDate)
         }
     }
 

@@ -48,7 +48,7 @@ Item {
         function insert(indexBefore, timeAfter, timeBefore) {
             if (Util.calcDuration(timeAfter, timeBefore) > 1) {
                 newDialog.setData(indexBefore, timeAfter, timeBefore)
-                MainWindow.showDialog(newDialog)
+                TimeTracker.showDialogRequested(newDialog)
             } else {
                 TimeTracker.error("Cannot insert between %1 and %2".arg(timeAfter).arg(timeBefore))
             }
@@ -103,7 +103,7 @@ Item {
 
         onTriggered: {
             editDialog.setData(listView.itemUnderCursor())
-            MainWindow.showDialog(editDialog)
+            TimeTracker.showDialogRequested(editDialog)
         }
     }
 

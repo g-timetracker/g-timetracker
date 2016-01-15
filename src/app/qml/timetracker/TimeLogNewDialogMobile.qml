@@ -75,7 +75,7 @@ Item {
     }
 
     function close() {
-        MainWindow.back()
+        TimeTracker.backRequested()
     }
 
     signal dataAccepted(var newData)
