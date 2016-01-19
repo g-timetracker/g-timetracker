@@ -4,44 +4,10 @@ import Qt.labs.controls 1.0
 import Qt.labs.controls.material 1.0
 import TimeLog 1.0
 
-Item {
+Page {
     id: editDialog
 
     property bool isModified: checkIsModified()
-
-    property Component toolBar: Component {
-        ToolBar {
-            RowLayout {
-                anchors.fill: parent
-
-                ToolButton {
-                    text: editDialog.isModified ? "discard" : "back"
-                    label: Image {
-                        anchors.centerIn: parent
-                        source: editDialog.isModified ? "images/ic_close_white_24dp.png"
-                                                      : "images/ic_arrow_back_white_24dp.png"
-                    }
-
-                    onClicked: editDialog.reject()
-                }
-
-                Label {
-                    Layout.fillWidth: true
-                    Material.theme: Material.Dark
-                    font.pixelSize: 20
-                    text: "Edit"
-                }
-
-                ToolButton {
-                    enabled: editDialog.isModified && delegateEditor.acceptable
-                    Material.theme: Material.Dark
-                    font.pixelSize: 14
-                    text: "Save"
-                    onClicked: editDialog.accept()
-                }
-            }
-        }
-    }
 
     property string title: "Edit"
 
@@ -94,6 +60,38 @@ Item {
     signal error(string errorText)
 
     visible: false
+
+    header: ToolBar {
+        RowLayout {
+            anchors.fill: parent
+
+            ToolButton {
+                text: editDialog.isModified ? "discard" : "back"
+                label: Image {
+                    anchors.centerIn: parent
+                    source: editDialog.isModified ? "images/ic_close_white_24dp.png"
+                                                  : "images/ic_arrow_back_white_24dp.png"
+                }
+
+                onClicked: editDialog.reject()
+            }
+
+            Label {
+                Layout.fillWidth: true
+                Material.theme: Material.Dark
+                font.pixelSize: 20
+                text: title
+            }
+
+            ToolButton {
+                enabled: editDialog.isModified && delegateEditor.acceptable
+                Material.theme: Material.Dark
+                font.pixelSize: 14
+                text: "Save"
+                onClicked: editDialog.accept()
+            }
+        }
+    }
 
     TimeLogEntryEditor {
         id: delegateEditor

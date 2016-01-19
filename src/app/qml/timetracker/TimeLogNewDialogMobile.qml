@@ -4,44 +4,10 @@ import Qt.labs.controls 1.0
 import Qt.labs.controls.material 1.0
 import TimeLog 1.0
 
-Item {
+Page {
     id: newDialog
 
     property bool isModified: checkIsModified()
-
-    property Component toolBar: Component {
-        ToolBar {
-            RowLayout {
-                anchors.fill: parent
-
-                ToolButton {
-                    text: newDialog.isModified ? "discard" : "back"
-                    label: Image {
-                        anchors.centerIn: parent
-                        source: newDialog.isModified ? "images/ic_close_white_24dp.png"
-                                                     : "images/ic_arrow_back_white_24dp.png"
-                    }
-
-                    onClicked: newDialog.close()
-                }
-
-                Label {
-                    Layout.fillWidth: true
-                    Material.theme: Material.Dark
-                    font.pixelSize: 20
-                    text: "New entry"
-                }
-
-                ToolButton {
-                    enabled: newDialog.isModified && delegateEditor.acceptable
-                    Material.theme: Material.Dark
-                    font.pixelSize: 14
-                    text: "Create"
-                    onClicked: newDialog.accept()
-                }
-            }
-        }
-    }
 
     property string title: "New entry"
 
@@ -82,6 +48,38 @@ Item {
     signal error(string errorText)
 
     visible: false
+
+    header: ToolBar {
+        RowLayout {
+            anchors.fill: parent
+
+            ToolButton {
+                text: newDialog.isModified ? "discard" : "back"
+                label: Image {
+                    anchors.centerIn: parent
+                    source: newDialog.isModified ? "images/ic_close_white_24dp.png"
+                                                 : "images/ic_arrow_back_white_24dp.png"
+                }
+
+                onClicked: newDialog.close()
+            }
+
+            Label {
+                Layout.fillWidth: true
+                Material.theme: Material.Dark
+                font.pixelSize: 20
+                text: title
+            }
+
+            ToolButton {
+                enabled: newDialog.isModified && delegateEditor.acceptable
+                Material.theme: Material.Dark
+                font.pixelSize: 14
+                text: "Create"
+                onClicked: newDialog.accept()
+            }
+        }
+    }
 
     TimeLogEntryEditor {
         id: delegateEditor

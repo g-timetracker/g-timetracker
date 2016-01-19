@@ -13,10 +13,6 @@ ApplicationWindow {
     height: 960
     visible: true
 
-    header: Loader {
-        sourceComponent: stackView.currentItem.toolBar ? stackView.currentItem.toolBar : mainToolBar
-    }
-
     Component {
         id: mainToolBar
 
@@ -67,8 +63,8 @@ ApplicationWindow {
     }
 
     function showRecent() {
-        if (stackView.currentItem != recentView) {
-            stackView.replace(null, recentView)
+        if (stackView.currentItem != recentPage) {
+            stackView.replace(null, recentPage)
         }
     }
 
@@ -261,9 +257,10 @@ ApplicationWindow {
         id: mainView
 
         function pushPage(sourceName, parameters) {
-            var page = stackView.push(Qt.resolvedUrl(sourceName))
+            var page = stackView.push(Qt.resolvedUrl("MobilePage.qml"),
+                                      { "source": sourceName, "toolBar": mainToolBar })
             for (var key in parameters) {
-                page[key] = parameters[key]
+                page.content[key] = parameters[key]
             }
         }
 
@@ -276,11 +273,13 @@ ApplicationWindow {
                 return item.objectName === pageName
             })
             var isPageExists = !!page
-            page = stackView.replace(null, isPageExists ? page : Qt.resolvedUrl(sourceName),
-                                     isPageExists ? {} : { "objectName": pageName })
+            page = stackView.replace(null, isPageExists ? page : Qt.resolvedUrl("MobilePage.qml"),
+                                     isPageExists ? {} : { "objectName": pageName,
+                                                           "source": sourceName,
+                                                           "toolBar": mainToolBar })
             if (!isPageExists) {
                 for (var key in parameters) {
-                    page[key] = parameters[key]
+                    page.content[key] = parameters[key]
                 }
             }
         }
@@ -296,17 +295,30 @@ ApplicationWindow {
             }
         }
 
-        RecentView {
-            id: recentView
+        Page {
+            id: recentPage
+
+            property alias title: recentView.title
 
             objectName: "recentPage"
+
+            header: Loader {
+                sourceComponent: mainToolBar
+            }
+
+            RecentView {
+                id: recentView
+
+                anchors.fill: parent
+            }
+
         }
 
         StackView {
             id: stackView
 
             anchors.fill: parent
-            initialItem: recentView
+            initialItem: recentPage
         }
     }
 }
