@@ -1,5 +1,6 @@
 import QtQuick 2.4
 import QtQuick.Layouts 1.3
+import QtQuick.Window 2.2
 import Qt.labs.controls 1.0
 import Qt.labs.controls.material 1.0
 import TimeLog 1.0
@@ -81,11 +82,20 @@ Page {
         }
     }
 
-    TimeLogEntryEditor {
-        id: delegateEditor
+    Flickable {
+        anchors.bottomMargin: Qt.inputMethod.keyboardRectangle.height / Screen.devicePixelRatio
+        anchors.fill: parent
+        contentWidth: delegateEditor.width
+        contentHeight: delegateEditor.height
+        boundsBehavior: Flickable.StopAtBounds
 
-        anchors.left: parent.left
-        anchors.right: parent.right
+        ScrollBar.vertical: ScrollBar { }
+
+        TimeLogEntryEditor {
+            id: delegateEditor
+
+            width: newDialog.width
+        }
     }
 
     onVisibleChanged: {
