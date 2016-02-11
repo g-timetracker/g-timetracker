@@ -7,7 +7,7 @@ ItemPositioner {
 
     spacing: 10
 
-    ComboBox {
+    ComboBoxControl {
         id: periodSelector
 
         model: [

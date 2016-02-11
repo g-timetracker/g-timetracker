@@ -26,7 +26,7 @@ ColumnLayout {
                 text: Texts.labelText("%1Category".arg(new Array(index+1).join("Sub")))
             }
 
-            ComboBox {
+            ComboBoxControl {
                 id: combobox
 
                 property int subcategory: subcategoryIndex === undefined ? -1 : subcategoryIndex

@@ -1,5 +1,4 @@
 import QtQuick 2.0
-import QtQuick.Controls 1.4
 
 ItemPositioner {
     id: datePeriodPicker
@@ -9,7 +8,7 @@ ItemPositioner {
 
     spacing: 10
 
-    ComboBox {
+    ComboBoxControl {
         id: periodSelector
 
         model: [
