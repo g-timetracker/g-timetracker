@@ -1,6 +1,5 @@
 import QtQuick 2.4
 import QtQuick.Layouts 1.1
-import QtQuick.Controls 1.2
 import TimeLog 1.0
 
 Item {
@@ -43,40 +42,39 @@ Item {
             width: parent.width
             spacing: 10
 
-            Label {
+            LabelControl {
                 id: categoryLabel
 
                 Layout.fillWidth: false
-                font.pointSize: 12
-                font.bold: true
+                font.pixelSize: 16
+                opacity: 1
                 text: timeLogDelegate.category
             }
 
-            Label {
+            LabelControl {
                 id: durationTimeLabel
 
                 Layout.alignment: Qt.AlignRight | Qt.AlignVCenter
                 Layout.fillWidth: true
                 horizontalAlignment: Text.AlignRight
                 elide: Text.ElideRight
-                font.pointSize: 10
+                font.pixelSize: 14
                 text: TimeTracker.durationText(timeLogDelegate.durationTime, 2)
             }
         }
 
-        Label {
+        LabelControl {
             id: startLabel
 
-            font.pointSize: 10
+            font.pixelSize: 14
             text: "%1 - %2".arg(Qt.formatDateTime(timeLogDelegate.startTime))
                            .arg(Qt.formatDateTime(new Date(timeLogDelegate.succeedingStart.valueOf() -1000)))
         }
 
-        Label {
+        LabelControl {
             id: commentLabel
 
-            font.pointSize: 9
-            opacity: 0.6
+            font.pixelSize: 14
             wrapMode: Text.WrapAtWordBoundaryOrAnywhere
             text: timeLogDelegate.comment
             visible: !!text

@@ -223,7 +223,7 @@ ApplicationWindow {
                             anchors.top: parent.top
                             visible: model.hasCloseButton
                             text: "x"
-                            label: Label {
+                            label: LabelControl {
                                 text: tabCloseButton.text
                             }
                             onClicked: {

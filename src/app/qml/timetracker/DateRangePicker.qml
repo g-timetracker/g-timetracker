@@ -1,5 +1,4 @@
 import QtQuick 2.0
-import QtQuick.Controls 1.4
 import "Texts.js" as Texts
 
 ItemPositioner {
@@ -8,7 +7,7 @@ ItemPositioner {
 
     spacing: 10
 
-    Label {
+    LabelControl {
         text: Texts.labelText("From")
     }
 
@@ -19,7 +18,7 @@ ItemPositioner {
         maximumDate: toField.selectedDate
     }
 
-    Label {
+    LabelControl {
         text: Texts.labelText("To")
     }
 

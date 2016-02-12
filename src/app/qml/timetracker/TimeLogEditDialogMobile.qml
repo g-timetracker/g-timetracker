@@ -77,7 +77,7 @@ Page {
                 onClicked: editDialog.reject()
             }
 
-            Label {
+            LabelControl {
                 Layout.fillWidth: true
                 Material.theme: Material.Dark
                 font.pixelSize: 20

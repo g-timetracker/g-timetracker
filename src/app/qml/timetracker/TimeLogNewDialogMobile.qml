@@ -65,7 +65,7 @@ Page {
                 onClicked: newDialog.close()
             }
 
-            Label {
+            LabelControl {
                 Layout.fillWidth: true
                 Material.theme: Material.Dark
                 font.pixelSize: 20

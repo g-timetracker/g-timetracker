@@ -52,10 +52,11 @@ ApplicationWindow {
                     }
                 }
 
-                Label {
+                LabelControl {
                     Layout.fillWidth: true
                     Material.theme: Material.Dark
                     font.pixelSize: 20
+                    opacity: 1
                     text: stackView.currentItem.title ? stackView.currentItem.title : ""
                 }
             }
@@ -178,7 +179,9 @@ ApplicationWindow {
                         TimeTracker.undo()
                     }
                 }
-                Label {
+                LabelControl {
+                    font.pixelSize: 16
+                    opacity: 1
                     text: "Settings"
                 }
                 Switch {

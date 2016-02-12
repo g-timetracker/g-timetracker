@@ -69,5 +69,9 @@
         <file>qml/timetracker/+android/ComboBoxControl.qml</file>
         <file>qml/timetracker/ComboBoxControlDesktop.qml</file>
         <file>qml/timetracker/ComboBoxControlMobile.qml</file>
+        <file>qml/timetracker/LabelControl.qml</file>
+        <file>qml/timetracker/+android/LabelControl.qml</file>
+        <file>qml/timetracker/LabelControlDesktop.qml</file>
+        <file>qml/timetracker/LabelControlMobile.qml</file>
     </qresource>
 </RCC>

@@ -30,8 +30,7 @@ Column {
         id: categoryPicker
     }
 
-    Label {
-        font.pixelSize: 12
+    LabelControl {
         text: "Start date"
     }
 
@@ -46,8 +45,7 @@ Column {
         onOrigDateChanged: selectedDate = origDate
     }
 
-    Label {
-        font.pixelSize: 12
+    LabelControl {
         text: "Start time"
     }
 
@@ -65,18 +63,16 @@ Column {
         }
     }
 
-    Label {
-        font.pixelSize: 12
+    LabelControl {
         text: "Duration"
     }
 
-    Label {
+    LabelControl {
         elide: Text.ElideRight
         text: TimeTracker.durationText(d.durationTime)
     }
 
-    Label {
-        font.pixelSize: 12
+    LabelControl {
         text: commentArea.placeholderText
         visible: commentArea.text
     }

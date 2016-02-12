@@ -1,5 +1,4 @@
 import QtQuick 2.4
-import QtQuick.Controls 1.4
 import QtQuick.Layouts 1.1
 import TimeLog 1.0
 import "Texts.js" as Texts
@@ -21,7 +20,7 @@ ColumnLayout {
         ItemPositioner {
             spacing: 10
 
-            Label {
+            LabelControl {
                 Layout.fillWidth: true
                 text: Texts.labelText("%1Category".arg(new Array(index+1).join("Sub")))
             }

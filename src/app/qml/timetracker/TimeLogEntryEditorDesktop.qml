@@ -33,7 +33,7 @@ GridLayout {
         Layout.columnSpan: 2
     }
 
-    Label {
+    LabelControl {
         Layout.alignment: Qt.AlignVCenter | Qt.AlignRight
         text: "Start date:"
     }
@@ -52,7 +52,7 @@ GridLayout {
         onOrigDateChanged: selectedDate = origDate
     }
 
-    Label {
+    LabelControl {
         Layout.alignment: Qt.AlignVCenter | Qt.AlignRight
         text: "Start time:"
     }
@@ -74,12 +74,12 @@ GridLayout {
         }
     }
 
-    Label {
+    LabelControl {
         Layout.alignment: Qt.AlignVCenter | Qt.AlignRight
         text: "Duration:"
     }
 
-    Label {
+    LabelControl {
         Layout.fillWidth: true
         Layout.alignment: Qt.AlignVCenter
         horizontalAlignment: Text.AlignRight
@@ -87,7 +87,7 @@ GridLayout {
         text: TimeTracker.durationText(d.durationTime)
     }
 
-    Label {
+    LabelControl {
         Layout.alignment: Qt.AlignVCenter | Qt.AlignRight
         text: "Comment (optional):"
     }
@@ -102,7 +102,7 @@ GridLayout {
         Layout.alignment: Qt.AlignVCenter
         Layout.columnSpan: delegateEditor.columns
 
-        Label {
+        LabelControl {
             anchors.margins: commentArea.textMargin
             anchors.fill: parent
             elide: Text.ElideRight
