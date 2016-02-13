@@ -118,83 +118,94 @@ ApplicationWindow {
 
         anchors.fill: parent
 
-        Rectangle {
+        Pane {
             height: parent.height
-            implicitWidth: drawerItems.implicitWidth + drawerItems.anchors.margins * 2
+            implicitWidth: Math.min(drawerItems.implicitWidth + drawerItems.anchors.margins * 2,
+                                    parent.width - 56)
 
-            Column {
-                id: drawerItems
-
-                anchors.margins: 10
+            Flickable {
                 anchors.fill: parent
-                spacing: 10
+                contentWidth: drawerItems.implicitWidth
+                contentHeight: drawerItems.implicitHeight
+                boundsBehavior: Flickable.StopAtBounds
 
-                PushButton {
-                    text: "Recent"
-                    onClicked: {
-                        drawer.close()
-                        mainWindow.showRecent()
+                ScrollBar.vertical: ScrollBar { }
+
+                Column {
+                    id: drawerItems
+
+                    anchors.margins: 10
+                    anchors.left: parent.left
+                    anchors.right: parent.right
+                    spacing: 10
+
+                    PushButton {
+                        text: "Recent"
+                        onClicked: {
+                            drawer.close()
+                            mainWindow.showRecent()
+                        }
                     }
-                }
-                PushButton {
-                    text: "Search"
-                    onClicked: {
-                        drawer.close()
-                        mainWindow.showSearch()
+                    PushButton {
+                        text: "Search"
+                        onClicked: {
+                            drawer.close()
+                            mainWindow.showSearch()
+                        }
                     }
-                }
-                PushButton {
-                    text: "Statistics"
-                    onClicked: {
-                        drawer.close()
-                        mainWindow.showStats()
+                    PushButton {
+                        text: "Statistics"
+                        onClicked: {
+                            drawer.close()
+                            mainWindow.showStats()
+                        }
                     }
-                }
-                PushButton {
-                    text: "Categories"
-                    onClicked: {
-                        drawer.close()
-                        mainWindow.showCategories()
+                    PushButton {
+                        text: "Categories"
+                        onClicked: {
+                            drawer.close()
+                            mainWindow.showCategories()
+                        }
                     }
-                }
-                PushButton {
-                    text: "History"
-                    onClicked: {
-                        drawer.close()
-                        mainWindow.showHistory()
+                    PushButton {
+                        text: "History"
+                        onClicked: {
+                            drawer.close()
+                            mainWindow.showHistory()
+                        }
                     }
-                }
-                PushButton {
-                    text: "Sync"
-                    onClicked: {
-                        drawer.close()
-                        TimeTracker.syncer.sync(Settings.syncPath)
+                    PushButton {
+                        text: "Sync"
+                        onClicked: {
+                            drawer.close()
+                            TimeTracker.syncer.sync(Settings.syncPath)
+                        }
                     }
-                }
-                PushButton {
-                    text: "Undo"
-                    enabled: TimeTracker.undoCount
-                    onClicked: {
-                        drawer.close()
-                        TimeTracker.undo()
+                    PushButton {
+                        text: "Undo"
+                        enabled: TimeTracker.undoCount
+                        onClicked: {
+                            drawer.close()
+                            TimeTracker.undo()
+                        }
                     }
-                }
-                LabelControl {
-                    font.pixelSize: 16
-                    opacity: 1
-                    text: "Settings"
-                }
-                Switch {
-                    text: "Confirmations"
-                    checkable: true
-                    checked: Settings.isConfirmationsEnabled
-                    onCheckedChanged: Settings.isConfirmationsEnabled = checked
-                }
-                PushButton {
-                    text: "Sync path"
-                    onClicked: {
-                        drawer.close()
-                        mainWindow.changeSyncPath()
+                    LabelControl {
+                        font.pixelSize: 16
+                        opacity: 1
+                        text: "Settings"
+                    }
+                    Switch {
+                        text: "Confirmations"
+                        checkable: true
+                        checked: Settings.isConfirmationsEnabled
+                        onCheckedChanged: Settings.isConfirmationsEnabled = checked
+                    }
+                    PushButton {
+                        text: "Sync path"
+                        onClicked: {
+                            drawer.close()
+                            mainWindow.changeSyncPath()
+                        }
                     }
                 }
             }
@@ -314,7 +325,6 @@ ApplicationWindow {
 
                 anchors.fill: parent
             }
-
         }
 
         StackView {
