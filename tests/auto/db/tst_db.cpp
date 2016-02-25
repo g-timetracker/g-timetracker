@@ -44,6 +44,13 @@ private slots:
     void undoRenameCategory();
     void undoRenameCategory_data();
     void undoMultiple();
+
+    void hashes();
+    void hashes_data();
+    void hashesUpdate();
+    void hashesUpdate_data();
+    void hashesOld();
+    void hashesOld_data();
 };
 
 tst_DB::tst_DB()
@@ -82,6 +89,7 @@ void tst_DB::initTestCase()
     qRegisterMetaType<TimeLogHistory::Fields>();
     qRegisterMetaType<QVector<TimeLogHistory::Fields> >();
     qRegisterMetaType<QSharedPointer<TimeLogCategory> >();
+    qRegisterMetaType<QMap<QDateTime,QByteArray> >();
 }
 
 void tst_DB::import()
@@ -102,6 +110,8 @@ void tst_DB::import()
     QVERIFY(compareData(importSpy.constFirst().at(0).value<QVector<TimeLogEntry> >(), origData));
 
     checkFunction(checkDB, history, origData);
+
+    checkFunction(checkHashes, history, false);
 }
 
 void tst_DB::import_data()
@@ -150,6 +160,8 @@ void tst_DB::insert()
     checkFunction(checkInsert, insertSpy, updateSpy, origData, index);
 
     checkFunction(checkDB, history, origData);
+
+    checkFunction(checkHashes, history, false);
 }
 
 void tst_DB::insert_data()
@@ -206,6 +218,8 @@ void tst_DB::insertConflict()
     QVERIFY(updateSpy.isEmpty());
 
     checkFunction(checkDB, history, origData);
+
+    checkFunction(checkHashes, history, false);
 }
 
 void tst_DB::insertConflict_data()
@@ -262,6 +276,8 @@ void tst_DB::remove()
     checkFunction(checkRemove, removeSpy, updateSpy, origData, index);
 
     checkFunction(checkDB, history, origData);
+
+    checkFunction(checkHashes, history, false);
 }
 
 void tst_DB::remove_data()
@@ -327,6 +343,8 @@ void tst_DB::edit()
     checkFunction(checkEdit, updateSpy, origData, fields, index);
 
     checkFunction(checkDB, history, origData);
+
+    checkFunction(checkHashes, history, false);
 }
 
 void tst_DB::edit_data()
@@ -427,6 +445,8 @@ void tst_DB::editConflict()
     QVERIFY(updateSpy.isEmpty());
 
     checkFunction(checkDB, history, origData);
+
+    checkFunction(checkHashes, history, false);
 }
 
 void tst_DB::editConflict_data()
@@ -512,6 +532,8 @@ void tst_DB::renameCategory()
     }
 
     checkFunction(checkDB, history, origData);
+
+    checkFunction(checkHashes, history, false);
 }
 
 void tst_DB::renameCategory_data()
@@ -583,6 +605,8 @@ void tst_DB::undoInsert()
     checkFunction(checkRemove, removeSpy, updateSpy, origData, index);
 
     checkFunction(checkDB, history, origData);
+
+    checkFunction(checkHashes, history, false);
 }
 
 void tst_DB::undoInsert_data()
@@ -643,6 +667,8 @@ void tst_DB::undoRemove()
     checkFunction(checkInsert, insertSpy, updateSpy, origData, index);
 
     checkFunction(checkDB, history, origData);
+
+    checkFunction(checkHashes, history, false);
 }
 
 void tst_DB::undoRemove_data()
@@ -705,6 +731,8 @@ void tst_DB::undoEdit()
     checkFunction(checkEdit, updateSpy, origData, fields, index);
 
     checkFunction(checkDB, history, origData);
+
+    checkFunction(checkHashes, history, false);
 }
 
 void tst_DB::undoEdit_data()
@@ -798,6 +826,8 @@ void tst_DB::undoRenameCategory()
         QCOMPARE(updateData.constFirst().category, origData.at(indexes.at(i)).category);
         QCOMPARE(updateFields.constFirst(), TimeLogHistory::Category);
     }
+
+    checkFunction(checkHashes, history, false);
 }
 
 void tst_DB::undoRenameCategory_data()
@@ -904,6 +934,247 @@ void tst_DB::undoMultiple()
     checkFunction(checkEdit, updateSpy, origData, TimeLogHistory::Category, 2);
 
     checkFunction(checkDB, history, origData);
+
+    checkFunction(checkHashes, history, false);
+}
+
+void tst_DB::hashes()
+{
+    QFETCH(int, entriesCount);
+
+    QVector<TimeLogEntry> origData(defaultData().mid(0, entriesCount));
+    QVector<TimeLogSyncData> origSyncData(genSyncData(origData, defaultMTimes()));
+
+    QSignalSpy historyErrorSpy(history, SIGNAL(error(QString)));
+
+    QSignalSpy historyOutdateSpy(history, SIGNAL(dataOutdated()));
+
+    QSignalSpy historyHashesSpy(history, SIGNAL(hashesAvailable(QMap<QDateTime,QByteArray>)));
+
+    checkFunction(importSyncData, history, origSyncData, 1);
+
+    checkFunction(checkHashesUpdated, history, false);
+
+    historyHashesSpy.clear();
+    history->getHashes();
+    QVERIFY(historyHashesSpy.wait());
+    QVERIFY(historyErrorSpy.isEmpty());
+    QVERIFY(historyOutdateSpy.isEmpty());
+
+    QMap<QDateTime,QByteArray> hashes = historyHashesSpy.constFirst().at(0).value<QMap<QDateTime,QByteArray> >();
+
+    checkFunction(checkHashesUpdated, hashes, true);
+    checkFunction(compareHashes, hashes, calcHashes(origSyncData));
+
+    checkFunction(checkDB, history, origData);
+    checkFunction(checkDB, history, origSyncData);
+}
+
+void tst_DB::hashes_data()
+{
+    QTest::addColumn<int>("entriesCount");
+
+    QTest::newRow("1 entry") << 1;
+    QTest::newRow("2 entries") << 2;
+    QTest::newRow("4 entries") << 4;
+    QTest::newRow("6 entries") << 6;
+}
+
+void tst_DB::hashesUpdate()
+{
+    QFETCH(int, entriesCount);
+
+    QVector<TimeLogEntry> origData(defaultData().mid(0, entriesCount));
+    QVector<TimeLogSyncData> origSyncData(genSyncData(origData, defaultMTimes()));
+
+    QSignalSpy historyErrorSpy(history, SIGNAL(error(QString)));
+
+    QSignalSpy historyOutdateSpy(history, SIGNAL(dataOutdated()));
+
+    QSignalSpy historyUpdateHashesSpy(history, SIGNAL(hashesUpdated()));
+
+    checkFunction(importSyncData, history, origSyncData, 1);
+
+    checkFunction(checkHashesUpdated, history, false);
+
+    historyUpdateHashesSpy.clear();
+    history->updateHashes();
+    QVERIFY(historyUpdateHashesSpy.wait());
+    QVERIFY(historyErrorSpy.isEmpty());
+    QVERIFY(historyOutdateSpy.isEmpty());
+
+    checkFunction(checkHashesUpdated, history, true);
+    checkFunction(checkHashes, history, calcHashes(origSyncData));
+
+    checkFunction(checkDB, history, origData);
+    checkFunction(checkDB, history, origSyncData);
+}
+
+void tst_DB::hashesUpdate_data()
+{
+    QTest::addColumn<int>("entriesCount");
+
+    QTest::newRow("1 entry") << 1;
+    QTest::newRow("2 entries") << 2;
+    QTest::newRow("4 entries") << 4;
+    QTest::newRow("6 entries") << 6;
+}
+
+void tst_DB::hashesOld()
+{
+    QFETCH(int, entriesCount);
+
+    QVector<TimeLogEntry> origData(defaultData().mid(0, entriesCount));
+    QVector<TimeLogSyncData> origSyncData(genSyncData(origData, defaultMTimes()));
+
+    QSignalSpy historyErrorSpy(history, SIGNAL(error(QString)));
+
+    QSignalSpy historyOutdateSpy(history, SIGNAL(dataOutdated()));
+
+    QSignalSpy historyUpdateHashesSpy(history, SIGNAL(hashesUpdated()));
+
+    checkFunction(importSyncData, history, origSyncData, 1);
+
+    QMap<QDateTime,QByteArray> hashes;
+
+    checkFunction(extractHashes, history, hashes, false);
+    checkFunction(checkHashes, history, calcHashes(origSyncData));
+
+    QFETCH(TimeLogSyncData, newData);
+
+    checkFunction(importSyncData, history, QVector<TimeLogSyncData>() << newData, 1);
+
+    updateDataSet(origData, static_cast<TimeLogEntry>(newData));
+    updateDataSet(origSyncData, newData);
+    QDateTime periodStart = monthStart(newData.mTime);
+    hashes.insert(periodStart, calcHashes(origSyncData).value(periodStart));
+
+    historyUpdateHashesSpy.clear();
+    history->updateHashes();
+    QVERIFY(historyUpdateHashesSpy.wait());
+    QVERIFY(historyErrorSpy.isEmpty());
+    QVERIFY(historyOutdateSpy.isEmpty());
+
+    checkFunction(checkHashes, history, hashes);
+
+    checkFunction(checkDB, history, origData);
+    checkFunction(checkDB, history, origSyncData);
+}
+
+void tst_DB::hashesOld_data()
+{
+    QTest::addColumn<int>("entriesCount");
+
+    QTest::addColumn<TimeLogSyncData>("newData");
+
+    auto addInsertTest = [](int size, int index, const QDateTime &mTime, const QString &info)
+    {
+        TimeLogEntry entry;
+        entry.startTime = defaultData().at(index).startTime.addSecs(100);
+        entry.category = "CategoryNew";
+        entry.comment = "Test comment";
+        entry.uuid = QUuid::createUuid();
+        TimeLogSyncData syncData = TimeLogSyncData(entry, mTime);
+
+        QTest::newRow(QString("%1 entries, insert %2 %3").arg(size).arg(index).arg(info).toLocal8Bit())
+                << size << syncData;
+    };
+
+    auto addInsertTests = [&addInsertTest](int size, int index, const QDateTime &maxMonth)
+    {
+        addInsertTest(size, index, monthStart(maxMonth), "0");
+        addInsertTest(size, index, monthStart(maxMonth).addMSecs(-1), "-1 ms");
+        addInsertTest(size, index, monthStart(maxMonth).addMSecs(1), "+1 ms");
+        addInsertTest(size, index, monthStart(maxMonth).addMSecs(-999), "-999 ms");
+        addInsertTest(size, index, monthStart(maxMonth).addMSecs(999), "+999 ms");
+        addInsertTest(size, index, monthStart(maxMonth).addSecs(-1), "-1 s");
+        addInsertTest(size, index, monthStart(maxMonth).addSecs(1), "+1 s");
+        addInsertTest(size, index, monthStart(maxMonth).addMSecs(-1001), "-1001 ms");
+        addInsertTest(size, index, monthStart(maxMonth).addMSecs(1001), "+1001 ms");
+        addInsertTest(size, index, monthStart(maxMonth).addDays(10), "+10 days");
+        addInsertTest(size, index, monthStart(maxMonth).addMonths(2), "+2 months");
+        addInsertTest(size, index, monthStart(maxMonth).addYears(1), "+1 year");
+    };
+
+    addInsertTests(1, 0, QDateTime(QDate(2015, 12, 10), QTime(), Qt::UTC));
+
+    addInsertTests(2, 0, QDateTime(QDate(2015, 12, 10), QTime(), Qt::UTC));
+
+    addInsertTests(4, 0, QDateTime(QDate(2016, 01, 10), QTime(), Qt::UTC));
+
+    addInsertTests(6, 0, QDateTime(QDate(2016, 01, 10), QTime(), Qt::UTC));
+
+
+    auto addEditTest = [](int size, int index, const QDateTime &mTime, const QString &info)
+    {
+        TimeLogEntry entry = defaultData().at(index);
+        entry.startTime = entry.startTime.addSecs(100);
+        entry.category = "CategoryNew";
+        entry.comment = "Test comment";
+        entry.uuid = defaultData().at(index).uuid;
+        TimeLogSyncData syncData = TimeLogSyncData(entry, mTime);
+
+        QTest::newRow(QString("%1 entries, edit %2 %3").arg(size).arg(index).arg(info).toLocal8Bit())
+                << size << syncData;
+    };
+
+    auto addEditTests = [&addEditTest](int size, int index, const QDateTime &maxMonth)
+    {
+        addEditTest(size, index, monthStart(maxMonth), "0");
+        addEditTest(size, index, monthStart(maxMonth).addMSecs(-1), "-1 ms");
+        addEditTest(size, index, monthStart(maxMonth).addMSecs(1), "+1 ms");
+        addEditTest(size, index, monthStart(maxMonth).addMSecs(-999), "-999 ms");
+        addEditTest(size, index, monthStart(maxMonth).addMSecs(999), "+999 ms");
+        addEditTest(size, index, monthStart(maxMonth).addSecs(-1), "-1 s");
+        addEditTest(size, index, monthStart(maxMonth).addSecs(1), "+1 s");
+        addEditTest(size, index, monthStart(maxMonth).addMSecs(-1001), "-1001 ms");
+        addEditTest(size, index, monthStart(maxMonth).addMSecs(1001), "+1001 ms");
+        addEditTest(size, index, monthStart(maxMonth).addDays(10), "+10 days");
+        addEditTest(size, index, monthStart(maxMonth).addMonths(2), "+2 months");
+        addEditTest(size, index, monthStart(maxMonth).addYears(1), "+1 year");
+    };
+
+    addEditTests(1, 0, QDateTime(QDate(2015, 12, 10), QTime(), Qt::UTC));
+
+    addEditTests(2, 0, QDateTime(QDate(2015, 12, 10), QTime(), Qt::UTC));
+
+    addEditTests(4, 0, QDateTime(QDate(2016, 01, 10), QTime(), Qt::UTC));
+
+    addEditTests(6, 0, QDateTime(QDate(2016, 01, 10), QTime(), Qt::UTC));
+
+    auto addRemoveTest = [](int size, int index, const QDateTime &mTime, const QString &info)
+    {
+        TimeLogEntry entry;
+        entry.uuid = defaultData().at(index).uuid;
+        TimeLogSyncData syncData = TimeLogSyncData(entry, mTime);
+
+        QTest::newRow(QString("%1 entries, remove %2 %3").arg(size).arg(index).arg(info).toLocal8Bit())
+                << size << syncData;
+    };
+
+    auto addRemoveTests = [&addRemoveTest](int size, int index, const QDateTime &maxMonth)
+    {
+        addRemoveTest(size, index, monthStart(maxMonth), "0");
+        addRemoveTest(size, index, monthStart(maxMonth).addMSecs(-1), "-1 ms");
+        addRemoveTest(size, index, monthStart(maxMonth).addMSecs(1), "+1 ms");
+        addRemoveTest(size, index, monthStart(maxMonth).addMSecs(-999), "-999 ms");
+        addRemoveTest(size, index, monthStart(maxMonth).addMSecs(999), "+999 ms");
+        addRemoveTest(size, index, monthStart(maxMonth).addSecs(-1), "-1 s");
+        addRemoveTest(size, index, monthStart(maxMonth).addSecs(1), "+1 s");
+        addRemoveTest(size, index, monthStart(maxMonth).addMSecs(-1001), "-1001 ms");
+        addRemoveTest(size, index, monthStart(maxMonth).addMSecs(1001), "+1001 ms");
+        addRemoveTest(size, index, monthStart(maxMonth).addDays(10), "+10 days");
+        addRemoveTest(size, index, monthStart(maxMonth).addMonths(2), "+2 months");
+        addRemoveTest(size, index, monthStart(maxMonth).addYears(1), "+1 year");
+    };
+
+    addRemoveTests(1, 0, QDateTime(QDate(2015, 12, 10), QTime(), Qt::UTC));
+
+    addRemoveTests(2, 0, QDateTime(QDate(2015, 12, 10), QTime(), Qt::UTC));
+
+    addRemoveTests(4, 0, QDateTime(QDate(2016, 01, 10), QTime(), Qt::UTC));
+
+    addRemoveTests(6, 0, QDateTime(QDate(2016, 01, 10), QTime(), Qt::UTC));
 }
 
 QTEST_MAIN(tst_DB)

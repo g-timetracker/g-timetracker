@@ -126,6 +126,7 @@ void tst_Sync_benchmark::initTestCase()
     qRegisterMetaType<QVector<TimeLogHistory::Fields> >();
     qRegisterMetaType<QVector<TimeLogSyncData> >();
     qRegisterMetaType<QSharedPointer<TimeLogCategory> >();
+    qRegisterMetaType<QMap<QDateTime,QByteArray> >();
 
     oldCategoryFilter = QLoggingCategory::installFilter(Q_NULLPTR);
     QLoggingCategory::installFilter(syncerCategoryFilter);

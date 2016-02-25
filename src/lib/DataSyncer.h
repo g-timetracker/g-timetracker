@@ -3,6 +3,7 @@
 
 #include <QObject>
 #include <QUrl>
+#include <QDateTime>
 
 class QThread;
 
@@ -23,7 +24,9 @@ signals:
     void synced(QPrivateSignal);
 
 public slots:
-    void sync(const QUrl &pathUrl);
+    void sync(const QUrl &pathUrl, const QDateTime &start = QDateTime::currentDateTimeUtc());
+    void setNoPack(bool noPack);
+    void pack(const QString &path, const QDateTime &start = QDateTime::currentDateTimeUtc());
 
 private:
     void makeAsync();

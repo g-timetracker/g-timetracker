@@ -34,14 +34,20 @@ TimeLogHistory::TimeLogHistory(QObject *parent) :
             this, SIGNAL(statsDataAvailable(QVector<TimeLogStats>,QDateTime)));
     connect(m_worker, SIGNAL(syncDataAvailable(QVector<TimeLogSyncData>,QDateTime)),
             this, SIGNAL(syncDataAvailable(QVector<TimeLogSyncData>,QDateTime)));
+    connect(m_worker, SIGNAL(hasSyncData(bool,QDateTime,QDateTime)),
+            this, SIGNAL(hasSyncData(bool,QDateTime,QDateTime)));
     connect(m_worker, SIGNAL(syncStatsAvailable(QVector<TimeLogSyncData>,QVector<TimeLogSyncData>,
                                                 QVector<TimeLogSyncData>,QVector<TimeLogSyncData>,
                                                 QVector<TimeLogSyncData>,QVector<TimeLogSyncData>)),
             this, SIGNAL(syncStatsAvailable(QVector<TimeLogSyncData>,QVector<TimeLogSyncData>,
                                             QVector<TimeLogSyncData>,QVector<TimeLogSyncData>,
                                             QVector<TimeLogSyncData>,QVector<TimeLogSyncData>)));
+    connect(m_worker, SIGNAL(hashesAvailable(QMap<QDateTime,QByteArray>)),
+            this, SIGNAL(hashesAvailable(QMap<QDateTime,QByteArray>)));
     connect(m_worker, SIGNAL(dataSynced(QVector<TimeLogSyncData>,QVector<TimeLogSyncData>)),
             this, SIGNAL(dataSynced(QVector<TimeLogSyncData>,QVector<TimeLogSyncData>)));
+    connect(m_worker, SIGNAL(hashesUpdated()),
+            this, SIGNAL(hashesUpdated()));
 }
 
 TimeLogHistory::~TimeLogHistory()
@@ -51,13 +57,13 @@ TimeLogHistory::~TimeLogHistory()
     }
 }
 
-bool TimeLogHistory::init(const QString &dataPath)
+bool TimeLogHistory::init(const QString &dataPath, const QString &filePath)
 {
     if (m_worker->thread() != thread()) {
         return false;
     }
 
-    if (!m_worker->init(dataPath)) {
+    if (!m_worker->init(dataPath, filePath)) {
         return false;
     }
 
@@ -116,6 +122,11 @@ void TimeLogHistory::sync(const QVector<TimeLogSyncData> &updatedData, const QVe
                               Q_ARG(QVector<TimeLogSyncData>, removedData));
 }
 
+void TimeLogHistory::updateHashes()
+{
+    QMetaObject::invokeMethod(m_worker, "updateHashes", Qt::AutoConnection);
+}
+
 void TimeLogHistory::undo()
 {
     QMetaObject::invokeMethod(m_worker, "undo", Qt::AutoConnection);
@@ -150,6 +161,18 @@ void TimeLogHistory::getSyncData(const QDateTime &mBegin, const QDateTime &mEnd)
 {
     QMetaObject::invokeMethod(m_worker, "getSyncData", Qt::AutoConnection,
                               Q_ARG(QDateTime, mBegin), Q_ARG(QDateTime, mEnd));
+}
+
+void TimeLogHistory::checkHasSyncData(const QDateTime &mBegin, const QDateTime &mEnd) const
+{
+    QMetaObject::invokeMethod(m_worker, "checkHasSyncData", Qt::AutoConnection,
+                              Q_ARG(QDateTime, mBegin), Q_ARG(QDateTime, mEnd));
+}
+
+void TimeLogHistory::getHashes(const QDateTime &maxDate, bool noUpdate)
+{
+    QMetaObject::invokeMethod(m_worker, "getHashes", Qt::AutoConnection,
+                              Q_ARG(QDateTime, maxDate), Q_ARG(bool, noUpdate));
 }
 
 void TimeLogHistory::workerSizeChanged(qlonglong size)

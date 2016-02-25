@@ -1,4 +1,6 @@
 TEMPLATE = subdirs
 SUBDIRS += \
     db \
-    sync
+    sync \
+    db_syncer \
+    sync_pack

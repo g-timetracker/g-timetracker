@@ -22,6 +22,14 @@ QVector<TimeLogEntry> defaultDataset = QVector<TimeLogEntry>()
                                                                                Qt::ISODate),
                                                          "Category5", ""));
 
+QVector<QDateTime> defaultMTimeSet = QVector<QDateTime>()
+        << QDateTime::fromString("2015-11-01T11:00:00Z", Qt::ISODate)
+        << QDateTime::fromString("2015-11-30T23:59:59Z", Qt::ISODate).addMSecs(999)
+        << QDateTime::fromString("2015-12-01T00:00:00Z", Qt::ISODate)
+        << QDateTime::fromString("2015-12-01T00:00:00Z", Qt::ISODate).addMSecs(1)
+        << QDateTime::fromString("2015-12-01T00:00:00Z", Qt::ISODate).addMSecs(999)
+        << QDateTime::fromString("2015-12-01T00:00:01Z", Qt::ISODate);
+
 const int minDuration = 1;
 const int maxDuration = 20000;
 
@@ -141,6 +149,27 @@ void checkEdit(QSignalSpy &updateSpy, QVector<TimeLogEntry> &origData, TimeLogHi
     }
 }
 
+void extractSyncData(TimeLogHistory *history, QVector<TimeLogSyncData> &syncData)
+{
+    QSignalSpy historySyncDataSpy(history, SIGNAL(syncDataAvailable(QVector<TimeLogSyncData>,QDateTime)));
+    QSignalSpy historyErrorSpy(history, SIGNAL(error(QString)));
+    history->getSyncData();
+    QVERIFY(historySyncDataSpy.wait());
+    QVERIFY(historyErrorSpy.isEmpty());
+    syncData = historySyncDataSpy.constFirst().at(0).value<QVector<TimeLogSyncData> >();
+}
+
+void extractHashes(TimeLogHistory *history, QMap<QDateTime, QByteArray> &hashes, bool noUpdate)
+{
+    QSignalSpy historyErrorSpy(history, SIGNAL(error(QString)));
+    QSignalSpy historyHashesSpy(history, SIGNAL(hashesAvailable(QMap<QDateTime,QByteArray>)));
+    history->getHashes(QDateTime(), noUpdate);
+    QVERIFY(historyHashesSpy.wait());
+    QVERIFY(historyErrorSpy.isEmpty());
+
+    hashes = historyHashesSpy.constFirst().at(0).value<QMap<QDateTime,QByteArray> >();
+}
+
 void checkDB(TimeLogHistory *history, const QVector<TimeLogEntry> &data)
 {
     QSignalSpy historyDataSpy(history, SIGNAL(historyRequestCompleted(QVector<TimeLogEntry>,qlonglong)));
@@ -154,9 +183,67 @@ void checkDB(TimeLogHistory *history, const QVector<TimeLogEntry> &data)
     QVERIFY(compareData(historyData, data));
 }
 
+void checkDB(TimeLogHistory *history, const QVector<TimeLogSyncData> &data)
+{
+    QVector<TimeLogSyncData> syncData;
+    checkFunction(extractSyncData, history, syncData);
+    QVERIFY(compareData(syncData, data));
+}
+
+void verifyHashes(const QMap<QDateTime, QByteArray> &hashes)
+{
+    for (auto it = hashes.cbegin(); it != hashes.cend(); it++) {
+        const QDateTime hashDate(it.key().toUTC());
+        QVERIFY(hashDate.isValid());
+        QCOMPARE(hashDate.date().day(), 1);
+        QCOMPARE(hashDate.time().msecsSinceStartOfDay(), 0);
+    }
+}
+
+void checkHashesUpdated(const QMap<QDateTime, QByteArray> &hashes, bool isUpdated)
+{
+    for (auto it = hashes.cbegin(); it != hashes.cend(); it++) {
+        const QDateTime hashDate(it.key().toUTC());
+        QVERIFY(hashDate.isValid());
+        QCOMPARE(hashDate.date().day(), 1);
+        QCOMPARE(hashDate.time().msecsSinceStartOfDay(), 0);
+        QVERIFY(it.value().isEmpty() == !isUpdated);
+    }
+}
+
+void checkHashesUpdated(TimeLogHistory *history, bool isUpdated)
+{
+    QMap<QDateTime,QByteArray> hashes;
+    checkFunction(extractHashes, history, hashes, true);
+    checkFunction(checkHashesUpdated, hashes, isUpdated);
+}
+
+void checkHashes(TimeLogHistory *history, const QMap<QDateTime, QByteArray> &origHashes)
+{
+    QMap<QDateTime,QByteArray> hashes;
+    checkFunction(extractHashes, history, hashes, true);
+    checkFunction(compareHashes, hashes, origHashes);
+}
+
+void checkHashes(TimeLogHistory *history, bool noUpdate)
+{
+    QVector<TimeLogSyncData> data;
+    checkFunction(extractSyncData, history, data);
+
+    QMap<QDateTime,QByteArray> hashes;
+    checkFunction(extractHashes, history, hashes, noUpdate);
+    checkFunction(verifyHashes, hashes);
+    checkFunction(compareHashes, hashes, calcHashes(data));
+}
+
 const QVector<TimeLogEntry> &defaultData()
 {
     return defaultDataset;
+}
+
+const QVector<QDateTime> &defaultMTimes()
+{
+    return defaultMTimeSet;
 }
 
 QStringList genCategories(int count)
@@ -227,7 +314,128 @@ QVector<TimeLogEntry> genData(int count)
     return result;
 }
 
-void dumpData(const QVector<TimeLogEntry> &data)
+QVector<TimeLogSyncData> genSyncData(const QVector<TimeLogEntry> &data, const QVector<QDateTime> &mTimes)
+{
+    QVector<TimeLogSyncData> syncData;
+    syncData.reserve(data.size());
+
+    for (int i = 0; i < data.size(); i++) {
+        syncData.append(TimeLogSyncData(data.at(i), mTimes.at(i)));
+    }
+
+    return syncData;
+}
+
+void updateDataSet(QVector<TimeLogEntry> &data, const TimeLogEntry &entry)
+{
+    data.erase(std::remove_if(data.begin(), data.end(), [&entry](const TimeLogEntry &e) {
+        return e.uuid == entry.uuid;
+    }), data.end());
+    if (entry.isValid()) {
+        auto it = std::lower_bound(data.begin(), data.end(), entry, [](const TimeLogEntry &e1, const TimeLogEntry &e2) {
+            return e1.startTime < e2.startTime;
+        });
+        data.insert(it, entry);
+    }
+}
+
+void updateDataSet(QVector<TimeLogSyncData> &data, const TimeLogSyncData &entry)
+{
+    data.erase(std::remove_if(data.begin(), data.end(), [&entry](const TimeLogSyncData &e) {
+        return e.uuid == entry.uuid;
+    }), data.end());
+    auto it = std::lower_bound(data.begin(), data.end(), entry, [](const TimeLogSyncData &e1, const TimeLogSyncData &e2) {
+        if (e1.mTime < e2.mTime) {
+            return true;
+        } else if (e1.mTime > e2.mTime) {
+            return false;
+        } else if (e1.isValid() && e2.isValid()) {
+            return e1.startTime < e2.startTime;
+        } else {
+            return e1.isValid() > e2.isValid();
+        }
+    });
+    data.insert(it, entry);
+}
+
+QMap<QDateTime, QByteArray> calcHashes(const QVector<TimeLogSyncData> &data)
+{
+    QMap<QDateTime, QByteArray> result;
+
+    QDateTime periodStart;
+    QByteArray hashData;
+    QDataStream dataStream(&hashData, QIODevice::WriteOnly);
+
+    QVector<TimeLogSyncData> sortedData(data);
+    std::sort(sortedData.begin(), sortedData.end(), [](const TimeLogSyncData &d1, const TimeLogSyncData &d2) {
+        if (d1.mTime == d2.mTime) {
+            return d1.uuid.toRfc4122() < d2.uuid.toRfc4122();
+        } else {
+            return d1.mTime < d2.mTime;
+        }
+    });
+
+    if (!sortedData.empty()) {
+        periodStart = monthStart(sortedData.constFirst().mTime);
+    }
+
+    for (const TimeLogSyncData &entry: sortedData) {
+        if (monthStart(entry.mTime) != periodStart) {
+            if (!hashData.isEmpty()) {
+                result.insert(periodStart, QCryptographicHash::hash(hashData, QCryptographicHash::Md5));
+            }
+
+            dataStream.device()->seek(0);
+            hashData.clear();
+            periodStart = monthStart(entry.mTime);
+        }
+
+        dataStream << entry.mTime.toMSecsSinceEpoch() << entry.uuid.toRfc4122();
+    }
+
+    if (!hashData.isEmpty()) {
+        result.insert(periodStart, QCryptographicHash::hash(hashData, QCryptographicHash::Md5));
+    }
+
+    return result;
+}
+
+QDateTime monthStart(const QDateTime &time)
+{
+    QDate date(time.toUTC().date());
+    return QDateTime(QDate(date.year(), date.month(), 1), QTime(), Qt::UTC);
+}
+
+void importSyncData(TimeLogHistory *history, const QVector<TimeLogSyncData> &data, int portionSize)
+{
+    QSignalSpy historyErrorSpy(history, SIGNAL(error(QString)));
+    QSignalSpy historyOutdateSpy(history, SIGNAL(dataOutdated()));
+    QSignalSpy historySyncSpy(history, SIGNAL(dataSynced(QVector<TimeLogSyncData>,QVector<TimeLogSyncData>)));
+
+    int importedSize = 0;
+    while (importedSize < data.size()) {
+        int importSize = qMin(portionSize, data.size() - importedSize);
+        QVector<TimeLogSyncData> updatedData, removedData;
+        for (int i = 0; i < importSize; i++) {
+            const TimeLogSyncData &entry = data.at(i + importedSize);
+            if (entry.isValid()) {
+                updatedData.append(entry);
+            } else {
+                removedData.append(entry);
+            }
+        }
+        historySyncSpy.clear();
+        history->sync(updatedData, removedData);
+        QVERIFY(historySyncSpy.wait());
+        QVERIFY(historyErrorSpy.isEmpty());
+        QVERIFY(historyOutdateSpy.isEmpty());
+
+        importedSize += importSize;
+    }
+}
+
+template <typename T>
+void dumpData(const QVector<T> &data)
 {
     for (int i = 0; i < data.size(); i++) {
         qDebug() << i << data.at(i) << endl;
@@ -278,7 +486,19 @@ bool compareData(const TimeLogEntry &t1, const TimeLogEntry &t2)
     return true;
 }
 
-bool compareData(const QVector<TimeLogEntry> &d1, const QVector<TimeLogEntry> &d2)
+bool compareData(const TimeLogSyncData &t1, const TimeLogSyncData &t2)
+{
+    if (t1.mTime != t2.mTime
+        || !compareData(static_cast<TimeLogEntry>(t1), static_cast<TimeLogEntry>(t2))) {
+        qCritical() << "Data does not match" << endl << t1 << endl << t2 << endl;
+        return false;
+    }
+
+    return true;
+}
+
+template <typename T>
+bool compareData(const QVector<T> &d1, const QVector<T> &d2)
 {
     if (d1.size() != d2.size()) {
         qCritical() << "Sizes does not match" << d1.size() << d2.size();
@@ -296,4 +516,13 @@ bool compareData(const QVector<TimeLogEntry> &d1, const QVector<TimeLogEntry> &d
     }
 
     return true;
+}
+
+template bool compareData(const QVector<TimeLogEntry> &d1, const QVector<TimeLogEntry> &d2);
+template bool compareData(const QVector<TimeLogSyncData> &d1, const QVector<TimeLogSyncData> &d2);
+
+void compareHashes(const QMap<QDateTime, QByteArray> &h1, const QMap<QDateTime, QByteArray> &h2)
+{
+    checkFunction(verifyHashes, h1);
+    QCOMPARE(h1, h2);
 }

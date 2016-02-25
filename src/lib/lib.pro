@@ -5,6 +5,8 @@ CONFIG += staticlib
 
 QT += quick sql
 
+DEFINES *= QT_USE_QSTRINGBUILDER
+
 SOURCES += \
     TimeLogEntry.cpp \
     TimeLogModel.cpp \
@@ -24,7 +26,8 @@ SOURCES += \
     TimeTracker.cpp \
     TimeLogCategory.cpp \
     TimeLogCategoryTreeModel.cpp \
-    TimeLogCategoryDepthModel.cpp
+    TimeLogCategoryDepthModel.cpp \
+    DBSyncer.cpp
 
 HEADERS += \
     TimeLogEntry.h \
@@ -45,4 +48,5 @@ HEADERS += \
     TimeTracker.h \
     TimeLogCategory.h \
     TimeLogCategoryTreeModel.h \
-    TimeLogCategoryDepthModel.h
+    TimeLogCategoryDepthModel.h \
+    DBSyncer.h

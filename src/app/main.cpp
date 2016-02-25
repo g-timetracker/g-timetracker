@@ -67,6 +67,7 @@ int main(int argc, char *argv[])
     qRegisterMetaType<TimeLogHistory::Fields>();
     qRegisterMetaType<QVector<TimeLogHistory::Fields> >();
     qRegisterMetaType<QSharedPointer<TimeLogCategory> >();
+    qRegisterMetaType<QMap<QDateTime,QByteArray> >();
 
     if (parser.isSet(importOption)) {
         TimeLogHistory history;

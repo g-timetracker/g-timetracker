@@ -79,7 +79,7 @@ bool DataExporter::exportDay(QVector<TimeLogEntry> data)
 
     qCInfo(DATA_IO_CATEGORY) << QString("Exporting data for date %1").arg(m_currentDate.toString());
 
-    QString fileName = QString("%1 (%2).csv").arg(m_currentDate.toString(Qt::ISODate))
+    QString fileName = QString("%1 (%2).csv").arg(m_currentDate.toString(Qt::ISODate))  // TODO: UTC
                                              .arg(m_currentDate.toString("ddd"));
     QString filePath = m_dir.filePath(fileName);
     QFile file(filePath);

@@ -31,7 +31,7 @@ QString AbstractDataInOut::formatFileError(const QString &message, const QFile &
                                          .arg(file.errorString()).arg(file.error());
 }
 
-QStringList AbstractDataInOut::buildFileList(const QString &path) const
+QStringList AbstractDataInOut::buildFileList(const QString &path, bool isRecursive, QStringList filters)
 {
     QStringList result;
 
@@ -46,20 +46,22 @@ QStringList AbstractDataInOut::buildFileList(const QString &path) const
     } else if (fileInfo.isDir()) {
         QDir dir(path);
         QStringList entries;
-        entries = dir.entryList(QDir::Files);
+        entries = dir.entryList(filters, QDir::Files);
         foreach (const QString &entry, entries) {
             result.append(dir.filePath(entry));
         }
-        entries = dir.entryList(QDir::Dirs | QDir::NoDotAndDotDot);
-        foreach (const QString &entry, entries) {
-            result.append(buildFileList(dir.filePath(entry)));
+        if (isRecursive) {
+            entries = dir.entryList(filters, QDir::Dirs | QDir::NoDotAndDotDot);
+            foreach (const QString &entry, entries) {
+                result.append(buildFileList(dir.filePath(entry), isRecursive, filters));
+            }
         }
     }
 
     return result;
 }
 
-bool AbstractDataInOut::prepareDir(const QString &path, QDir &dir) const
+bool AbstractDataInOut::prepareDir(const QString &path, QDir &dir)
 {
     dir.setPath(path);
     if (!dir.exists()) {

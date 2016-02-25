@@ -19,7 +19,7 @@ public:
     explicit TimeLogHistoryWorker(QObject *parent = 0);
     ~TimeLogHistoryWorker();
 
-    bool init(const QString &dataPath);
+    bool init(const QString &dataPath, const QString &filePath = QString());
     qlonglong size() const;
     QSharedPointer<TimeLogCategory> categories() const;
 
@@ -31,6 +31,7 @@ public slots:
     void editCategory(QString oldName, QString newName);
     void sync(const QVector<TimeLogSyncData> &updatedData,
               const QVector<TimeLogSyncData> &removedData);
+    void updateHashes();
 
     void undo();
 
@@ -48,8 +49,12 @@ public slots:
                   const QString &category = QString(),
                   const QString &separator = ">") const;
 
-    void getSyncData(const QDateTime &mBegin = QDateTime::fromMSecsSinceEpoch(0),
-                     const QDateTime &mEnd = QDateTime::currentDateTime()) const;
+    void getSyncData(const QDateTime &mBegin = QDateTime(),
+                     const QDateTime &mEnd = QDateTime()) const;
+    void checkHasSyncData(const QDateTime &mBegin = QDateTime::fromMSecsSinceEpoch(0),
+                          const QDateTime &mEnd = QDateTime::currentDateTimeUtc()) const;
+
+    void getHashes(const QDateTime &maxDate = QDateTime(), bool noUpdate = false);
 
 signals:
     void error(const QString &errorText) const;
@@ -61,10 +66,13 @@ signals:
     void dataRemoved(const TimeLogEntry &data) const;
     void statsDataAvailable(QVector<TimeLogStats> data, QDateTime until) const;
     void syncDataAvailable(QVector<TimeLogSyncData> data, QDateTime until) const;
+    void hasSyncData(bool hasData, QDateTime mBegin, QDateTime mEnd) const;
     void syncStatsAvailable(QVector<TimeLogSyncData> removedOld, QVector<TimeLogSyncData> removedNew,
                             QVector<TimeLogSyncData> insertedOld, QVector<TimeLogSyncData> insertedNew,
                             QVector<TimeLogSyncData> updatedOld, QVector<TimeLogSyncData> updatedNew) const;
+    void hashesAvailable(QMap<QDateTime, QByteArray> hashes) const;
     void dataSynced(QVector<TimeLogSyncData> updatedData, QVector<TimeLogSyncData> removedData);
+    void hashesUpdated() const;
 
     void sizeChanged(qlonglong size) const;
     void categoriesChanged(QSharedPointer<TimeLogCategory> categories) const;
@@ -122,12 +130,16 @@ private:
     bool editCategoryData(QString oldName, QString newName);
     bool syncData(const QVector<TimeLogSyncData> &removed, const QVector<TimeLogSyncData> &inserted,
                   const QVector<TimeLogSyncData> &updatedNew, const QVector<TimeLogSyncData> &updatedOld);
+    void updateDataHashes(const QMap<QDateTime, QByteArray> &hashes);
+    bool writeHash(const QDateTime &start, const QByteArray &hash);
+    bool removeHash(const QDateTime &start);
     QVector<TimeLogEntry> getHistory(QSqlQuery &query) const;
     QVector<TimeLogStats> getStats(QSqlQuery &query) const;
     QVector<TimeLogSyncData> getSyncData(QSqlQuery &query) const;
     TimeLogEntry getEntry(const QUuid &uuid);
     QVector<TimeLogEntry> getEntries(const QString &category) const;
     QVector<TimeLogSyncData> getSyncAffected(const QUuid &uuid);
+    QMap<QDateTime, QByteArray> getDataHashes(const QDateTime &maxDate = QDateTime()) const;
     void notifyInsertUpdates(const TimeLogEntry &data);
     void notifyInsertUpdates(const QVector<TimeLogEntry> &data);
     void notifyRemoveUpdates(const TimeLogEntry &data);
@@ -138,6 +150,7 @@ private:
     bool updateCategories(const QDateTime &begin = QDateTime::fromTime_t(0),
                           const QDateTime &end = QDateTime::currentDateTime());
     QSharedPointer<TimeLogCategory> parseCategories(const QSet<QString> &categories) const;
+    QByteArray calcHash(const QDateTime &begin, const QDateTime &end) const;
     void pushUndo(const Undo undo);
 };
 

@@ -19,15 +19,15 @@ public:
     Q_INVOKABLE void start(const QString &path);
 
     static QString formatFileError(const QString &message, const QFile &file);
+    static QStringList buildFileList(const QString &path, bool isRecursive = false,
+                                     QStringList filters = QStringList());
+    static bool prepareDir(const QString &path, QDir &dir);
 
 protected slots:
     virtual void startIO(const QString &path) = 0;
     virtual void historyError(const QString &errorText) = 0;
 
 protected:
-    QStringList buildFileList(const QString &path) const;
-    bool prepareDir(const QString &path, QDir &dir) const;
-
     TimeLogHistory *m_db;
     QString m_sep;
 };

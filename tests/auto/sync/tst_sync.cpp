@@ -44,6 +44,7 @@ private slots:
     void init();
     void cleanup();
     void initTestCase();
+
     void import();
     void import_data();
     void insert();
@@ -95,6 +96,7 @@ void tst_Sync::init()
     syncer1 = new DataSyncer(history1);
     Q_CHECK_PTR(syncer1);
     syncer1->init(dataDir1->path());
+    syncer1->setNoPack(true);
 
     dataDir2 = new QTemporaryDir();
     Q_CHECK_PTR(dataDir2);
@@ -105,6 +107,7 @@ void tst_Sync::init()
     syncer2 = new DataSyncer(history2);
     Q_CHECK_PTR(syncer2);
     syncer2->init(dataDir2->path());
+    syncer2->setNoPack(true);
 
     dataDir3 = new QTemporaryDir();
     Q_CHECK_PTR(dataDir3);
@@ -115,6 +118,7 @@ void tst_Sync::init()
     syncer3 = new DataSyncer(history3);
     Q_CHECK_PTR(syncer3);
     syncer3->init(dataDir3->path());
+    syncer3->setNoPack(true);
 
     syncDir = new QTemporaryDir();
     Q_CHECK_PTR(syncDir);
@@ -163,6 +167,7 @@ void tst_Sync::initTestCase()
     qRegisterMetaType<QVector<TimeLogHistory::Fields> >();
     qRegisterMetaType<QVector<TimeLogSyncData> >();
     qRegisterMetaType<QSharedPointer<TimeLogCategory> >();
+    qRegisterMetaType<QMap<QDateTime,QByteArray> >();
 
     oldCategoryFilter = QLoggingCategory::installFilter(Q_NULLPTR);
     QLoggingCategory::installFilter(syncerCategoryFilter);
@@ -220,6 +225,10 @@ void tst_Sync::import()
     QVERIFY(historyOutdateSpy1.isEmpty());
 
     checkFunction(checkDB, history1, origData);
+
+    QVector<TimeLogSyncData> origSyncData;
+    checkFunction(extractSyncData, history1, origSyncData);
+    checkFunction(checkDB, history2, origSyncData);
 }
 
 void tst_Sync::import_data()
@@ -296,6 +305,10 @@ void tst_Sync::insert()
 
     checkFunction(checkDB, history1, origData);
     checkFunction(checkDB, history2, origData);
+
+    QVector<TimeLogSyncData> origSyncData;
+    checkFunction(extractSyncData, history1, origSyncData);
+    checkFunction(checkDB, history2, origSyncData);
 }
 
 void tst_Sync::insert_data()
@@ -398,6 +411,10 @@ void tst_Sync::remove()
 
     checkFunction(checkDB, history1, origData);
     checkFunction(checkDB, history2, origData);
+
+    QVector<TimeLogSyncData> origSyncData;
+    checkFunction(extractSyncData, history1, origSyncData);
+    checkFunction(checkDB, history2, origSyncData);
 }
 
 void tst_Sync::remove_data()
@@ -495,6 +512,10 @@ void tst_Sync::edit()
 
     checkFunction(checkDB, history1, origData);
     checkFunction(checkDB, history2, origData);
+
+    QVector<TimeLogSyncData> origSyncData;
+    checkFunction(extractSyncData, history1, origSyncData);
+    checkFunction(checkDB, history2, origSyncData);
 }
 
 void tst_Sync::edit_data()
@@ -618,6 +639,10 @@ void tst_Sync::renameCategory()
 
     checkFunction(checkDB, history1, origData);
     checkFunction(checkDB, history2, origData);
+
+    QVector<TimeLogSyncData> origSyncData;
+    checkFunction(extractSyncData, history1, origSyncData);
+    checkFunction(checkDB, history2, origSyncData);
 }
 
 void tst_Sync::renameCategory_data()
@@ -719,6 +744,10 @@ void tst_Sync::bothRemove()
 
     checkFunction(checkDB, history1, origData);
     checkFunction(checkDB, history2, origData);
+
+    QVector<TimeLogSyncData> origSyncData;
+    checkFunction(extractSyncData, history1, origSyncData);
+    checkFunction(checkDB, history2, origSyncData);
 }
 
 void tst_Sync::bothRemove_data()
@@ -838,6 +867,10 @@ void tst_Sync::bothEdit()
 
     checkFunction(checkDB, history1, origData);
     checkFunction(checkDB, history2, origData);
+
+    QVector<TimeLogSyncData> origSyncData;
+    checkFunction(extractSyncData, history1, origSyncData);
+    checkFunction(checkDB, history2, origSyncData);
 }
 
 void tst_Sync::bothEdit_data()
@@ -1000,6 +1033,10 @@ void tst_Sync::editRemove()
 
     checkFunction(checkDB, history1, origData);
     checkFunction(checkDB, history2, origData);
+
+    QVector<TimeLogSyncData> origSyncData;
+    checkFunction(extractSyncData, history1, origSyncData);
+    checkFunction(checkDB, history2, origSyncData);
 }
 
 void tst_Sync::editRemove_data()
@@ -1143,6 +1180,10 @@ void tst_Sync::removeEdit()
 
     checkFunction(checkDB, history1, origData);
     checkFunction(checkDB, history2, origData);
+
+    QVector<TimeLogSyncData> origSyncData;
+    checkFunction(extractSyncData, history1, origSyncData);
+    checkFunction(checkDB, history2, origSyncData);
 }
 
 void tst_Sync::removeEdit_data()
@@ -1312,6 +1353,11 @@ void tst_Sync::removeOldEdit()
     checkFunction(checkDB, history1, origData);
     checkFunction(checkDB, history2, origData);
     checkFunction(checkDB, history3, origData);
+
+    QVector<TimeLogSyncData> origSyncData;
+    checkFunction(extractSyncData, history1, origSyncData);
+    checkFunction(checkDB, history2, origSyncData);
+    checkFunction(checkDB, history3, origSyncData);
 }
 
 void tst_Sync::removeOldEdit_data()
@@ -1458,6 +1504,11 @@ void tst_Sync::removeOldInsert()
     checkFunction(checkDB, history1, origData);
     checkFunction(checkDB, history2, origData);
     checkFunction(checkDB, history3, origData);
+
+    QVector<TimeLogSyncData> origSyncData;
+    checkFunction(extractSyncData, history1, origSyncData);
+    checkFunction(checkDB, history2, origSyncData);
+    checkFunction(checkDB, history3, origSyncData);
 }
 
 void tst_Sync::removeOldInsert_data()
@@ -1590,6 +1641,11 @@ void tst_Sync::removeOldRemove()
     checkFunction(checkDB, history1, origData);
     checkFunction(checkDB, history2, origData);
     checkFunction(checkDB, history3, origData);
+
+    QVector<TimeLogSyncData> origSyncData;
+    checkFunction(extractSyncData, history1, origSyncData);
+    checkFunction(checkDB, history2, origSyncData);
+    checkFunction(checkDB, history3, origSyncData);
 }
 
 void tst_Sync::removeOldRemove_data()
@@ -1737,6 +1793,11 @@ void tst_Sync::editOldEdit()
     checkFunction(checkDB, history1, origData);
     checkFunction(checkDB, history2, origData);
     checkFunction(checkDB, history3, origData);
+
+    QVector<TimeLogSyncData> origSyncData;
+    checkFunction(extractSyncData, history1, origSyncData);
+    checkFunction(checkDB, history2, origSyncData);
+    checkFunction(checkDB, history3, origSyncData);
 }
 
 void tst_Sync::editOldEdit_data()
@@ -1932,6 +1993,11 @@ void tst_Sync::editOldRemove()
     checkFunction(checkDB, history1, origData);
     checkFunction(checkDB, history2, origData);
     checkFunction(checkDB, history3, origData);
+
+    QVector<TimeLogSyncData> origSyncData;
+    checkFunction(extractSyncData, history1, origSyncData);
+    checkFunction(checkDB, history2, origSyncData);
+    checkFunction(checkDB, history3, origSyncData);
 }
 
 void tst_Sync::editOldRemove_data()

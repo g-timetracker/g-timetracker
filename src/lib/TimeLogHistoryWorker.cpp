@@ -1,6 +1,8 @@
 #include <QStandardPaths>
 #include <QDir>
 #include <QSqlError>
+#include <QDataStream>
+#include <QCryptographicHash>
 
 #include <QLoggingCategory>
 
@@ -49,20 +51,23 @@ TimeLogHistoryWorker::~TimeLogHistoryWorker()
     QSqlDatabase::removeDatabase(m_connectionName);
 }
 
-bool TimeLogHistoryWorker::init(const QString &dataPath)
+bool TimeLogHistoryWorker::init(const QString &dataPath, const QString &filePath)
 {
-    QString path(QString("%1/timelog")
-                 .arg(!dataPath.isEmpty() ? dataPath
-                                          : QStandardPaths::writableLocation(QStandardPaths::AppDataLocation)));
+    QString dirPath(QString("%1%2")
+                    .arg(!dataPath.isEmpty() ? dataPath
+                                             : QStandardPaths::writableLocation(QStandardPaths::AppDataLocation))
+                    .arg(filePath.isEmpty() ? "/timelog" : ""));
 
-    if (!(QDir().mkpath(path))) {
+    if (!(QDir().mkpath(dirPath))) {
         qCCritical(HISTORY_WORKER_CATEGORY) << "Fail to create directory for db";
         return false;
     }
 
-    m_connectionName = QString("timelog_%1").arg(qHash(dataPath));
+    QString dbPath(QString("%1/%2").arg(dirPath).arg(filePath.isEmpty() ? "db.sqlite" : filePath));
+
+    m_connectionName = QString("timelog_%1_%2").arg(qHash(dbPath)).arg(QDateTime::currentMSecsSinceEpoch());
     QSqlDatabase db = QSqlDatabase::addDatabase("QSQLITE", m_connectionName);
-    db.setDatabaseName(QString("%1/%2.sqlite").arg(path).arg("db"));
+    db.setDatabaseName(dbPath);
 
     if (!db.open()) {
         qCCritical(HISTORY_WORKER_CATEGORY) << "Fail to open db:" << db.lastError().text();
@@ -229,6 +234,13 @@ void TimeLogHistoryWorker::sync(const QVector<TimeLogSyncData> &updatedData, con
     }
 }
 
+void TimeLogHistoryWorker::updateHashes()
+{
+    updateDataHashes(getDataHashes());
+
+    emit hashesUpdated();
+}
+
 void TimeLogHistoryWorker::undo()
 {
     if (!m_undoStack.size()) {
@@ -364,14 +376,48 @@ void TimeLogHistoryWorker::getSyncData(const QDateTime &mBegin, const QDateTime 
 
     QSqlDatabase db = QSqlDatabase::database(m_connectionName);
     QSqlQuery query(db);
-    QString queryString("WITH result AS ( "
-                        "    SELECT uuid, start, category, comment, mtime FROM timelog "
-                        "    WHERE (mtime > :mBegin AND mtime <= :mEnd) "
-                        "UNION ALL "
-                        "    SELECT uuid, NULL, NULL, NULL, mtime FROM removed "
-                        "    WHERE (mtime > :mBegin AND mtime <= :mEnd) "
-                        ") "
-                        "SELECT * FROM result ORDER BY mtime ASC");
+    QString where = QString(mBegin.isValid() ? "mtime > :mBegin" : "")
+                    + QString(mBegin.isValid() && mEnd.isValid() ? " AND " : "")
+                    + QString(mEnd.isValid() ? "mtime <= :mEnd" : "");
+    if (!where.isEmpty()) {
+        where = "WHERE (" + where + ")";
+    }
+    QString queryString = QString("WITH result AS ( "
+                                  "    SELECT uuid, start, category, comment, mtime FROM timelog %1 "
+                                  "UNION ALL "
+                                  "    SELECT uuid, NULL, NULL, NULL, mtime FROM removed %1 "
+                                  ") "
+                                  "SELECT * FROM result ORDER BY mtime ASC").arg(where);
+    if (!query.prepare(queryString)) {
+        qCCritical(HISTORY_WORKER_CATEGORY) << "Fail to prepare query:" << query.lastError().text()
+                                            << query.lastQuery();
+        emit error(query.lastError().text());
+        return;
+    }
+    if (mBegin.isValid()) {
+        query.bindValue(":mBegin", mBegin.toMSecsSinceEpoch());
+    }
+    if (mEnd.isValid()) {
+        query.bindValue(":mEnd", mEnd.toMSecsSinceEpoch());
+    }
+
+    emit syncDataAvailable(getSyncData(query), mEnd);
+}
+
+void TimeLogHistoryWorker::checkHasSyncData(const QDateTime &mBegin, const QDateTime &mEnd) const
+{
+    Q_ASSERT(m_isInitialized);
+
+    QSqlDatabase db = QSqlDatabase::database(m_connectionName);
+    QSqlQuery query(db);
+    QString queryString("WITH result AS (SELECT ifnull( "
+                        "    (SELECT mtime FROM timelog "
+                        "    WHERE (mtime > :mBegin AND mtime <= :mEnd) ORDER BY mtime ASC LIMIT 1) "
+                        ", "
+                        "    (SELECT mtime FROM removed "
+                        "    WHERE (mtime > :mBegin AND mtime <= :mEnd) ORDER BY mtime ASC LIMIT 1) "
+                        ")) "
+                        "SELECT count(*) FROM result");
     if (!query.prepare(queryString)) {
         qCCritical(HISTORY_WORKER_CATEGORY) << "Fail to prepare query:" << query.lastError().text()
                                             << query.lastQuery();
@@ -381,7 +427,31 @@ void TimeLogHistoryWorker::getSyncData(const QDateTime &mBegin, const QDateTime 
     query.bindValue(":mBegin", mBegin.toMSecsSinceEpoch());
     query.bindValue(":mEnd", mEnd.toMSecsSinceEpoch());
 
-    emit syncDataAvailable(getSyncData(query), mEnd);
+    if (!query.exec()) {
+        qCCritical(HISTORY_WORKER_CATEGORY) << "Fail to execute query:" << query.lastError().text()
+                                            << query.executedQuery() << query.boundValues();
+        emit error(query.lastError().text());
+        return;
+    }
+
+    query.next();
+    bool result = query.value(0).toULongLong() > 0;
+    query.finish();
+
+    emit hasSyncData(result, mBegin, mEnd);
+}
+
+void TimeLogHistoryWorker::getHashes(const QDateTime &maxDate, bool noUpdate)
+{
+    QMap<QDateTime, QByteArray> hashes(getDataHashes(maxDate));
+    if (!noUpdate && std::any_of(hashes.cbegin(), hashes.cend(), [](const QByteArray &hash) {
+        return hash.isEmpty();
+    })) {
+        updateDataHashes(hashes);
+        hashes = getDataHashes(maxDate);
+    }
+
+    emit hashesAvailable(hashes);
 }
 
 bool TimeLogHistoryWorker::setupTable()
@@ -442,6 +512,19 @@ bool TimeLogHistoryWorker::setupTable()
         return false;
     }
 
+    queryString = "CREATE TABLE IF NOT EXISTS hashes (start INTEGER PRIMARY KEY, hash BLOB);";
+    if (!query.prepare(queryString)) {
+        qCCritical(HISTORY_WORKER_CATEGORY) << "Fail to prepare query:" << query.lastError().text()
+                                            << query.lastQuery();
+        return false;
+    }
+
+    if (!query.exec()) {
+        qCCritical(HISTORY_WORKER_CATEGORY) << "Fail to execute query:" << query.lastError().text()
+                                            << query.executedQuery();
+        return false;
+    }
+
     return true;
 }
 
@@ -482,6 +565,7 @@ bool TimeLogHistoryWorker::setupTriggers()
                   "        -1 "
                   "    ) WHERE start=NEW.start; "
                   "    DELETE FROM removed WHERE uuid=NEW.uuid; "
+                  "    INSERT OR REPLACE INTO hashes (start, hash) VALUES(strftime('%s', NEW.mtime/1000, 'unixepoch', 'start of month'), NULL); "
                   "END;";
     if (!query.prepare(queryString)) {
         qCCritical(HISTORY_WORKER_CATEGORY) << "Fail to prepare query:" << query.lastError().text()
@@ -552,6 +636,7 @@ bool TimeLogHistoryWorker::setupTriggers()
                   "        ( SELECT start FROM timelog WHERE start > NEW.start ORDER BY start ASC LIMIT 1 ) - NEW.start, "
                   "        -1 "
                   "    ) WHERE start=NEW.start; "
+                  "    INSERT OR REPLACE INTO hashes (start, hash) VALUES(strftime('%s', NEW.mtime/1000, 'unixepoch', 'start of month'), NULL); "
                   "END;";
     if (!query.prepare(queryString)) {
         qCCritical(HISTORY_WORKER_CATEGORY) << "Fail to prepare query:" << query.lastError().text()
@@ -588,6 +673,7 @@ bool TimeLogHistoryWorker::setupTriggers()
     queryString = "CREATE TRIGGER IF NOT EXISTS insert_removed AFTER INSERT ON removed "
                   "BEGIN "
                   "    DELETE FROM timelog WHERE uuid=NEW.uuid; "
+                  "    INSERT OR REPLACE INTO hashes (start, hash) VALUES(strftime('%s', NEW.mtime/1000, 'unixepoch', 'start of month'), NULL); "
                   "END;";
     if (!query.prepare(queryString)) {
         qCCritical(HISTORY_WORKER_CATEGORY) << "Fail to prepare query:" << query.lastError().text()
@@ -1010,6 +1096,72 @@ bool TimeLogHistoryWorker::syncData(const QVector<TimeLogSyncData> &removed, con
     return true;
 }
 
+void TimeLogHistoryWorker::updateDataHashes(const QMap<QDateTime, QByteArray> &hashes)
+{
+    for (auto it = hashes.cbegin(); it != hashes.cend(); it++) {
+        if (it.value().isEmpty()) {
+            qCDebug(HISTORY_WORKER_CATEGORY) << "Updating data hash for period start" << it.key();
+            QByteArray hash = calcHash(it.key(), it.key().addMonths(1).addMSecs(-1));
+            if (hash.isEmpty()) {
+                if (!removeHash(it.key())) {
+                    return;
+                }
+            } else {
+                if (!writeHash(it.key(), hash)) {
+                    return;
+                }
+            }
+        }
+    }
+}
+
+bool TimeLogHistoryWorker::writeHash(const QDateTime &start, const QByteArray &hash)
+{
+    QSqlDatabase db = QSqlDatabase::database(m_connectionName);
+    QSqlQuery query(db);
+    QString queryString("UPDATE hashes SET hash=? WHERE start=?;");
+    if (!query.prepare(queryString)) {
+        qCCritical(HISTORY_WORKER_CATEGORY) << "Fail to prepare query:" << query.lastError().text()
+                                            << query.lastQuery();
+        emit error(query.lastError().text());
+        return false;
+    }
+    query.addBindValue(hash);
+    query.addBindValue(start.toTime_t());
+
+    if (!query.exec()) {
+        qCCritical(HISTORY_WORKER_CATEGORY) << "Fail to execute query:" << query.lastError().text()
+                                            << query.executedQuery() << query.boundValues();
+        emit error(query.lastError().text());
+        return false;
+    }
+
+    return true;
+}
+
+bool TimeLogHistoryWorker::removeHash(const QDateTime &start)
+{
+    QSqlDatabase db = QSqlDatabase::database(m_connectionName);
+    QSqlQuery query(db);
+    QString queryString("DELETE FROM hashes WHERE start=?;");
+    if (!query.prepare(queryString)) {
+        qCCritical(HISTORY_WORKER_CATEGORY) << "Fail to prepare query:" << query.lastError().text()
+                                            << query.lastQuery();
+        emit error(query.lastError().text());
+        return false;
+    }
+    query.addBindValue(start.toTime_t());
+
+    if (!query.exec()) {
+        qCCritical(HISTORY_WORKER_CATEGORY) << "Fail to execute query:" << query.lastError().text()
+                                            << query.executedQuery() << query.boundValues();
+        emit error(query.lastError().text());
+        return false;
+    }
+
+    return true;
+}
+
 QVector<TimeLogEntry> TimeLogHistoryWorker::getHistory(QSqlQuery &query) const
 {
     QVector<TimeLogEntry> result;
@@ -1076,7 +1228,9 @@ QVector<TimeLogSyncData> TimeLogHistoryWorker::getSyncData(QSqlQuery &query) con
     while (query.next()) {
         TimeLogSyncData data;
         data.uuid = QUuid::fromRfc4122(query.value(0).toByteArray());
-        data.startTime = QDateTime::fromTime_t(query.value(1).toUInt());
+        if (!query.isNull(1)) { // Removed item shouldn't has valid start time
+            data.startTime = QDateTime::fromTime_t(query.value(1).toUInt());
+        }
         data.category = query.value(2).toString();
         data.comment = query.value(3).toString();
         data.mTime = QDateTime::fromMSecsSinceEpoch(query.value(4).toLongLong());
@@ -1162,6 +1316,41 @@ QVector<TimeLogSyncData> TimeLogHistoryWorker::getSyncAffected(const QUuid &uuid
     m_syncAffectedQuery->bindValue(":uuid", uuid.toRfc4122());
 
     return getSyncData(*m_syncAffectedQuery);
+}
+
+QMap<QDateTime, QByteArray> TimeLogHistoryWorker::getDataHashes(const QDateTime &maxDate) const
+{
+    QMap<QDateTime, QByteArray> result;
+
+    QSqlDatabase db = QSqlDatabase::database(m_connectionName);
+    QSqlQuery query(db);
+    QString queryString = QString("SELECT start, hash FROM hashes %1 ORDER BY start ASC")
+                                  .arg(maxDate.isValid() ? "WHERE start <= ?" : "");
+    if (!query.prepare(queryString)) {
+        qCCritical(HISTORY_WORKER_CATEGORY) << "Fail to prepare query:" << query.lastError().text()
+                                            << query.lastQuery();
+        emit error(query.lastError().text());
+        return result;
+    }
+    if (maxDate.isValid()) {
+        query.addBindValue(maxDate.toTime_t());
+    }
+
+    if (!query.exec()) {
+        qCCritical(HISTORY_WORKER_CATEGORY) << "Fail to execute query:" << query.lastError().text()
+                                            << query.executedQuery() << query.boundValues();
+        emit error(query.lastError().text());
+        return result;
+    }
+
+    while (query.next()) {
+        result.insert(QDateTime::fromTime_t(query.value(0).toUInt()),
+                      query.value(1).toByteArray());
+    }
+
+    query.finish();
+
+    return result;
 }
 
 void TimeLogHistoryWorker::notifyInsertUpdates(const TimeLogEntry &data)
@@ -1375,6 +1564,53 @@ QSharedPointer<TimeLogCategory> TimeLogHistoryWorker::parseCategories(const QSet
     }
 
     return QSharedPointer<TimeLogCategory>(rootCategory);
+}
+
+QByteArray TimeLogHistoryWorker::calcHash(const QDateTime &begin, const QDateTime &end) const
+{
+    QByteArray result;
+
+    QSqlDatabase db = QSqlDatabase::database(m_connectionName);
+    QSqlQuery query(db);
+    QString queryString("WITH result AS ( "
+                        "    SELECT mtime, uuid FROM timelog "
+                        "    WHERE (mtime BETWEEN :mBegin AND :mEnd) "
+                        "UNION ALL "
+                        "    SELECT mtime, uuid FROM removed "
+                        "    WHERE (mtime BETWEEN :mBegin AND :mEnd) "
+                        ") "
+                        "SELECT * FROM result ORDER BY mtime ASC, uuid ASC");
+    if (!query.prepare(queryString)) {
+        qCCritical(HISTORY_WORKER_CATEGORY) << "Fail to prepare query:" << query.lastError().text()
+                                            << query.lastQuery();
+        emit error(query.lastError().text());
+        return result;
+    }
+    query.bindValue(":mBegin", begin.toMSecsSinceEpoch());
+    query.bindValue(":mEnd", end.toMSecsSinceEpoch());
+
+    if (!query.exec()) {
+        qCCritical(HISTORY_WORKER_CATEGORY) << "Fail to execute query:" << query.lastError().text()
+                                            << query.executedQuery() << query.boundValues();
+        emit error(query.lastError().text());
+        return result;
+    }
+
+    QByteArray hashData;
+    QDataStream dataStream(&hashData, QIODevice::WriteOnly);
+
+    while (query.next()) {
+        dataStream << query.value(0).toLongLong();
+        dataStream << query.value(1).toByteArray();
+    }
+
+    query.finish();
+
+    if (!hashData.isEmpty()) {
+        result = QCryptographicHash::hash(hashData, QCryptographicHash::Md5);
+    }
+
+    return result;
 }
 
 void TimeLogHistoryWorker::pushUndo(const TimeLogHistoryWorker::Undo undo)
