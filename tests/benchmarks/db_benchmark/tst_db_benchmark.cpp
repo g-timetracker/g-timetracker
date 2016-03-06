@@ -74,6 +74,8 @@ void tst_DB_Benchmark::initTestCase()
     qRegisterMetaType<TimeLogHistory::Fields>();
     qRegisterMetaType<QVector<TimeLogHistory::Fields> >();
     qRegisterMetaType<QSharedPointer<TimeLogCategory> >();
+
+    qSetMessagePattern("[%{time}] <%{category}> %{type} (%{file}:%{line}, %{function}) %{message}");
 }
 
 void tst_DB_Benchmark::create()

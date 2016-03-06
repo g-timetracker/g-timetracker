@@ -90,6 +90,8 @@ void tst_DB::initTestCase()
     qRegisterMetaType<QVector<TimeLogHistory::Fields> >();
     qRegisterMetaType<QSharedPointer<TimeLogCategory> >();
     qRegisterMetaType<QMap<QDateTime,QByteArray> >();
+
+    qSetMessagePattern("[%{time}] <%{category}> %{type} (%{file}:%{line}, %{function}) %{message}");
 }
 
 void tst_DB::import()

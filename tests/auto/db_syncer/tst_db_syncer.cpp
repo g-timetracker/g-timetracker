@@ -88,6 +88,8 @@ void tst_DBSyncer::initTestCase()
     qRegisterMetaType<QVector<TimeLogSyncData> >();
     qRegisterMetaType<QSharedPointer<TimeLogCategory> >();
     qRegisterMetaType<QMap<QDateTime,QByteArray> >();
+
+    qSetMessagePattern("[%{time}] <%{category}> %{type} (%{file}:%{line}, %{function}) %{message}");
 }
 
 void tst_DBSyncer::cleanupTestCase()

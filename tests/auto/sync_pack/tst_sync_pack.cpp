@@ -321,6 +321,7 @@ void tst_SyncPack::initTestCase()
 
     oldCategoryFilter = QLoggingCategory::installFilter(nullptr);
     QLoggingCategory::installFilter(syncerCategoryFilter);
+    qSetMessagePattern("[%{time}] <%{category}> %{type} (%{file}:%{line}, %{function}) %{message}");
 }
 
 void tst_SyncPack::cleanupTestCase()
