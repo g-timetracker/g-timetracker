@@ -40,7 +40,7 @@ const QString fileNamePattern = QString("(?<mTime>\\d{%1})-\\{[\\w-]+\\}").arg(m
 const QString syncFileNamePattern = QString("^%1$").arg(fileNamePattern);
 const QRegularExpression syncFileNameRegexp(syncFileNamePattern);
 
-const QString packFileNamePattern = QString("^%1.pack$").arg(fileNamePattern);
+const QString packFileNamePattern = QString("^%1\\.pack$").arg(fileNamePattern);
 const QRegularExpression packFileNameRegexp(packFileNamePattern);
 
 void importSyncData(TimeLogHistory *history, DataSyncer *syncer, QTemporaryDir *syncDir, const QVector<TimeLogSyncData> &data, int portionSize, bool noPack = true, const QDateTime &syncTime = QDateTime::currentDateTimeUtc())

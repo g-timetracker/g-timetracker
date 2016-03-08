@@ -29,7 +29,7 @@ const QString fileNamePattern = QString("(?<mTime>\\d{%1})-\\{[\\w-]+\\}").arg(m
 const QString syncFileNamePattern = QString("^%1$").arg(fileNamePattern);
 const QRegularExpression syncFileNameRegexp(syncFileNamePattern);
 
-const QString packFileNamePattern = QString("^%1.pack$").arg(fileNamePattern);
+const QString packFileNamePattern = QString("^%1\\.pack$").arg(fileNamePattern);
 const QRegularExpression packFileNameRegexp(packFileNamePattern);
 
 DataSyncerWorker::DataSyncerWorker(TimeLogHistory *db, QObject *parent) :
