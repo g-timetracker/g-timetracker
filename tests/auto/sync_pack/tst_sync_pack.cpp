@@ -37,7 +37,7 @@ DataSyncer *syncer3 = nullptr;
 const int mTimeLength = QString::number(std::numeric_limits<qint64>::max()).length();
 const QString fileNamePattern = QString("(?<mTime>\\d{%1})-\\{[\\w-]+\\}").arg(mTimeLength);
 
-const QString syncFileNamePattern = QString("^%1$").arg(fileNamePattern);
+const QString syncFileNamePattern = QString("^%1\\.sync$").arg(fileNamePattern);
 const QRegularExpression syncFileNameRegexp(syncFileNamePattern);
 
 const QString packFileNamePattern = QString("^%1\\.pack$").arg(fileNamePattern);
@@ -145,7 +145,7 @@ QVector<QDateTime> mTimeList(const QFileInfoList &infoList, const QRegularExpres
 
 QVector<QDateTime> syncMTimeList(const QString &path)
 {
-    return mTimeList(buildFileList(path, false), syncFileNameRegexp);
+    return mTimeList(buildFileList(path, false, QStringList() << "*.sync"), syncFileNameRegexp);
 }
 
 void checkSyncFolder(const QString &path, const QVector<TimeLogSyncData> &data, int syncPortion)

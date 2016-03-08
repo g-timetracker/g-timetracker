@@ -26,7 +26,7 @@ const qint32 syncFileStreamVersion = QDataStream::Qt_5_6;
 const int mTimeLength = QString::number(std::numeric_limits<qint64>::max()).length();
 const QString fileNamePattern = QString("(?<mTime>\\d{%1})-\\{[\\w-]+\\}").arg(mTimeLength);
 
-const QString syncFileNamePattern = QString("^%1$").arg(fileNamePattern);
+const QString syncFileNamePattern = QString("^%1\\.sync$").arg(fileNamePattern);
 const QRegularExpression syncFileNameRegexp(syncFileNamePattern);
 
 const QString packFileNamePattern = QString("^%1\\.pack$").arg(fileNamePattern);
@@ -445,8 +445,8 @@ bool DataSyncerWorker::exportFile(const QVector<TimeLogSyncData> &data)
         return false;
     }
 
-    QString fileName = QString("%1-%2").arg(data.last().mTime.toMSecsSinceEpoch(), mTimeLength, 10, QChar('0'))
-                                       .arg(QUuid::createUuid().toString());
+    QString fileName = QString("%1-%2.sync").arg(data.last().mTime.toMSecsSinceEpoch(), mTimeLength, 10, QChar('0'))
+                                            .arg(QUuid::createUuid().toString());
     QString filePath = exportDir.filePath(fileName);
     QFile file(filePath);
     if (file.exists()) {
