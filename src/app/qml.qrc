@@ -73,5 +73,13 @@
         <file>qml/timetracker/+android/LabelControl.qml</file>
         <file>qml/timetracker/LabelControlDesktop.qml</file>
         <file>qml/timetracker/LabelControlMobile.qml</file>
+        <file>qml/timetracker/RecentViewDesktop.qml</file>
+        <file>qml/timetracker/RecentViewMobile.qml</file>
+        <file>qml/timetracker/+android/RecentView.qml</file>
+        <file>qml/timetracker/images/ic_add_white_24dp.png</file>
+        <file>qml/timetracker/images/ic_add_white_24dp@2x.png</file>
+        <file>qml/timetracker/images/ic_add_white_24dp@3x.png</file>
+        <file>qml/timetracker/images/ic_add_white_24dp@4x.png</file>
+        <file>qml/timetracker/FloatingActionButton.qml</file>
     </qresource>
 </RCC>
