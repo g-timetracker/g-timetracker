@@ -448,6 +448,20 @@ bool DataSyncerWorker::exportFile(const QVector<TimeLogSyncData> &data)
     QString fileName = QString("%1-%2.sync").arg(data.last().mTime.toMSecsSinceEpoch(), mTimeLength, 10, QChar('0'))
                                             .arg(QUuid::createUuid().toString());
     QString filePath = exportDir.filePath(fileName);
+
+    qCInfo(SYNC_WORKER_CATEGORY) << "Exporting data to file" << filePath;
+
+    QByteArray fileData;
+    QDataStream dataStream(&fileData, QIODevice::WriteOnly);
+    dataStream.setVersion(syncFileStreamVersion);
+    dataStream << syncFileFormatVersion;
+
+    for (int i = 0; i < data.size(); i++) {
+        qCInfo(SYNC_WORKER_CATEGORY) << QString("Exported item %1 of %2").arg(i+1).arg(data.size());
+        qCDebug(SYNC_WORKER_CATEGORY) << data.at(i).toString();
+        dataStream << data.at(i);
+    }
+
     QFile file(filePath);
     if (file.exists()) {
         qCWarning(SYNC_WORKER_CATEGORY) << "File already exists, overwriting" << filePath;
@@ -459,20 +473,14 @@ bool DataSyncerWorker::exportFile(const QVector<TimeLogSyncData> &data)
         return false;
     }
 
-    qCInfo(SYNC_WORKER_CATEGORY) << "Exporting data to file" << filePath;
+    QDataStream fileStream(&file);
+    fileStream << syncFileStreamVersion;
+    fileStream.setVersion(syncFileStreamVersion);
 
-    QDataStream stream(&file);
-    stream << syncFileFormatVersion;
-    stream << syncFileStreamVersion;
-    stream.setVersion(syncFileStreamVersion);
+    fileStream << fileData;
+    fileStream << qChecksum(fileData.constData(), fileData.size());
 
-    for (int i = 0; i < data.size(); i++) {
-        qCInfo(SYNC_WORKER_CATEGORY) << QString("Exported item %1 of %2").arg(i+1).arg(data.size());
-        qCDebug(SYNC_WORKER_CATEGORY) << data.at(i).toString();
-        stream << data.at(i);
-    }
-
-    if (stream.status() != QDataStream::Ok || file.error() != QFileDevice::NoError) {
+    if (fileStream.status() != QDataStream::Ok || file.error() != QFileDevice::NoError) {
         fail(AbstractDataInOut::formatFileError("Error writing to file", file));
         return false;
     }
@@ -530,41 +538,63 @@ bool DataSyncerWorker::parseFile(const QString &path, QVector<TimeLogSyncData> &
         return false;
     }
 
-    QDataStream stream(&file);
-    if (stream.atEnd()) {
-        fail(QString("Invalid file %1, no format version").arg(path));
-        return false;
-    }
-    qint32 formatVersion;
-    stream >> formatVersion;
-    if (formatVersion != syncFileFormatVersion) {
-        fail(QString("File format version %1 instead of %2")
-             .arg(formatVersion).arg(syncFileFormatVersion));
-        return false;
-    }
-    if (stream.atEnd()) {
+    QDataStream fileStream(&file);
+
+    if (fileStream.atEnd()) {
         fail(QString("Invalid file %1, no stream version").arg(path));
         return false;
     }
     qint32 streamVersion;
-    stream >> streamVersion;
+    fileStream >> streamVersion;
     if (streamVersion > syncFileStreamVersion) {
         fail(QString("Stream format version too new: %1 > %2")
              .arg(streamVersion).arg(syncFileStreamVersion));
         return false;
     }
-    stream.setVersion(streamVersion);
+    fileStream.setVersion(streamVersion);
 
-    while (!stream.atEnd()) {
+    if (fileStream.atEnd()) {
+        fail(QString("Invalid file %1, no data").arg(path));
+        return false;
+    }
+    QByteArray fileData;
+    fileStream >> fileData;
+    if (fileStream.status() != QDataStream::Ok || file.error() != QFileDevice::NoError) {
+        fail(AbstractDataInOut::formatFileError(QString("Error reading from file, stream status %1")
+                                                .arg(fileStream.status()),
+                                                file));
+        return false;
+    }
+
+    if (fileStream.atEnd()) {
+        fail(QString("Invalid file %1, no checksum").arg(path));
+        return false;
+    }
+    quint16 checksum;
+    fileStream >> checksum;
+    if (qChecksum(fileData.constData(), fileData.size()) != checksum) {
+        fail(QString("Broken file %1, checksums does not match").arg(path));
+        return false;
+    }
+
+    QDataStream dataStream(&fileData, QIODevice::ReadOnly);
+    dataStream.setVersion(streamVersion);
+
+    if (dataStream.atEnd()) {
+        fail(QString("Invalid data in file %1, no format version").arg(path));
+        return false;
+    }
+    qint32 formatVersion;
+    dataStream >> formatVersion;
+    if (formatVersion != syncFileFormatVersion) {
+        fail(QString("Data format version %1 instead of %2")
+             .arg(formatVersion).arg(syncFileFormatVersion));
+        return false;
+    }
+
+    while (!dataStream.atEnd()) {
         TimeLogSyncData entry;
-        stream >> entry;
-
-            if (stream.status() != QDataStream::Ok || file.error() != QFileDevice::NoError) {
-                fail(AbstractDataInOut::formatFileError(QString("Error reading from file, stream status %1")
-                                     .arg(stream.status()),
-                                     file));
-                break;
-            }
+        dataStream >> entry;
 
         if (entry.isValid()) {
             qCDebug(SYNC_WORKER_CATEGORY) << "Valid entry:" << entry;
