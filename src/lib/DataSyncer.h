@@ -74,9 +74,7 @@ private slots:
     void syncStopped();
 
 private:
-    void makeAsync();
     void setIsRunning(bool isRunning);
-
     bool m_isRunning;
     bool m_notifySync;
     bool m_notifyNextSync;

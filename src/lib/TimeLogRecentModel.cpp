@@ -144,6 +144,11 @@ void TimeLogRecentModel::setAvailableSize(qlonglong availableSize)
         return;
     }
 
+    if (m_moreDataRequested && m_availableSize == 0) {
+        m_moreDataRequested = false;
+        getMoreHistory();
+    }
+
     m_availableSize = availableSize;
 
     emit availableSizeChanged(m_availableSize);

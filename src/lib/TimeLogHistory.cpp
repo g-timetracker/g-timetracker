@@ -23,8 +23,8 @@
 
 TimeLogHistory::TimeLogHistory(QObject *parent) :
     QObject(parent),
-    m_thread(new QThread(this)),
-    m_worker(new TimeLogHistoryWorker(this)),
+    m_thread(new QThread()),
+    m_worker(new TimeLogHistoryWorker()),
     m_size(0),
     m_undoCount(0)
 {
@@ -90,6 +90,12 @@ TimeLogHistory::TimeLogHistory(QObject *parent) :
             this, SIGNAL(dataSynced(QDateTime)));
     connect(m_worker, SIGNAL(hashesUpdated()),
             this, SIGNAL(hashesUpdated()));
+
+    connect(m_thread, SIGNAL(finished()), m_worker, SLOT(deleteLater()));
+    connect(m_worker, SIGNAL(destroyed()), m_thread, SLOT(deleteLater()));
+
+    m_worker->moveToThread(m_thread);
+    m_thread->start();
 }
 
 TimeLogHistory::~TimeLogHistory()
@@ -101,17 +107,14 @@ TimeLogHistory::~TimeLogHistory()
 
 bool TimeLogHistory::init(const QString &dataPath, const QString &filePath, bool isReadonly, bool isPopulateCategories)
 {
-    if (m_worker->thread() != thread()) {
-        return false;
-    }
+    bool result = false;
 
-    if (!m_worker->init(dataPath, filePath, isReadonly, isPopulateCategories)) {
-        return false;
-    }
+    QMetaObject::invokeMethod(m_worker, "init", Qt::BlockingQueuedConnection,
+                              Q_RETURN_ARG(bool, result), Q_ARG(QString, dataPath),
+                              Q_ARG(QString, filePath), Q_ARG(bool, isReadonly),
+                              Q_ARG(bool, isPopulateCategories));
 
-    makeAsync();
-
-    return true;
+    return result;
 }
 
 qlonglong TimeLogHistory::size() const
@@ -272,21 +275,4 @@ void TimeLogHistory::workerUndoCountChanged(int undoCount)
     m_undoCount = undoCount;
 
     emit undoCountChanged(m_undoCount);
-}
-
-void TimeLogHistory::makeAsync()
-{
-    if (m_worker->thread() != thread()) {
-        return;
-    }
-
-    m_thread->setParent(0);
-    m_worker->setParent(0);
-
-    connect(m_thread, SIGNAL(finished()), m_worker, SLOT(deleteLater()));
-    connect(m_worker, SIGNAL(destroyed()), m_thread, SLOT(deleteLater()));
-
-    m_worker->moveToThread(m_thread);
-
-    m_thread->start();
 }

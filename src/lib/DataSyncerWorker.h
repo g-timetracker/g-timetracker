@@ -40,7 +40,7 @@ class DataSyncerWorker : public QObject
 public:
     explicit DataSyncerWorker(TimeLogHistory *db, QObject *parent = 0);
 
-    void init(const QString &dataPath);
+    Q_INVOKABLE void init(const QString &dataPath);
 
     Q_INVOKABLE void pack(const QDateTime &start = QDateTime::currentDateTimeUtc());
 

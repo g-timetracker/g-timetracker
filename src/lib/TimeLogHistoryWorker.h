@@ -37,8 +37,8 @@ public:
     explicit TimeLogHistoryWorker(QObject *parent = 0);
     ~TimeLogHistoryWorker();
 
-    bool init(const QString &dataPath, const QString &filePath = QString(), bool isReadonly = false,
-              bool isPopulateCategories = false);
+    Q_INVOKABLE bool init(const QString &dataPath, const QString &filePath = QString(),
+                          bool isReadonly = false, bool isPopulateCategories = false);
     qlonglong size() const;
     QSharedPointer<TimeLogCategoryTreeNode> categories() const;
 

@@ -138,8 +138,6 @@ private slots:
     void workerUndoCountChanged(int undoCount);
 
 private:
-    void makeAsync();
-
     QThread *m_thread;
     TimeLogHistoryWorker *m_worker;
 

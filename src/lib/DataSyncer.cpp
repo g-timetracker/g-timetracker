@@ -27,13 +27,19 @@ DataSyncer::DataSyncer(TimeLogHistory *history, QObject *parent) :
     m_notifySync(true),
     m_notifyNextSync(false),
     m_autoSync(true),
-    m_thread(new QThread(this)),
-    m_worker(new DataSyncerWorker(history, this))
+    m_thread(new QThread()),
+    m_worker(new DataSyncerWorker(history))
 {
     connect(m_worker, SIGNAL(error(QString)), this, SLOT(syncError(QString)));
     connect(m_worker, SIGNAL(synced()), this, SLOT(syncFinished()));
     connect(m_worker, SIGNAL(started()), this, SLOT(syncStarted()));
     connect(m_worker, SIGNAL(stopped()), this, SLOT(syncStopped()));
+
+    connect(m_thread, SIGNAL(finished()), m_worker, SLOT(deleteLater()));
+    connect(m_worker, SIGNAL(destroyed()), m_thread, SLOT(deleteLater()));
+
+    m_worker->moveToThread(m_thread);
+    m_thread->start();
 }
 
 DataSyncer::~DataSyncer()
@@ -45,13 +51,8 @@ DataSyncer::~DataSyncer()
 
 void DataSyncer::init(const QString &dataPath)
 {
-    if (m_worker->thread() != thread()) {
-        return;
-    }
-
-    m_worker->init(dataPath);
-
-    makeAsync();
+    QMetaObject::invokeMethod(m_worker, "init", Qt::BlockingQueuedConnection,
+                              Q_ARG(QString, dataPath));
 }
 
 void DataSyncer::pack(const QDateTime &start)
@@ -171,21 +172,4 @@ void DataSyncer::setIsRunning(bool isRunning)
     m_isRunning = isRunning;
 
     emit isRunningChanged(m_isRunning);
-}
-
-void DataSyncer::makeAsync()
-{
-    if (m_worker->thread() != thread()) {
-        return;
-    }
-
-    m_thread->setParent(0);
-    m_worker->setParent(0);
-
-    connect(m_thread, SIGNAL(finished()), m_worker, SLOT(deleteLater()));
-    connect(m_worker, SIGNAL(destroyed()), m_thread, SLOT(deleteLater()));
-
-    m_worker->moveToThread(m_thread);
-
-    m_thread->start();
 }
