@@ -57,7 +57,7 @@ void checkInsert(QSignalSpy &actionSpy, QSignalSpy &updateSpy, QVector<TimeLogEn
         QCOMPARE(updateData.at(1).precedingStart, updateData.at(0).startTime);
         QCOMPARE(updateData.at(0).durationTime, updateData.at(0).startTime.secsTo(updateData.at(1).startTime));
     } else {
-        QCOMPARE(updateData.at(0).precedingStart, QDateTime::fromTime_t(0));
+        QCOMPARE(updateData.at(0).precedingStart, QDateTime::fromTime_t(0, Qt::UTC));
     }
     if (index < origData.size()-1) {
         resultIndex = updateData.size() - 2;
@@ -96,7 +96,7 @@ void checkRemove(QSignalSpy &actionSpy, QSignalSpy &updateSpy, QVector<TimeLogEn
                 QCOMPARE(updateData.at(0).durationTime, -1);
             }
         } else {
-            QCOMPARE(updateData.at(0).precedingStart, QDateTime::fromTime_t(0));
+            QCOMPARE(updateData.at(0).precedingStart, QDateTime::fromTime_t(0, Qt::UTC));
         }
         if (index < origData.size()-1) {
             if (index != 0) {
@@ -296,7 +296,7 @@ QVector<TimeLogEntry> genData(int count)
 
     QVector<TimeLogEntry> result;
 
-    QDateTime startDate = QDateTime::fromTime_t(QDateTime::currentDateTime().toTime_t()).addSecs(-(maxDuration * count));
+    QDateTime startDate = QDateTime::currentDateTimeUtc().addSecs(-(maxDuration * count));
 
     std::uniform_int_distribution<> durationDistribution(minDuration, maxDuration);
     std::function<int()> randomDuration = std::bind(durationDistribution, std::default_random_engine());

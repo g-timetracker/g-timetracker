@@ -139,7 +139,7 @@ void tst_DB_Benchmark::getHistory()
     QBENCHMARK_ONCE {
         dataSpy.clear();
         qlonglong id = QDateTime::currentMSecsSinceEpoch();
-        history->getHistoryAfter(id, entriesCount, QDateTime::fromTime_t(0));
+        history->getHistoryAfter(id, entriesCount, QDateTime::fromTime_t(0, Qt::UTC));
         QVERIFY(dataSpy.wait(maxTimeout));
         QCOMPARE(dataSpy.constFirst().at(1).toLongLong(), id);
     }

@@ -1176,11 +1176,11 @@ QVector<TimeLogEntry> TimeLogHistoryWorker::getHistory(QSqlQuery &query) const
     while (query.next()) {
         TimeLogEntry data;
         data.uuid = QUuid::fromRfc4122(query.value(0).toByteArray());
-        data.startTime = QDateTime::fromTime_t(query.value(1).toUInt());
+        data.startTime = QDateTime::fromTime_t(query.value(1).toUInt(), Qt::UTC);
         data.category = query.value(2).toString();
         data.comment = query.value(3).toString();
         data.durationTime = query.value(4).toInt();
-        data.precedingStart = QDateTime::fromTime_t(query.value(5).toUInt());
+        data.precedingStart = QDateTime::fromTime_t(query.value(5).toUInt(), Qt::UTC);
 
         result.append(data);
     }
@@ -1229,11 +1229,11 @@ QVector<TimeLogSyncData> TimeLogHistoryWorker::getSyncData(QSqlQuery &query) con
         TimeLogSyncData data;
         data.uuid = QUuid::fromRfc4122(query.value(0).toByteArray());
         if (!query.isNull(1)) { // Removed item shouldn't has valid start time
-            data.startTime = QDateTime::fromTime_t(query.value(1).toUInt());
+            data.startTime = QDateTime::fromTime_t(query.value(1).toUInt(), Qt::UTC);
         }
         data.category = query.value(2).toString();
         data.comment = query.value(3).toString();
-        data.mTime = QDateTime::fromMSecsSinceEpoch(query.value(4).toLongLong());
+        data.mTime = QDateTime::fromMSecsSinceEpoch(query.value(4).toLongLong(), Qt::UTC);
 
         result.append(data);
     }
@@ -1344,7 +1344,7 @@ QMap<QDateTime, QByteArray> TimeLogHistoryWorker::getDataHashes(const QDateTime 
     }
 
     while (query.next()) {
-        result.insert(QDateTime::fromTime_t(query.value(0).toUInt()),
+        result.insert(QDateTime::fromTime_t(query.value(0).toUInt(), Qt::UTC),
                       query.value(1).toByteArray());
     }
 

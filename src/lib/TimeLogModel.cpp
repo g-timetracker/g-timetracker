@@ -51,7 +51,7 @@ QVariant TimeLogModel::data(const QModelIndex &index, int role) const
         return QVariant::fromValue(m_timeLog[index.row()].precedingStart);
     case SucceedingStartRole:
         if (m_timeLog[index.row()].durationTime == -1) {
-            return QVariant::fromValue(QDateTime::currentDateTime());
+            return QVariant::fromValue(QDateTime::currentDateTimeUtc());
         } else {
             return QVariant::fromValue(QDateTime(m_timeLog[index.row()].startTime).addSecs(m_timeLog[index.row()].durationTime));
         }

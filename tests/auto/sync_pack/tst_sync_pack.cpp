@@ -136,7 +136,7 @@ QVector<QDateTime> mTimeList(const QFileInfoList &infoList, const QRegularExpres
         QString fileName = entry.fileName();
         QRegularExpressionMatch match(regexp.match(fileName));
         if (match.hasMatch()) {
-            result.append(QDateTime::fromMSecsSinceEpoch(match.captured("mTime").toLongLong()));
+            result.append(QDateTime::fromMSecsSinceEpoch(match.captured("mTime").toLongLong(), Qt::UTC));
         }
     }
 

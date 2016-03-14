@@ -37,8 +37,8 @@ public:
                                                      QString comment);
     Q_INVOKABLE void undo();
     Q_INVOKABLE void editCategory(QString oldName, QString newName);
-    Q_INVOKABLE void getStats(const QDateTime &begin = QDateTime::fromTime_t(0),
-                              const QDateTime &end = QDateTime::currentDateTime(),
+    Q_INVOKABLE void getStats(const QDateTime &begin = QDateTime::fromTime_t(0, Qt::UTC),
+                              const QDateTime &end = QDateTime::currentDateTimeUtc(),
                               const QString &category = QString(),
                               const QString &separator = ">");
     Q_INVOKABLE static QString durationText(int duration, int maxUnits = 7);

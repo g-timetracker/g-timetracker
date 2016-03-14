@@ -294,7 +294,7 @@ void DataSyncerWorker::startExport()
         break;
     }
 
-    QDateTime mFrom = QDateTime::fromMSecsSinceEpoch(mTimeString.isEmpty() ? 0 : mTimeString.toLongLong());
+    QDateTime mFrom = QDateTime::fromMSecsSinceEpoch(mTimeString.isEmpty() ? 0 : mTimeString.toLongLong(), Qt::UTC);
 
     m_db->getSyncData(mFrom);
 }
@@ -347,9 +347,9 @@ void DataSyncerWorker::packSync()
                 packMTimeString = lastMTimeString;
             }
         }
-        m_packMTime = QDateTime::fromMSecsSinceEpoch(packMTimeString.toLongLong());
+        m_packMTime = QDateTime::fromMSecsSinceEpoch(packMTimeString.toLongLong(), Qt::UTC);
     } else {
-        m_packMTime = QDateTime::fromMSecsSinceEpoch(-1);   // TODO: mtime >= :mBegin
+        m_packMTime = QDateTime::fromMSecsSinceEpoch(-1, Qt::UTC);   // TODO: mtime >= :mBegin
     }
 
     QDateTime packPeriodStart(maxPackPeriodStart());

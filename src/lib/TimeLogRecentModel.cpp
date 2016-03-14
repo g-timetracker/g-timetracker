@@ -97,7 +97,7 @@ void TimeLogRecentModel::getMoreHistory()
         return;
     }
 
-    QDateTime until = m_timeLog.size() ? m_timeLog.at(0).startTime : QDateTime::currentDateTime();
+    QDateTime until = m_timeLog.size() ? m_timeLog.at(0).startTime : QDateTime::currentDateTimeUtc();
     qlonglong id = QDateTime::currentMSecsSinceEpoch();
     m_pendingRequests.append(id);
     m_history->getHistoryBefore(id, defaultPopulateCount, until);

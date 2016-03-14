@@ -50,22 +50,22 @@ public slots:
     void undo();
 
     void getHistoryBetween(qlonglong id,
-                           const QDateTime &begin = QDateTime::fromTime_t(0),
-                           const QDateTime &end = QDateTime::currentDateTime(),
+                           const QDateTime &begin = QDateTime::fromTime_t(0, Qt::UTC),
+                           const QDateTime &end = QDateTime::currentDateTimeUtc(),
                            const QString &category = QString()) const;
     void getHistoryAfter(qlonglong id, const uint limit,
-                         const QDateTime &from = QDateTime::fromTime_t(0)) const;
+                         const QDateTime &from = QDateTime::fromTime_t(0, Qt::UTC)) const;
     void getHistoryBefore(qlonglong id, const uint limit,
-                          const QDateTime &until = QDateTime::currentDateTime()) const;
+                          const QDateTime &until = QDateTime::currentDateTimeUtc()) const;
 
-    void getStats(const QDateTime &begin = QDateTime::fromTime_t(0),
-                  const QDateTime &end = QDateTime::currentDateTime(),
+    void getStats(const QDateTime &begin = QDateTime::fromTime_t(0, Qt::UTC),
+                  const QDateTime &end = QDateTime::currentDateTimeUtc(),
                   const QString &category = QString(),
                   const QString &separator = ">") const;
 
     void getSyncData(const QDateTime &mBegin = QDateTime(),
                      const QDateTime &mEnd = QDateTime()) const;
-    void checkHasSyncData(const QDateTime &mBegin = QDateTime::fromMSecsSinceEpoch(0),
+    void checkHasSyncData(const QDateTime &mBegin = QDateTime::fromMSecsSinceEpoch(0, Qt::UTC),
                           const QDateTime &mEnd = QDateTime::currentDateTimeUtc()) const;
 
     void getHashes(const QDateTime &maxDate = QDateTime(), bool noUpdate = false);

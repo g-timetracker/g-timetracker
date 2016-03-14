@@ -35,7 +35,7 @@ void DataExporter::startIO(const QString &path)
         return;
     }
 
-    m_db->getHistoryAfter(0, 1, QDateTime::fromTime_t(0));
+    m_db->getHistoryAfter(0, 1, QDateTime::fromTime_t(0, Qt::UTC));
 }
 
 void DataExporter::historyError(const QString &errorText)
@@ -46,11 +46,11 @@ void DataExporter::historyError(const QString &errorText)
 void DataExporter::historyRequestCompleted(QVector<TimeLogEntry> data, qlonglong id)
 {
     if (id == 0) {          // Begin of export period received
-        m_currentDate = data.first().startTime.date();
-        m_db->getHistoryBefore(1, 1, QDateTime::currentDateTime());
+        m_currentDate = data.first().startTime.toUTC().date();
+        m_db->getHistoryBefore(1, 1, QDateTime::currentDateTimeUtc());
         return;
     } else if (id == 1) {   // End of export period received
-        m_lastDate = data.last().startTime.date();
+        m_lastDate = data.last().startTime.toUTC().date();
     } else if (m_currentDate > m_lastDate) {
         qCInfo(DATA_IO_CATEGORY) << "All data successfully exported";
         QCoreApplication::quit();
@@ -67,7 +67,8 @@ void DataExporter::historyRequestCompleted(QVector<TimeLogEntry> data, qlonglong
 
 void DataExporter::exportCurrentDate(qlonglong id)
 {
-    m_db->getHistoryBetween(id, QDateTime(m_currentDate), QDateTime(m_currentDate.addDays(1)).addSecs(-1));
+    m_db->getHistoryBetween(id, QDateTime(m_currentDate, QTime(), Qt::UTC),
+                            QDateTime(m_currentDate.addDays(1), QTime(), Qt::UTC).addSecs(-1));
 }
 
 bool DataExporter::exportDay(QVector<TimeLogEntry> data)
@@ -79,7 +80,7 @@ bool DataExporter::exportDay(QVector<TimeLogEntry> data)
 
     qCInfo(DATA_IO_CATEGORY) << QString("Exporting data for date %1").arg(m_currentDate.toString());
 
-    QString fileName = QString("%1 (%2).csv").arg(m_currentDate.toString(Qt::ISODate))  // TODO: UTC
+    QString fileName = QString("%1 (%2).csv").arg(m_currentDate.toString(Qt::ISODate))
                                              .arg(m_currentDate.toString("ddd"));
     QString filePath = m_dir.filePath(fileName);
     QFile file(filePath);
@@ -96,7 +97,7 @@ bool DataExporter::exportDay(QVector<TimeLogEntry> data)
     QStringList strings;
     foreach (const TimeLogEntry &entry, data) {
         QStringList values;
-        values << entry.startTime.toString(Qt::ISODate);
+        values << entry.startTime.toUTC().toString(Qt::ISODate);
         values << entry.category;
         values << entry.comment;
         values << entry.uuid.toString();
