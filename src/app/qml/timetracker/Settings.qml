@@ -6,14 +6,23 @@ Item {
     id: settings
 
     property bool isConfirmationsEnabled: true
+    property bool isAutoSync: true
+    property int syncCacheSize: 10
     property url syncPath
     property url dataPath
 
     Settings {
         property alias confirmationsEnabled: settings.isConfirmationsEnabled
+
+        category: "main"
+    }
+
+    Settings {
+        property alias autoSync: settings.isAutoSync
+        property alias syncCacheSize: settings.syncCacheSize
         property alias syncPath: settings.syncPath
         property alias dataPath: settings.dataPath
 
-        category: "main"
+        category: "sync"
     }
 }

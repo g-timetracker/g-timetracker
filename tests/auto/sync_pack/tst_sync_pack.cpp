@@ -54,6 +54,8 @@ void importSyncData(TimeLogHistory *history, DataSyncer *syncer, QTemporaryDir *
 
     syncer->setNoPack(true);
 
+    syncer->setSyncPath(QUrl::fromLocalFile(syncDir->path()));
+
     int importedSize = 0;
     while (importedSize < data.size()) {
         int importSize = qMin(portionSize, data.size() - importedSize);
@@ -69,7 +71,7 @@ void importSyncData(TimeLogHistory *history, DataSyncer *syncer, QTemporaryDir *
         QCOMPARE(history->size(), importedSize);
 
         syncSpy.clear();
-        syncer->sync(QUrl::fromLocalFile(syncDir->path()), syncTime);
+        syncer->sync(syncTime);
         QVERIFY(syncSpy.wait());
         QVERIFY(syncErrorSpy.isEmpty());
         QVERIFY(historyErrorSpy.isEmpty());
@@ -78,7 +80,7 @@ void importSyncData(TimeLogHistory *history, DataSyncer *syncer, QTemporaryDir *
 
     if (data.isEmpty()) {
         syncSpy.clear();
-        syncer->sync(QUrl::fromLocalFile(syncDir->path()), syncTime);
+        syncer->sync(syncTime);
         QVERIFY(syncSpy.wait());
         QVERIFY(syncErrorSpy.isEmpty());
         QVERIFY(historyErrorSpy.isEmpty());
@@ -89,7 +91,7 @@ void importSyncData(TimeLogHistory *history, DataSyncer *syncer, QTemporaryDir *
 
     if (!noPack) {
         syncSpy.clear();
-        syncer->sync(QUrl::fromLocalFile(syncDir->path()), syncTime);
+        syncer->sync(syncTime);
         QVERIFY(syncSpy.wait());
         QVERIFY(syncErrorSpy.isEmpty());
         QVERIFY(historyErrorSpy.isEmpty());
@@ -241,6 +243,7 @@ void tst_SyncPack::init()
     syncer1 = new DataSyncer(history1);
     Q_CHECK_PTR(syncer1);
     syncer1->init(dataDir1->path());
+    syncer1->setAutoSync(false);
 
     dataDir2 = new QTemporaryDir();
     Q_CHECK_PTR(dataDir2);
@@ -251,6 +254,7 @@ void tst_SyncPack::init()
     syncer2 = new DataSyncer(history2);
     Q_CHECK_PTR(syncer2);
     syncer2->init(dataDir2->path());
+    syncer2->setAutoSync(false);
 
     dataDir3 = new QTemporaryDir();
     Q_CHECK_PTR(dataDir3);
@@ -261,6 +265,7 @@ void tst_SyncPack::init()
     syncer3 = new DataSyncer(history3);
     Q_CHECK_PTR(syncer3);
     syncer3->init(dataDir3->path());
+    syncer3->setAutoSync(false);
 
     syncDir1 = new QTemporaryDir();
     Q_CHECK_PTR(syncDir1);
@@ -354,7 +359,8 @@ void tst_SyncPack::pack()
 
     // Pack
     syncSpy1.clear();
-    syncer1->pack(syncDir1->path(), syncStart);
+    syncer1->setSyncPath(QUrl::fromLocalFile(syncDir1->path()));
+    syncer1->pack(syncStart);
     QVERIFY(syncSpy1.wait());
     QVERIFY(syncErrorSpy1.isEmpty());
     QVERIFY(historyErrorSpy1.isEmpty());
@@ -364,7 +370,8 @@ void tst_SyncPack::pack()
                   monthStart(syncStart).addMSecs(-1));
 
     // Sync 2 [in]
-    syncer2->sync(QUrl::fromLocalFile(syncDir1->path()), syncStart);
+    syncer2->setSyncPath(QUrl::fromLocalFile(syncDir1->path()));
+    syncer2->sync(syncStart);
     QVERIFY(syncSpy2.wait());
     QVERIFY(syncErrorSpy2.isEmpty());
     QVERIFY(historyErrorSpy2.isEmpty());
@@ -376,7 +383,8 @@ void tst_SyncPack::pack()
                   monthStart(syncStart).addMSecs(-1));
 
     // Sync 1 [in]
-    syncer1->sync(QUrl::fromLocalFile(syncDir1->path()), syncStart);
+    syncer1->setSyncPath(QUrl::fromLocalFile(syncDir1->path()));
+    syncer1->sync(syncStart);
     QVERIFY(syncSpy1.wait());
     QVERIFY(syncErrorSpy1.isEmpty());
     QVERIFY(historyErrorSpy1.isEmpty());
@@ -450,7 +458,8 @@ void tst_SyncPack::syncPack()
     checkFunction(importSyncData, history1, syncer1, syncDir1, origSyncData, syncPortion, false, syncStart);
 
     // Sync 1 [out]
-    syncer1->sync(QUrl::fromLocalFile(syncDir1->path()), syncStart);
+    syncer1->setSyncPath(QUrl::fromLocalFile(syncDir1->path()));
+    syncer1->sync(syncStart);
     QVERIFY(syncSpy1.wait());
     QVERIFY(syncErrorSpy1.isEmpty());
     QVERIFY(historyErrorSpy1.isEmpty());
@@ -462,7 +471,8 @@ void tst_SyncPack::syncPack()
                   monthStart(syncStart).addMSecs(-1));
 
     // Sync 2 [in]
-    syncer2->sync(QUrl::fromLocalFile(syncDir1->path()), syncStart);
+    syncer2->setSyncPath(QUrl::fromLocalFile(syncDir1->path()));
+    syncer2->sync(syncStart);
     QVERIFY(syncSpy2.wait());
     QVERIFY(syncErrorSpy2.isEmpty());
     QVERIFY(historyErrorSpy2.isEmpty());
@@ -474,7 +484,8 @@ void tst_SyncPack::syncPack()
                   monthStart(syncStart).addMSecs(-1));
 
     // Sync 1 [in]
-    syncer1->sync(QUrl::fromLocalFile(syncDir1->path()), syncStart);
+    syncer1->setSyncPath(QUrl::fromLocalFile(syncDir1->path()));
+    syncer1->sync(syncStart);
     QVERIFY(syncSpy1.wait());
     QVERIFY(syncErrorSpy1.isEmpty());
     QVERIFY(historyErrorSpy1.isEmpty());
@@ -565,7 +576,8 @@ void tst_SyncPack::unpacked()
     // Sync 2 [out]
     syncer2->setNoPack(true);
     syncSpy2.clear();
-    syncer2->sync(QUrl::fromLocalFile(syncDir2->path()), syncStart);
+    syncer2->setSyncPath(QUrl::fromLocalFile(syncDir2->path()));
+    syncer2->sync(syncStart);
     QVERIFY(syncSpy2.wait());
     QVERIFY(syncErrorSpy2.isEmpty());
     QVERIFY(historyErrorSpy2.isEmpty());
@@ -573,7 +585,8 @@ void tst_SyncPack::unpacked()
 
     // Sync 1 [in-out]
     syncSpy1.clear();
-    syncer1->sync(QUrl::fromLocalFile(syncDir2->path()), syncStart);
+    syncer1->setSyncPath(QUrl::fromLocalFile(syncDir2->path()));
+    syncer1->sync(syncStart);
     QVERIFY(syncSpy1.wait());
     QVERIFY(syncErrorSpy1.isEmpty());
     QVERIFY(historyErrorSpy1.isEmpty());
@@ -589,7 +602,8 @@ void tst_SyncPack::unpacked()
     // Sync 2 [in]
     syncer2->setNoPack(false);
     syncSpy2.clear();
-    syncer2->sync(QUrl::fromLocalFile(syncDir2->path()), syncStart);
+    syncer2->setSyncPath(QUrl::fromLocalFile(syncDir2->path()));
+    syncer2->sync(syncStart);
     QVERIFY(syncSpy2.wait());
     QVERIFY(syncErrorSpy2.isEmpty());
     QVERIFY(historyErrorSpy2.isEmpty());
@@ -605,7 +619,8 @@ void tst_SyncPack::unpacked()
                   maxPackedDate < newData.mTime ? QVector<QDateTime>() << newData.mTime : QVector<QDateTime>());
 
     // Sync 3 [in]
-    syncer3->sync(QUrl::fromLocalFile(syncDir2->path()), syncStart);
+    syncer3->setSyncPath(QUrl::fromLocalFile(syncDir2->path()));
+    syncer3->sync(syncStart);
     QVERIFY(syncSpy3.wait());
     QVERIFY(syncErrorSpy3.isEmpty());
     QVERIFY(historyErrorSpy3.isEmpty());
@@ -835,7 +850,8 @@ void tst_SyncPack::twoPacks()
     // Sync 2 [out]
     syncer2->setNoPack(false);
     syncSpy2.clear();
-    syncer2->sync(QUrl::fromLocalFile(syncDir2->path()), monthStart(newData.mTime.addMonths(1)));
+    syncer2->setSyncPath(QUrl::fromLocalFile(syncDir2->path()));
+    syncer2->sync(monthStart(newData.mTime.addMonths(1)));
     QVERIFY(syncSpy2.wait());
     QVERIFY(syncErrorSpy2.isEmpty());
     QVERIFY(historyErrorSpy2.isEmpty());
@@ -843,7 +859,8 @@ void tst_SyncPack::twoPacks()
 
     // Sync 1 [in-out]
     syncSpy1.clear();
-    syncer1->sync(QUrl::fromLocalFile(syncDir2->path()), syncStart);
+    syncer1->setSyncPath(QUrl::fromLocalFile(syncDir2->path()));
+    syncer1->sync(syncStart);
     QVERIFY(syncSpy1.wait());
     QVERIFY(syncErrorSpy1.isEmpty());
     QVERIFY(historyErrorSpy1.isEmpty());
@@ -858,7 +875,8 @@ void tst_SyncPack::twoPacks()
 
     // Sync 2 [in]
     syncSpy2.clear();
-    syncer2->sync(QUrl::fromLocalFile(syncDir2->path()), syncStart);
+    syncer2->setSyncPath(QUrl::fromLocalFile(syncDir2->path()));
+    syncer2->sync(syncStart);
     QVERIFY(syncSpy2.wait());
     QVERIFY(syncErrorSpy2.isEmpty());
     QVERIFY(historyErrorSpy2.isEmpty());
@@ -870,7 +888,8 @@ void tst_SyncPack::twoPacks()
                   maxPackedDate);
 
     // Sync 3 [in]
-    syncer3->sync(QUrl::fromLocalFile(syncDir2->path()), syncStart);
+    syncer3->setSyncPath(QUrl::fromLocalFile(syncDir2->path()));
+    syncer3->sync(syncStart);
     QVERIFY(syncSpy3.wait());
     QVERIFY(syncErrorSpy3.isEmpty());
     QVERIFY(historyErrorSpy3.isEmpty());

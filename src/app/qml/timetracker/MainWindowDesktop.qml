@@ -87,7 +87,7 @@ ApplicationWindow {
             }
             MenuItem {
                 text: "Sync"
-                onTriggered: TimeTracker.syncer.sync(Settings.syncPath)
+                onTriggered: TimeTracker.syncer.sync()
             }
             MenuItem {
                 text: "Undo"
@@ -118,6 +118,27 @@ ApplicationWindow {
         target: TimeTracker
         property: "dataPath"
         value: TimeLogDataPath ? TimeLogDataPath : Settings.dataPath
+    }
+
+    Binding {
+        target: TimeTracker.syncer
+        property: "syncPath"
+        value: TimeLogSyncPath ? TimeLogSyncPath : Settings.syncPath
+        when: TimeTracker.syncer
+    }
+
+    Binding {
+        target: TimeTracker.syncer
+        property: "autoSync"
+        value: Settings.isAutoSync
+        when: TimeTracker.syncer
+    }
+
+    Binding {
+        target: TimeTracker.syncer
+        property: "syncCacheSize"
+        value: Settings.syncCacheSize
+        when: TimeTracker.syncer
     }
 
     Connections {

@@ -34,8 +34,8 @@ TimeLogHistory::TimeLogHistory(QObject *parent) :
             this, SIGNAL(statsDataAvailable(QVector<TimeLogStats>,QDateTime)));
     connect(m_worker, SIGNAL(syncDataAvailable(QVector<TimeLogSyncData>,QDateTime)),
             this, SIGNAL(syncDataAvailable(QVector<TimeLogSyncData>,QDateTime)));
-    connect(m_worker, SIGNAL(hasSyncData(bool,QDateTime,QDateTime)),
-            this, SIGNAL(hasSyncData(bool,QDateTime,QDateTime)));
+    connect(m_worker, SIGNAL(syncDataSizeAvailable(qlonglong,QDateTime,QDateTime)),
+            this, SIGNAL(syncDataSizeAvailable(qlonglong,QDateTime,QDateTime)));
     connect(m_worker, SIGNAL(syncStatsAvailable(QVector<TimeLogSyncData>,QVector<TimeLogSyncData>,
                                                 QVector<TimeLogSyncData>,QVector<TimeLogSyncData>,
                                                 QVector<TimeLogSyncData>,QVector<TimeLogSyncData>)),
@@ -163,9 +163,9 @@ void TimeLogHistory::getSyncData(const QDateTime &mBegin, const QDateTime &mEnd)
                               Q_ARG(QDateTime, mBegin), Q_ARG(QDateTime, mEnd));
 }
 
-void TimeLogHistory::checkHasSyncData(const QDateTime &mBegin, const QDateTime &mEnd) const
+void TimeLogHistory::getSyncDataSize(const QDateTime &mBegin, const QDateTime &mEnd) const
 {
-    QMetaObject::invokeMethod(m_worker, "checkHasSyncData", Qt::AutoConnection,
+    QMetaObject::invokeMethod(m_worker, "getSyncDataSize", Qt::AutoConnection,
                               Q_ARG(QDateTime, mBegin), Q_ARG(QDateTime, mEnd));
 }
 

@@ -81,5 +81,10 @@
         <file>qml/timetracker/images/ic_add_white_24dp@3x.png</file>
         <file>qml/timetracker/images/ic_add_white_24dp@4x.png</file>
         <file>qml/timetracker/FloatingActionButton.qml</file>
+        <file>qml/timetracker/SettingsMobile.qml</file>
+        <file>qml/timetracker/SettingsDelegate.qml</file>
+        <file>qml/timetracker/SettingsSwitchDelegate.qml</file>
+        <file>qml/timetracker/SettingsAdvancedDelegate.qml</file>
+        <file>qml/timetracker/SettingsSyncCacheSize.qml</file>
     </qresource>
 </RCC>

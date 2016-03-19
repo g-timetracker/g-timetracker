@@ -97,8 +97,8 @@ ApplicationWindow {
         mainView.switchToPage("categoriesPage", "CategoriesView.qml")
     }
 
-    function changeSyncPath() {
-        syncPathDialog.open()
+    function showSettings() {
+        mainView.pushPage("SettingsMobile.qml")
     }
 
     function showDialog(dialog) {
@@ -189,22 +189,11 @@ ApplicationWindow {
                             TimeTracker.undo()
                         }
                     }
-                    LabelControl {
-                        font.pixelSize: 16
-                        opacity: 1
-                        text: "Settings"
-                    }
-                    Switch {
-                        text: "Confirmations"
-                        checkable: true
-                        checked: Settings.isConfirmationsEnabled
-                        onCheckedChanged: Settings.isConfirmationsEnabled = checked
-                    }
                     PushButton {
-                        text: "Sync path"
+                        text: "Settings"
                         onClicked: {
                             drawer.close()
-                            mainWindow.changeSyncPath()
+                            mainWindow.showSettings()
                         }
                     }
                 }
@@ -218,6 +207,27 @@ ApplicationWindow {
         target: TimeTracker
         property: "dataPath"
         value: TimeLogDataPath ? TimeLogDataPath : Settings.dataPath
+    }
+
+    Binding {
+        target: TimeTracker.syncer
+        property: "syncPath"
+        value: TimeLogSyncPath ? TimeLogSyncPath : Settings.syncPath
+        when: TimeTracker.syncer
+    }
+
+    Binding {
+        target: TimeTracker.syncer
+        property: "autoSync"
+        value: Settings.isAutoSync
+        when: TimeTracker.syncer
+    }
+
+    Binding {
+        target: TimeTracker.syncer
+        property: "syncCacheSize"
+        value: Settings.syncCacheSize
+        when: TimeTracker.syncer
     }
 
     Connections {
@@ -256,15 +266,6 @@ ApplicationWindow {
         title: "Error"
         icon: StandardIcon.Critical
         standardButtons: StandardButton.Ok
-    }
-
-    FileDialog {
-        id: syncPathDialog
-
-        title: "Select folder for sync"
-        selectFolder: true
-
-        onAccepted: Settings.syncPath = folder
     }
 
     Item {

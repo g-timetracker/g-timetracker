@@ -1,15 +1,22 @@
+#ifdef WIN32
+# include <sys/utime.h>
+#else
+# include <sys/time.h>
+#endif
+#include <errno.h>
+
 #include <QCoreApplication>
 #include <QStandardPaths>
 #include <QDataStream>
 #include <QRegularExpression>
 #include <QStateMachine>
 #include <QFinalState>
+#include <QTimer>
 
 #include <QLoggingCategory>
 
 #include "AbstractDataInOut.h"
 #include "DataSyncerWorker.h"
-#include "TimeLogHistory.h"
 #include "DBSyncer.h"
 
 #define fail(message) \
@@ -32,6 +39,9 @@ const QRegularExpression syncFileNameRegexp(syncFileNamePattern);
 const QString packFileNamePattern = QString("^%1\\.pack$").arg(fileNamePattern);
 const QRegularExpression packFileNameRegexp(packFileNamePattern);
 
+const int syncCacheTimeout = 10;
+const int defaultSyncCacheSize = 10;
+
 DataSyncerWorker::DataSyncerWorker(TimeLogHistory *db, QObject *parent) :
     QObject(parent),
     m_isInitialized(false),
@@ -40,22 +50,36 @@ DataSyncerWorker::DataSyncerWorker(TimeLogHistory *db, QObject *parent) :
     m_exportState(new QState()),
     m_syncFoldersState(new QState()),
     m_importState(new QState()),
-    m_packState(new QState()),
+    m_packSM(new QStateMachine()),
+    m_packSMPackState(new QState()),
+    m_packSMFinalState(new QFinalState()),
+    m_timestampState(new QState()),
     m_finalState(new QFinalState()),
+    m_autoSync(true),
+    m_syncCacheSize(defaultSyncCacheSize),
     m_noPack(false),
+    m_syncCacheTimer(new QTimer(this)),
+    m_cachedSyncChanges(0),
+    m_wroteToExternalSync(false),
     m_dbSyncer(nullptr),
     m_pack(nullptr),
     m_forcePack(false)
 {
     m_exportState->addTransition(this, SIGNAL(exported()), m_syncFoldersState);
     m_syncFoldersState->addTransition(this, SIGNAL(foldersSynced()), m_importState);
-    m_importState->addTransition(this, SIGNAL(imported()), m_packState);
-    m_packState->addTransition(this, SIGNAL(synced()), m_finalState);
+    m_importState->addTransition(this, SIGNAL(imported()), m_packSM);
+    m_packSMPackState->addTransition(this, SIGNAL(dirsSynced()), m_packSMFinalState);
+    m_packSM->addTransition(m_packSM, SIGNAL(finished()), m_timestampState);
+    m_timestampState->addTransition(this, SIGNAL(synced()), m_finalState);
 
     m_sm->addState(m_exportState);
     m_sm->addState(m_syncFoldersState);
     m_sm->addState(m_importState);
-    m_sm->addState(m_packState);
+    m_sm->addState(m_packSM);
+    m_packSM->addState(m_packSMPackState);
+    m_packSM->addState(m_packSMFinalState);
+    m_packSM->setInitialState(m_packSMPackState);
+    m_sm->addState(m_timestampState);
     m_sm->addState(m_finalState);
     m_sm->setInitialState(m_exportState);
 
@@ -64,17 +88,31 @@ DataSyncerWorker::DataSyncerWorker(TimeLogHistory *db, QObject *parent) :
     connect(this, SIGNAL(started()), SLOT(startExport()), Qt::QueuedConnection);
     connect(this, SIGNAL(exported()), SLOT(syncFolders()), Qt::QueuedConnection);
     connect(this, SIGNAL(foldersSynced()), SLOT(startImport()), Qt::QueuedConnection);
-    connect(this, SIGNAL(imported()), SLOT(syncFinished()), Qt::QueuedConnection);
+    connect(m_packSM, SIGNAL(started()), this, SLOT(syncFinished()), Qt::QueuedConnection);
+    connect(m_packSM, SIGNAL(finished()), SLOT(updateTimestamp()), Qt::QueuedConnection);
 
+    connect(m_sm, SIGNAL(stopped()), this, SIGNAL(stopped()));
     connect(m_sm, SIGNAL(stopped()), this, SLOT(cleanState()));
     connect(m_sm, SIGNAL(finished()), this, SLOT(cleanState()));
 
+    m_syncCacheTimer->setTimerType(Qt::VeryCoarseTimer);
+    m_syncCacheTimer->setInterval(syncCacheTimeout * 1000);
+    m_syncCacheTimer->setSingleShot(true);
+    connect(m_syncCacheTimer, SIGNAL(timeout()), this, SLOT(sync()));
+    connect(m_sm, SIGNAL(started()), m_syncCacheTimer, SLOT(stop()));
+
     connect(m_db, SIGNAL(error(QString)),
             this, SLOT(historyError(QString)));
+    connect(m_db, SIGNAL(dataUpdated(QVector<TimeLogEntry>,QVector<TimeLogHistory::Fields>)),
+            this, SLOT(historyDataUpdated(QVector<TimeLogEntry>,QVector<TimeLogHistory::Fields>)));
+    connect(m_db, SIGNAL(dataInserted(TimeLogEntry)),
+            this, SLOT(historyDataInserted(TimeLogEntry)));
+    connect(m_db, SIGNAL(dataRemoved(TimeLogEntry)),
+            this, SLOT(historyDataRemoved(TimeLogEntry)));
     connect(m_db, SIGNAL(syncDataAvailable(QVector<TimeLogSyncData>,QDateTime)),
             this, SLOT(syncDataAvailable(QVector<TimeLogSyncData>,QDateTime)));
-    connect(m_db, SIGNAL(hasSyncData(bool,QDateTime,QDateTime)),
-            this, SLOT(syncHasSyncData(bool,QDateTime,QDateTime)));
+    connect(m_db, SIGNAL(syncDataSizeAvailable(qlonglong,QDateTime,QDateTime)),
+            this, SLOT(syncDataSizeAvailable(qlonglong,QDateTime,QDateTime)));
     connect(m_db, SIGNAL(syncStatsAvailable(QVector<TimeLogSyncData>,QVector<TimeLogSyncData>,
                                             QVector<TimeLogSyncData>,QVector<TimeLogSyncData>,
                                             QVector<TimeLogSyncData>,QVector<TimeLogSyncData>)),
@@ -87,29 +125,69 @@ DataSyncerWorker::DataSyncerWorker(TimeLogHistory *db, QObject *parent) :
 
 void DataSyncerWorker::init(const QString &dataPath)
 {
-    m_intPath = QString("%1/sync").arg(!dataPath.isEmpty() ? dataPath
-                                                           : QStandardPaths::writableLocation(QStandardPaths::AppDataLocation));
+    m_internalSyncPath = QString("%1/sync").arg(!dataPath.isEmpty() ? dataPath
+                                                                    : QStandardPaths::writableLocation(QStandardPaths::AppDataLocation));
 
     m_isInitialized = true;
 }
 
-void DataSyncerWorker::sync(const QString &path, const QDateTime &start)
+void DataSyncerWorker::pack(const QDateTime &start)
 {
     Q_ASSERT(m_isInitialized);
 
-    if (m_sm->isRunning() || m_pack) {  // TODO: pack state machine
-        qCWarning(SYNC_WORKER_CATEGORY) << "Sync already running";
+    if (m_sm->isRunning() || m_packSM->isRunning()) {
+        qCWarning(SYNC_WORKER_CATEGORY) << "Sync already in progress";
         return;
-    } else if (path.isEmpty()) {
+    } else if (m_externalSyncPath.isEmpty()) {
         fail("Empty sync path");
         return;
     }
 
-    m_syncPath = path;
+    m_currentSyncPath = m_externalSyncPath;
     m_syncStart = start;
-    qCInfo(SYNC_WORKER_CATEGORY) << "Syncing with folder" << m_syncPath;
 
-    emit started(QPrivateSignal());
+    m_packSM->start();
+}
+
+void DataSyncerWorker::setAutoSync(bool autoSync)
+{
+    if (m_autoSync == autoSync) {
+        return;
+    }
+
+    m_autoSync = autoSync;
+
+    if (m_autoSync && !m_externalSyncPath.isEmpty()) {
+        checkSyncFolder();
+    } else {
+        m_syncCacheTimer->stop();
+    }
+}
+
+void DataSyncerWorker::setSyncCacheSize(int syncCacheSize)
+{
+    if (m_syncCacheSize == syncCacheSize) {
+        return;
+    }
+
+    m_syncCacheSize = syncCacheSize;
+
+    if (m_autoSync && !m_externalSyncPath.isEmpty()) {
+        checkCachedSyncChanges();
+    }
+}
+
+void DataSyncerWorker::setSyncPath(const QString &path)
+{
+    if (m_externalSyncPath == path) {
+        return;
+    }
+
+    m_externalSyncPath = path;
+
+    if (!m_externalSyncPath.isEmpty()) {
+        checkSyncFolder();
+    }
 }
 
 void DataSyncerWorker::setNoPack(bool noPack)
@@ -117,19 +195,23 @@ void DataSyncerWorker::setNoPack(bool noPack)
     m_noPack = noPack;
 }
 
-void DataSyncerWorker::pack(const QString &path, const QDateTime &start)
+void DataSyncerWorker::sync(const QDateTime &start)
 {
     Q_ASSERT(m_isInitialized);
 
-    if (m_sm->isRunning() || m_pack) {  // TODO: pack state machine
-        qCWarning(SYNC_WORKER_CATEGORY) << "Sync already in progress";
+    if (m_sm->isRunning() || m_packSM->isRunning()) {
+        qCDebug(SYNC_WORKER_CATEGORY) << "Sync already in progress";
+        return;
+    } else if (m_externalSyncPath.isEmpty()) {
+        fail("Empty sync path");
         return;
     }
 
-    m_syncPath = path;
+    m_currentSyncPath = m_externalSyncPath;
     m_syncStart = start;
+    qCInfo(SYNC_WORKER_CATEGORY) << "Syncing with folder" << m_currentSyncPath;
 
-    packSync();
+    emit started(QPrivateSignal());
 }
 
 void DataSyncerWorker::historyError(const QString &errorText)
@@ -139,11 +221,49 @@ void DataSyncerWorker::historyError(const QString &errorText)
     m_sm->stop();
 }
 
+void DataSyncerWorker::historyDataUpdated(QVector<TimeLogEntry> data, QVector<TimeLogHistory::Fields> fields)
+{
+    Q_UNUSED(data)
+
+    if (m_sm->isRunning()) {
+        return;
+    }
+
+    for (TimeLogHistory::Fields field: fields) {
+        if (field & TimeLogHistory::AllFieldsMask) {
+            addCachedSyncChanges();
+            return;
+        }
+    }
+}
+
+void DataSyncerWorker::historyDataInserted(const TimeLogEntry &data)
+{
+    Q_UNUSED(data)
+
+    if (m_sm->isRunning()) {
+        return;
+    }
+
+    addCachedSyncChanges();
+}
+
+void DataSyncerWorker::historyDataRemoved(const TimeLogEntry &data)
+{
+    Q_UNUSED(data)
+
+    if (m_sm->isRunning()) {
+        return;
+    }
+
+    addCachedSyncChanges();
+}
+
 void DataSyncerWorker::syncDataAvailable(QVector<TimeLogSyncData> data, QDateTime until)
 {
     Q_UNUSED(until)
 
-    if (!m_exportState->active() || m_pack) { // sync with pack
+    if (!m_exportState->active()) {
         return;
     }
 
@@ -158,22 +278,27 @@ void DataSyncerWorker::syncDataAvailable(QVector<TimeLogSyncData> data, QDateTim
     emit exported(QPrivateSignal());
 }
 
-void DataSyncerWorker::syncHasSyncData(bool hasData, QDateTime mBegin, QDateTime mEnd)
+void DataSyncerWorker::syncDataSizeAvailable(qlonglong size, QDateTime mBegin, QDateTime mEnd)
 {
     Q_UNUSED(mBegin)
     Q_UNUSED(mEnd)
 
-    if (hasData) {
-        exportPack();
+    if (m_packSM->isRunning() /* export to pack */) {
+        if (size > 0) {
+            exportPack();
+        } else {
+            qCInfo(SYNC_WORKER_CATEGORY) << "No data to pack";
+            emit dirsSynced(QPrivateSignal());
+        }
     } else {
-        qCInfo(SYNC_WORKER_CATEGORY) << "No data to pack";
-        emit synced(QPrivateSignal());
+        qCDebug(SYNC_WORKER_CATEGORY) << "Cached sync changes from DB:" << size;
+        addCachedSyncChanges(size);
     }
 }
 
 void DataSyncerWorker::syncStatsAvailable(QVector<TimeLogSyncData> removedOld, QVector<TimeLogSyncData> removedNew, QVector<TimeLogSyncData> insertedOld, QVector<TimeLogSyncData> insertedNew, QVector<TimeLogSyncData> updatedOld, QVector<TimeLogSyncData> updatedNew) const
 {
-    qCDebug(SYNC_WORKER_CATEGORY) << (sender() == m_db ? "Import details:" : "Pack details:");
+    qCDebug(SYNC_WORKER_CATEGORY) << (!m_packSM->isRunning() ? "Import details:" : "Pack details:");
     for (int i = 0; i < removedNew.size(); i++) {
         qCDebug(SYNC_WORKER_CATEGORY) << formatSyncChange(removedOld.at(i), removedNew.at(i));
     }
@@ -190,7 +315,7 @@ void DataSyncerWorker::syncDataSynced(QVector<TimeLogSyncData> updatedData, QVec
     Q_UNUSED(updatedData)
     Q_UNUSED(removedData)
 
-    if (!m_importState->active() || m_pack) { // sync with pack
+    if (!m_importState->active() || m_pack /* import from pack */) {
         return;
     }
 
@@ -204,7 +329,7 @@ void DataSyncerWorker::syncFinished()
     if (!m_noPack) {
         packSync();
     } else {
-        emit synced(QPrivateSignal());
+        emit dirsSynced(QPrivateSignal());
     }
 }
 
@@ -229,7 +354,7 @@ void DataSyncerWorker::packExported(QDateTime latestMTime)
     delete m_pack;
     m_pack = nullptr;
 
-    QDir packDir(m_dir.filePath("pack"));
+    QDir packDir(m_internalSyncDir.filePath("pack"));
 
     if (latestMTime.isNull()) {
         qCInfo(SYNC_WORKER_CATEGORY) << "No new data, leaving old pack" << m_packName;
@@ -241,24 +366,25 @@ void DataSyncerWorker::packExported(QDateTime latestMTime)
         const QDateTime &mTime = qMax(latestMTime, m_packMTime);
         QString mTimeString = QString("%1").arg(mTime.toMSecsSinceEpoch(), mTimeLength, 10, QChar('0'));
         m_packName = QString("%1-%2.pack").arg(mTimeString).arg(QUuid::createUuid().toString());
-        if (!copyFile(packDir.filePath("pack.pack"), m_dir.filePath(m_packName), true, true)) {
+        if (!copyFile(packDir.filePath("pack.pack"), m_internalSyncDir.filePath(m_packName), true, true)) {
             return;
         }
-        if (!copyFile(m_dir.filePath(m_packName), QDir(m_syncPath).filePath(m_packName), true, false)) {
+        if (!copyFile(m_internalSyncDir.filePath(m_packName), QDir(m_currentSyncPath).filePath(m_packName), true, false)) {
             return;
         }
-        qCInfo(SYNC_WORKER_CATEGORY) << "Successfully written pack" << m_dir.filePath(m_packName);
+        m_wroteToExternalSync = true;
+        qCInfo(SYNC_WORKER_CATEGORY) << "Successfully written pack" << m_internalSyncDir.filePath(m_packName);
     }
 
     if (removeOldFiles(m_packName)) {
         qCInfo(SYNC_WORKER_CATEGORY) << "Successfully packed";
-        emit synced(QPrivateSignal());
+        emit dirsSynced(QPrivateSignal());
     }
 }
 
 void DataSyncerWorker::startImport()
 {
-    m_fileList = AbstractDataInOut::buildFileList(m_dir.filePath("incoming"));
+    m_fileList = AbstractDataInOut::buildFileList(m_internalSyncDir.filePath("incoming"));
     if (m_fileList.isEmpty()) {
         qCInfo(SYNC_WORKER_CATEGORY) << "No files to import";
         emit imported(QPrivateSignal());
@@ -273,12 +399,12 @@ void DataSyncerWorker::startImport()
 
 void DataSyncerWorker::startExport()
 {
-    if (!AbstractDataInOut::prepareDir(m_intPath, m_dir)) {
-        fail(QString("Fail to prepare directory %1").arg(m_intPath));
+    if (!AbstractDataInOut::prepareDir(m_internalSyncPath, m_internalSyncDir)) {
+        fail(QString("Fail to prepare directory %1").arg(m_internalSyncPath));
         return;
     }
 
-    QStringList fileList = AbstractDataInOut::buildFileList(m_intPath);
+    QStringList fileList = AbstractDataInOut::buildFileList(m_internalSyncPath);
     QString mTimeString;
     std::sort(fileList.begin(), fileList.end());
     for (QList<QString>::const_reverse_iterator it = fileList.crbegin(); it != fileList.crend(); it++) {
@@ -301,14 +427,17 @@ void DataSyncerWorker::startExport()
 
 void DataSyncerWorker::syncFolders()
 {
-    compareWithDir(m_syncPath);
+    compareWithDir(m_currentSyncPath);
 
     qCDebug(SYNC_WORKER_CATEGORY) << "Out files:" << m_outFiles;
     qCDebug(SYNC_WORKER_CATEGORY) << "In files:" << m_inFiles;
 
-    if (!copyFiles(m_dir.path(), m_syncPath, m_outFiles, false)
-        || !copyFiles(m_syncPath, m_dir.filePath("incoming"), m_inFiles, false)) {
+    if (!copyFiles(m_internalSyncDir.path(), m_currentSyncPath, m_outFiles, false)
+        || !copyFiles(m_currentSyncPath, m_internalSyncDir.filePath("incoming"), m_inFiles, false)) {
         return;
+    }
+    if (!m_outFiles.isEmpty()) {
+        m_wroteToExternalSync = true;
     }
 
     qCInfo(SYNC_WORKER_CATEGORY) << "Folders synced";
@@ -318,7 +447,7 @@ void DataSyncerWorker::syncFolders()
 
 void DataSyncerWorker::packSync()
 {
-    QStringList fileList = AbstractDataInOut::buildFileList(m_intPath);
+    QStringList fileList = AbstractDataInOut::buildFileList(m_internalSyncPath);
     std::reverse(fileList.begin(), fileList.end());
 
     // TODO: refactor to std::find_if when buildFileList() would return QFileInfoList
@@ -356,10 +485,27 @@ void DataSyncerWorker::packSync()
     if (m_forcePack) {
         exportPack();
     } else if (m_packMTime < packPeriodStart) {
-        m_db->checkHasSyncData(m_packMTime, packPeriodStart.addMonths(1).addMSecs(-1));
+        m_db->getSyncDataSize(m_packMTime, packPeriodStart.addMonths(1).addMSecs(-1));
     } else {
-        emit synced(QPrivateSignal());
+        emit dirsSynced(QPrivateSignal());
     }
+}
+
+void DataSyncerWorker::updateTimestamp()
+{
+    if (m_wroteToExternalSync) {
+        qCDebug(SYNC_WORKER_CATEGORY) << "Wrote to sync folder, updating mtime";
+#ifndef WIN32
+        if (utimes(m_internalSyncPath.toLocal8Bit().constData(), NULL) != 0) {
+#else
+        if (_utime(m_internalSyncPath.toLocal8Bit().constData(), NULL) != 0) {
+#endif
+            fail(QString("utimes failed, errno: %1").arg(QString().setNum(errno)));
+            return;
+        }
+    }
+
+    emit synced(QPrivateSignal());
 }
 
 void DataSyncerWorker::cleanState()
@@ -368,6 +514,8 @@ void DataSyncerWorker::cleanState()
     m_currentIndex = 0;
     m_outFiles.clear();
     m_inFiles.clear();
+    m_cachedSyncChanges = 0;
+    m_wroteToExternalSync = false;
 
     if (m_dbSyncer) {
         qCCritical(SYNC_WORKER_CATEGORY) << "m_dbSyncer is not null" << m_dbSyncer;
@@ -385,11 +533,28 @@ void DataSyncerWorker::cleanState()
     m_forcePack = false;
 }
 
+void DataSyncerWorker::checkSyncFolder()
+{
+    QFileInfo dataDirInfo(m_internalSyncPath);
+    QFileInfo syncDirInfo(m_externalSyncPath);
+
+    if ((!dataDirInfo.exists() && syncDirInfo.exists()) // initial sync
+        || dataDirInfo.lastModified() < syncDirInfo.lastModified()) {
+        qCDebug(SYNC_WORKER_CATEGORY) << "Sync folder is newer, sync needed"
+                                      << dataDirInfo.lastModified() << syncDirInfo.lastModified();
+        if (m_autoSync) {
+            sync();
+        }
+    } else {
+        m_db->getSyncDataSize(dataDirInfo.lastModified());
+    }
+}
+
 void DataSyncerWorker::compareWithDir(const QString &path)
 {
     QDir dir(path);
     QSet<QString> extEntries =  dir.entryList(QDir::Files).toSet();
-    QSet<QString> intEntries = m_dir.entryList(QDir::Files).toSet();
+    QSet<QString> intEntries = m_internalSyncDir.entryList(QDir::Files).toSet();
 
     m_outFiles = QSet<QString>(intEntries).subtract(extEntries);
     m_inFiles = QSet<QString>(extEntries).subtract(intEntries);
@@ -440,8 +605,8 @@ bool DataSyncerWorker::copyFile(const QString &source, const QString &destinatio
 bool DataSyncerWorker::exportFile(const QVector<TimeLogSyncData> &data)
 {
     QDir exportDir;
-    if (!AbstractDataInOut::prepareDir(m_dir.filePath("export"), exportDir)) {
-        fail(QString("Fail to prepare directory %1").arg(m_dir.filePath("export")));
+    if (!AbstractDataInOut::prepareDir(m_internalSyncDir.filePath("export"), exportDir)) {
+        fail(QString("Fail to prepare directory %1").arg(m_internalSyncDir.filePath("export")));
         return false;
     }
 
@@ -487,7 +652,7 @@ bool DataSyncerWorker::exportFile(const QVector<TimeLogSyncData> &data)
 
     file.close();
 
-    if (!copyFile(filePath, m_dir.filePath(fileName), true, true)) {
+    if (!copyFile(filePath, m_internalSyncDir.filePath(fileName), true, true)) {
         return false;
     }
 
@@ -617,7 +782,7 @@ bool DataSyncerWorker::parseFile(const QString &path, QVector<TimeLogSyncData> &
 void DataSyncerWorker::importPack(const QString &path)
 {
     m_pack = new TimeLogHistory(this);
-    if (!m_pack->init(m_intPath, m_dir.relativeFilePath(path))) {
+    if (!m_pack->init(m_internalSyncPath, m_internalSyncDir.relativeFilePath(path))) {
         fail("Fail to open pack");
         return;
     }
@@ -635,7 +800,7 @@ void DataSyncerWorker::processCurrentItemImported()
 {
     ++m_currentIndex;
     if (m_currentIndex == m_fileList.size()) {
-        if (copyFiles(m_dir.filePath("incoming"), m_dir.path(), m_inFiles, true)) {
+        if (copyFiles(m_internalSyncDir.filePath("incoming"), m_internalSyncDir.path(), m_inFiles, true)) {
             emit imported(QPrivateSignal());
         }
     } else {
@@ -646,13 +811,13 @@ void DataSyncerWorker::processCurrentItemImported()
 void DataSyncerWorker::exportPack()
 {
     QDir packDir;
-    if (!AbstractDataInOut::prepareDir(m_dir.filePath("pack"), packDir)) {
-        fail(QString("Fail to prepare directory %1").arg(m_dir.filePath("pack")));
+    if (!AbstractDataInOut::prepareDir(m_internalSyncDir.filePath("pack"), packDir)) {
+        fail(QString("Fail to prepare directory %1").arg(m_internalSyncDir.filePath("pack")));
         return;
     }
 
     if (!m_packName.isEmpty()) {
-        if (!copyFile(m_dir.filePath(m_packName), packDir.filePath("pack.pack"), true, false)) {
+        if (!copyFile(m_internalSyncDir.filePath(m_packName), packDir.filePath("pack.pack"), true, false)) {
             fail(QString("Fail to copy pack file to %1").arg(packDir.filePath("pack.pack")));
             return;
         }
@@ -662,7 +827,7 @@ void DataSyncerWorker::exportPack()
     }
 
     m_pack = new TimeLogHistory(this);
-    if (!m_pack->init(m_intPath, m_dir.relativeFilePath(packDir.filePath("pack.pack")))) {
+    if (!m_pack->init(m_internalSyncPath, m_internalSyncDir.relativeFilePath(packDir.filePath("pack.pack")))) {
         fail("Fail to create pack");
         return;
     }
@@ -708,7 +873,7 @@ QDateTime DataSyncerWorker::maxPackPeriodStart() const
 bool DataSyncerWorker::removeOldFiles(const QString &packName)
 {
     QString packMTimeString = packFileNameRegexp.match(packName).captured("mTime");
-    QStringList fileList = AbstractDataInOut::buildFileList(m_intPath);
+    QStringList fileList = AbstractDataInOut::buildFileList(m_internalSyncPath);
     for (const QString &filePath: fileList) {
         QString fileName = QFileInfo(filePath).fileName();
         if (fileName == packName) { // Don't delete last pack
@@ -727,15 +892,15 @@ bool DataSyncerWorker::removeOldFiles(const QString &packName)
             continue;
         }
 
-        if (!m_dir.remove(fileName)) {
+        if (!m_internalSyncDir.remove(fileName)) {
             fail(QString("Fail to remove file %1").arg(filePath));
             return false;
         }
-        qCDebug(SYNC_WORKER_CATEGORY) << "Removed" << m_dir.filePath(fileName);
+        qCDebug(SYNC_WORKER_CATEGORY) << "Removed" << m_internalSyncDir.filePath(fileName);
     }
 
-    QDir syncDir(m_syncPath);
-    fileList = AbstractDataInOut::buildFileList(m_syncPath);
+    QDir syncDir(m_currentSyncPath);
+    fileList = AbstractDataInOut::buildFileList(m_currentSyncPath);
     for (const QString &filePath: fileList) {
         QString fileName = QFileInfo(filePath).fileName();
         if (fileName == packName) { // Don't delete last pack
@@ -758,8 +923,28 @@ bool DataSyncerWorker::removeOldFiles(const QString &packName)
             fail(QString("Fail to remove file %1").arg(filePath));
             return false;
         }
+        m_wroteToExternalSync = true;
+
         qCDebug(SYNC_WORKER_CATEGORY) << "Removed" << syncDir.filePath(fileName);
     }
 
     return true;
+}
+
+void DataSyncerWorker::addCachedSyncChanges(int count)
+{
+    m_cachedSyncChanges += count;
+
+    qCDebug(SYNC_WORKER_CATEGORY) << "Cached sync changes:" << m_cachedSyncChanges;
+
+    checkCachedSyncChanges();
+}
+
+void DataSyncerWorker::checkCachedSyncChanges()
+{
+    if (!m_autoSync || m_sm->isRunning() || m_externalSyncPath.isEmpty()) {
+        return;
+    } else if (m_cachedSyncChanges > m_syncCacheSize) {
+        m_syncCacheTimer->start();
+    }
 }

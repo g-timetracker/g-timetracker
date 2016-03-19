@@ -5,11 +5,12 @@
 #include <QDir>
 #include <QSet>
 
-#include "TimeLogSyncData.h"
+#include "TimeLogHistory.h"
 
 class QStateMachine;
 class QState;
 class QFinalState;
+class QTimer;
 
 class TimeLogHistory;
 class DBSyncer;
@@ -22,10 +23,15 @@ public:
 
     void init(const QString &dataPath);
 
+    Q_INVOKABLE void pack(const QDateTime &start = QDateTime::currentDateTimeUtc());
+
+    Q_INVOKABLE void setAutoSync(bool autoSync);
+    Q_INVOKABLE void setSyncCacheSize(int syncCacheSize);
+    Q_INVOKABLE void setSyncPath(const QString &path);
+    Q_INVOKABLE void setNoPack(bool noPack);
+
 public slots:
-    void sync(const QString &path, const QDateTime &start = QDateTime::currentDateTimeUtc());
-    void setNoPack(bool noPack);
-    void pack(const QString &path, const QDateTime &start = QDateTime::currentDateTimeUtc());
+    void sync(const QDateTime &start = QDateTime::currentDateTimeUtc());
 
 signals:
     void error(const QString &errorText) const;
@@ -34,12 +40,17 @@ signals:
     void exported(QPrivateSignal);
     void foldersSynced(QPrivateSignal);
     void imported(QPrivateSignal);
+    void dirsSynced(QPrivateSignal);
     void synced(QPrivateSignal);
+    void stopped(QPrivateSignal);
 
 private slots:
     void historyError(const QString &errorText);
+    void historyDataUpdated(QVector<TimeLogEntry> data, QVector<TimeLogHistory::Fields> fields);
+    void historyDataInserted(const TimeLogEntry &data);
+    void historyDataRemoved(const TimeLogEntry &data);
     void syncDataAvailable(QVector<TimeLogSyncData> data, QDateTime until);
-    void syncHasSyncData(bool hasData, QDateTime mBegin, QDateTime mEnd);
+    void syncDataSizeAvailable(qlonglong size, QDateTime mBegin, QDateTime mEnd);
     void syncStatsAvailable(QVector<TimeLogSyncData> removedOld, QVector<TimeLogSyncData> removedNew,
                             QVector<TimeLogSyncData> insertedOld, QVector<TimeLogSyncData> insertedNew,
                             QVector<TimeLogSyncData> updatedOld, QVector<TimeLogSyncData> updatedNew) const;
@@ -54,7 +65,10 @@ private slots:
     void startExport();
     void syncFolders();
     void packSync();
+    void updateTimestamp();
     void cleanState();
+
+    void checkSyncFolder();
 
 private:
     void compareWithDir(const QString &path);
@@ -74,26 +88,37 @@ private:
     QString formatSyncChange(const TimeLogSyncData &oldData, const TimeLogSyncData &newData) const;
     QDateTime maxPackPeriodStart() const;
     bool removeOldFiles(const QString &packName);
+    void addCachedSyncChanges(int count = 1);
+    void checkCachedSyncChanges();
 
     bool m_isInitialized;
     TimeLogHistory *m_db;
-    QString m_intPath;
+    QString m_internalSyncPath;
     QStateMachine *m_sm;
     QState *m_exportState;
     QState *m_syncFoldersState;
     QState *m_importState;
-    QState *m_packState;
+    QStateMachine *m_packSM;
+    QState *m_packSMPackState;
+    QFinalState *m_packSMFinalState;
+    QState *m_timestampState;
     QFinalState *m_finalState;
+    bool m_autoSync;
+    int m_syncCacheSize;
+    QString m_externalSyncPath;
     bool m_noPack;
+    QTimer *m_syncCacheTimer;
 
-    QDir m_dir;
-    QString m_syncPath;
+    QDir m_internalSyncDir;
+    QString m_currentSyncPath;
     QDateTime m_syncStart;
 
+    int m_cachedSyncChanges;
     QStringList m_fileList;
     int m_currentIndex;
     QSet<QString> m_outFiles;
     QSet<QString> m_inFiles;
+    bool m_wroteToExternalSync;
 
     DBSyncer *m_dbSyncer;
     TimeLogHistory *m_pack;

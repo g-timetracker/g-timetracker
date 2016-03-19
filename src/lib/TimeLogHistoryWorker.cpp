@@ -404,20 +404,19 @@ void TimeLogHistoryWorker::getSyncData(const QDateTime &mBegin, const QDateTime 
     emit syncDataAvailable(getSyncData(query), mEnd);
 }
 
-void TimeLogHistoryWorker::checkHasSyncData(const QDateTime &mBegin, const QDateTime &mEnd) const
+void TimeLogHistoryWorker::getSyncDataSize(const QDateTime &mBegin, const QDateTime &mEnd) const
 {
     Q_ASSERT(m_isInitialized);
 
     QSqlDatabase db = QSqlDatabase::database(m_connectionName);
     QSqlQuery query(db);
-    QString queryString("WITH result AS (SELECT ifnull( "
-                        "    (SELECT mtime FROM timelog "
-                        "    WHERE (mtime > :mBegin AND mtime <= :mEnd) ORDER BY mtime ASC LIMIT 1) "
-                        ", "
-                        "    (SELECT mtime FROM removed "
-                        "    WHERE (mtime > :mBegin AND mtime <= :mEnd) ORDER BY mtime ASC LIMIT 1) "
-                        ")) "
-                        "SELECT count(*) FROM result");
+    QString queryString("SELECT count(*) FROM ( "
+                        "    SELECT mtime FROM timelog "
+                        "    WHERE (mtime > :mBegin AND mtime <= :mEnd) "
+                        "UNION "
+                        "    SELECT mtime FROM removed "
+                        "    WHERE (mtime > :mBegin AND mtime <= :mEnd) "
+                        ")");
     if (!query.prepare(queryString)) {
         qCCritical(HISTORY_WORKER_CATEGORY) << "Fail to prepare query:" << query.lastError().text()
                                             << query.lastQuery();
@@ -435,10 +434,10 @@ void TimeLogHistoryWorker::checkHasSyncData(const QDateTime &mBegin, const QDate
     }
 
     query.next();
-    bool result = query.value(0).toULongLong() > 0;
+    qlonglong result = query.value(0).toLongLong();
     query.finish();
 
-    emit hasSyncData(result, mBegin, mEnd);
+    emit syncDataSizeAvailable(result, mBegin, mEnd);
 }
 
 void TimeLogHistoryWorker::getHashes(const QDateTime &maxDate, bool noUpdate)

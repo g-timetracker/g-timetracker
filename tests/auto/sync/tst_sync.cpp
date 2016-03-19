@@ -87,6 +87,10 @@ tst_Sync::~tst_Sync()
 
 void tst_Sync::init()
 {
+    syncDir = new QTemporaryDir();
+    Q_CHECK_PTR(syncDir);
+    QVERIFY(syncDir->isValid());
+
     dataDir1 = new QTemporaryDir();
     Q_CHECK_PTR(dataDir1);
     QVERIFY(dataDir1->isValid());
@@ -97,6 +101,8 @@ void tst_Sync::init()
     Q_CHECK_PTR(syncer1);
     syncer1->init(dataDir1->path());
     syncer1->setNoPack(true);
+    syncer1->setAutoSync(false);
+    syncer1->setSyncPath(QUrl::fromLocalFile(syncDir->path()));
 
     dataDir2 = new QTemporaryDir();
     Q_CHECK_PTR(dataDir2);
@@ -108,6 +114,8 @@ void tst_Sync::init()
     Q_CHECK_PTR(syncer2);
     syncer2->init(dataDir2->path());
     syncer2->setNoPack(true);
+    syncer2->setAutoSync(false);
+    syncer2->setSyncPath(QUrl::fromLocalFile(syncDir->path()));
 
     dataDir3 = new QTemporaryDir();
     Q_CHECK_PTR(dataDir3);
@@ -119,10 +127,8 @@ void tst_Sync::init()
     Q_CHECK_PTR(syncer3);
     syncer3->init(dataDir3->path());
     syncer3->setNoPack(true);
-
-    syncDir = new QTemporaryDir();
-    Q_CHECK_PTR(syncDir);
-    QVERIFY(syncDir->isValid());
+    syncer3->setAutoSync(false);
+    syncer3->setSyncPath(QUrl::fromLocalFile(syncDir->path()));
 }
 
 void tst_Sync::cleanup()
@@ -201,7 +207,7 @@ void tst_Sync::import()
     checkFunction(checkDB, history1, origData);
 
     // Sync 1 [out]
-    syncer1->sync(QUrl::fromLocalFile(syncDir->path()));
+    syncer1->sync();
     QVERIFY(syncSpy1.wait());
     QVERIFY(syncErrorSpy1.isEmpty());
     QVERIFY(historyErrorSpy1.isEmpty());
@@ -210,7 +216,7 @@ void tst_Sync::import()
     checkFunction(checkDB, history1, origData);
 
     // Sync 2 [in]
-    syncer2->sync(QUrl::fromLocalFile(syncDir->path()));
+    syncer2->sync();
     QVERIFY(syncSpy2.wait());
     QVERIFY(syncErrorSpy2.isEmpty());
     QVERIFY(historyErrorSpy2.isEmpty());
@@ -219,7 +225,7 @@ void tst_Sync::import()
     checkFunction(checkDB, history2, origData);
 
     // Sync 1 [in]
-    syncer1->sync(QUrl::fromLocalFile(syncDir->path()));
+    syncer1->sync();
     QVERIFY(syncSpy1.wait());
     QVERIFY(syncErrorSpy1.isEmpty());
     QVERIFY(historyErrorSpy1.isEmpty());
@@ -270,10 +276,10 @@ void tst_Sync::insert()
         history1->import(origData);
         QVERIFY(importSpy.wait());
 
-        syncer1->sync(QUrl::fromLocalFile(syncDir->path()));
+        syncer1->sync();
         QVERIFY(syncSpy1.wait());
 
-        syncer2->sync(QUrl::fromLocalFile(syncDir->path()));
+        syncer2->sync();
         QVERIFY(syncSpy2. wait());
     }
 
@@ -287,7 +293,7 @@ void tst_Sync::insert()
     origData.insert(index, newData);
 
     // Sync 1 [out]
-    syncer1->sync(QUrl::fromLocalFile(syncDir->path()));
+    syncer1->sync();
     QVERIFY(syncSpy1.wait());
     QVERIFY(syncErrorSpy1.isEmpty());
     QVERIFY(historyErrorSpy1.isEmpty());
@@ -296,7 +302,7 @@ void tst_Sync::insert()
     // Sync 2 [in]
     insertSpy2.clear();
     historyUpdateSpy.clear();
-    syncer2->sync(QUrl::fromLocalFile(syncDir->path()));
+    syncer2->sync();
     QVERIFY(syncSpy2.wait());
     QVERIFY(syncErrorSpy2.isEmpty());
     QVERIFY(historyErrorSpy2.isEmpty());
@@ -370,10 +376,10 @@ void tst_Sync::remove()
         history1->import(origData);
         QVERIFY(importSpy.wait());
 
-        syncer1->sync(QUrl::fromLocalFile(syncDir->path()));
+        syncer1->sync();
         QVERIFY(syncSpy1.wait());
 
-        syncer2->sync(QUrl::fromLocalFile(syncDir->path()));
+        syncer2->sync();
         QVERIFY(syncSpy2. wait());
     }
 
@@ -393,7 +399,7 @@ void tst_Sync::remove()
     QVERIFY(removeSpy1.wait());
 
     // Sync 1 [out]
-    syncer1->sync(QUrl::fromLocalFile(syncDir->path()));
+    syncer1->sync();
     QVERIFY(syncSpy1.wait());
     QVERIFY(syncErrorSpy1.isEmpty());
     QVERIFY(historyErrorSpy1.isEmpty());
@@ -402,7 +408,7 @@ void tst_Sync::remove()
     // Sync 2 [in]
     removeSpy2.clear();
     historyUpdateSpy.clear();
-    syncer2->sync(QUrl::fromLocalFile(syncDir->path()));
+    syncer2->sync();
     QVERIFY(syncSpy2.wait());
     QVERIFY(syncErrorSpy2.isEmpty());
     QVERIFY(historyErrorSpy2.isEmpty());
@@ -457,10 +463,10 @@ void tst_Sync::edit()
     history1->import(origData);
     QVERIFY(importSpy.wait());
 
-    syncer1->sync(QUrl::fromLocalFile(syncDir->path()));
+    syncer1->sync();
     QVERIFY(syncSpy1.wait());
 
-    syncer2->sync(QUrl::fromLocalFile(syncDir->path()));
+    syncer2->sync();
     QVERIFY(syncSpy2. wait());
 
     historyDataSpy.clear();
@@ -495,7 +501,7 @@ void tst_Sync::edit()
     origData[index] = entry;
 
     // Sync 1 [out]
-    syncer1->sync(QUrl::fromLocalFile(syncDir->path()));
+    syncer1->sync();
     QVERIFY(syncSpy1.wait());
     QVERIFY(syncErrorSpy1.isEmpty());
     QVERIFY(historyErrorSpy1.isEmpty());
@@ -503,7 +509,7 @@ void tst_Sync::edit()
 
     // Sync 2 [in]
     historyUpdateSpy2.clear();
-    syncer2->sync(QUrl::fromLocalFile(syncDir->path()));
+    syncer2->sync();
     QVERIFY(syncSpy2.wait());
     QVERIFY(syncErrorSpy2.isEmpty());
     QVERIFY(historyErrorSpy2.isEmpty());
@@ -596,10 +602,10 @@ void tst_Sync::renameCategory()
     history1->import(origData);
     QVERIFY(importSpy.wait());
 
-    syncer1->sync(QUrl::fromLocalFile(syncDir->path()));
+    syncer1->sync();
     QVERIFY(syncSpy1.wait());
 
-    syncer2->sync(QUrl::fromLocalFile(syncDir->path()));
+    syncer2->sync();
     QVERIFY(syncSpy2. wait());
 
     history1->editCategory(categoryOld, categoryNew);
@@ -612,7 +618,7 @@ void tst_Sync::renameCategory()
 
     // Sync 1 [out]
     historyOutdateSpy1.clear();
-    syncer1->sync(QUrl::fromLocalFile(syncDir->path()));
+    syncer1->sync();
     QVERIFY(syncSpy1.wait());
     QVERIFY(syncErrorSpy1.isEmpty());
     QVERIFY(historyErrorSpy1.isEmpty());
@@ -620,7 +626,7 @@ void tst_Sync::renameCategory()
 
     // Sync 2 [in]
     historyUpdateSpy.clear();
-    syncer2->sync(QUrl::fromLocalFile(syncDir->path()));
+    syncer2->sync();
     QVERIFY(syncSpy2.wait());
     QVERIFY(historyOutdateSpy2.isEmpty());
     QVERIFY(syncErrorSpy2.isEmpty());
@@ -694,10 +700,10 @@ void tst_Sync::bothRemove()
         history1->import(origData);
         QVERIFY(importSpy.wait());
 
-        syncer1->sync(QUrl::fromLocalFile(syncDir->path()));
+        syncer1->sync();
         QVERIFY(syncSpy1.wait());
 
-        syncer2->sync(QUrl::fromLocalFile(syncDir->path()));
+        syncer2->sync();
         QVERIFY(syncSpy2. wait());
     }
 
@@ -723,7 +729,7 @@ void tst_Sync::bothRemove()
     // Sync 2 [out]
     removeSpy2.clear();
     historyUpdateSpy2.clear();
-    syncer2->sync(QUrl::fromLocalFile(syncDir->path()));
+    syncer2->sync();
     QVERIFY(syncSpy2.wait());
     QVERIFY(syncErrorSpy2.isEmpty());
     QVERIFY(historyErrorSpy2.isEmpty());
@@ -732,7 +738,7 @@ void tst_Sync::bothRemove()
     // Sync 1 [in]
     removeSpy1.clear();
     historyUpdateSpy1.clear();
-    syncer1->sync(QUrl::fromLocalFile(syncDir->path()));
+    syncer1->sync();
     QVERIFY(syncSpy1.wait());
     QVERIFY(syncErrorSpy1.isEmpty());
     QVERIFY(historyErrorSpy1.isEmpty());
@@ -791,11 +797,11 @@ void tst_Sync::bothEdit()
     QVERIFY(importSpy.wait());
 
     // Sync 1 [out]
-    syncer1->sync(QUrl::fromLocalFile(syncDir->path()));
+    syncer1->sync();
     QVERIFY(syncSpy1.wait());
 
     // Sync 2 [in]
-    syncer2->sync(QUrl::fromLocalFile(syncDir->path()));
+    syncer2->sync();
     QVERIFY(syncSpy2. wait());
 
     historyDataSpy.clear();
@@ -850,7 +856,7 @@ void tst_Sync::bothEdit()
 
     // Sync 2 [out]
     historyUpdateSpy2.clear();
-    syncer2->sync(QUrl::fromLocalFile(syncDir->path()));
+    syncer2->sync();
     QVERIFY(syncSpy2.wait());
     QVERIFY(syncErrorSpy2.isEmpty());
     QVERIFY(historyErrorSpy2.isEmpty());
@@ -858,7 +864,7 @@ void tst_Sync::bothEdit()
 
     // Sync 1 [in]
     historyUpdateSpy1.clear();
-    syncer1->sync(QUrl::fromLocalFile(syncDir->path()));
+    syncer1->sync();
     QVERIFY(syncSpy1.wait());
     QVERIFY(syncErrorSpy1.isEmpty());
     QVERIFY(historyErrorSpy1.isEmpty());
@@ -974,10 +980,10 @@ void tst_Sync::editRemove()
     history1->import(origData);
     QVERIFY(importSpy.wait());
 
-    syncer1->sync(QUrl::fromLocalFile(syncDir->path()));
+    syncer1->sync();
     QVERIFY(syncSpy1.wait());
 
-    syncer2->sync(QUrl::fromLocalFile(syncDir->path()));
+    syncer2->sync();
     QVERIFY(syncSpy2. wait());
 
     historyDataSpy.clear();
@@ -1015,7 +1021,7 @@ void tst_Sync::editRemove()
     QVERIFY(removeSpy2.wait());
 
     // Sync 2 [out]
-    syncer2->sync(QUrl::fromLocalFile(syncDir->path()));
+    syncer2->sync();
     QVERIFY(syncSpy2.wait());
     QVERIFY(syncErrorSpy2.isEmpty());
     QVERIFY(historyErrorSpy2.isEmpty());
@@ -1024,7 +1030,7 @@ void tst_Sync::editRemove()
     // Sync 1 [in]
     removeSpy1.clear();
     historyUpdateSpy.clear();
-    syncer1->sync(QUrl::fromLocalFile(syncDir->path()));
+    syncer1->sync();
     QVERIFY(syncSpy1.wait());
     QVERIFY(syncErrorSpy1.isEmpty());
     QVERIFY(historyErrorSpy1.isEmpty());
@@ -1118,10 +1124,10 @@ void tst_Sync::removeEdit()
     history1->import(origData);
     QVERIFY(importSpy.wait());
 
-    syncer1->sync(QUrl::fromLocalFile(syncDir->path()));
+    syncer1->sync();
     QVERIFY(syncSpy1.wait());
 
-    syncer2->sync(QUrl::fromLocalFile(syncDir->path()));
+    syncer2->sync();
     QVERIFY(syncSpy2. wait());
 
     historyDataSpy.clear();
@@ -1160,7 +1166,7 @@ void tst_Sync::removeEdit()
     origData[index] = entry;
 
     // Sync 2 [out]
-    syncer2->sync(QUrl::fromLocalFile(syncDir->path()));
+    syncer2->sync();
     QVERIFY(syncSpy2.wait());
     QVERIFY(syncErrorSpy2.isEmpty());
     QVERIFY(historyErrorSpy2.isEmpty());
@@ -1170,7 +1176,7 @@ void tst_Sync::removeEdit()
     insertSpy.clear();
     removeSpy.clear();
     historyUpdateSpy1.clear();
-    syncer1->sync(QUrl::fromLocalFile(syncDir->path()));
+    syncer1->sync();
     QVERIFY(syncSpy1.wait());
     QVERIFY(syncErrorSpy1.isEmpty());
     QVERIFY(historyErrorSpy1.isEmpty());
@@ -1269,15 +1275,15 @@ void tst_Sync::removeOldEdit()
     QVERIFY(importSpy.wait());
 
     // Sync 1 [out]
-    syncer1->sync(QUrl::fromLocalFile(syncDir->path()));
+    syncer1->sync();
     QVERIFY(syncSpy1.wait());
 
     // Sync 2 [in]
-    syncer2->sync(QUrl::fromLocalFile(syncDir->path()));
+    syncer2->sync();
     QVERIFY(syncSpy2. wait());
 
     // Sync 3 [in]
-    syncer3->sync(QUrl::fromLocalFile(syncDir->path()));
+    syncer3->sync();
     QVERIFY(syncSpy3. wait());
 
     historyDataSpy.clear();
@@ -1315,7 +1321,7 @@ void tst_Sync::removeOldEdit()
     QVERIFY(removeSpy2.wait());
 
     // Sync 2 [out]
-    syncer2->sync(QUrl::fromLocalFile(syncDir->path()));
+    syncer2->sync();
     QVERIFY(syncSpy2.wait());
     QVERIFY(syncErrorSpy2.isEmpty());
     QVERIFY(historyErrorSpy2.isEmpty());
@@ -1324,7 +1330,7 @@ void tst_Sync::removeOldEdit()
     // Sync 3 [in]
     removeSpy3.clear();
     historyUpdateSpy3.clear();
-    syncer3->sync(QUrl::fromLocalFile(syncDir->path()));
+    syncer3->sync();
     QVERIFY(syncSpy3.wait());
     QVERIFY(!removeSpy3.isEmpty() || removeSpy3.wait());
     QVERIFY(syncErrorSpy3.isEmpty());
@@ -1336,7 +1342,7 @@ void tst_Sync::removeOldEdit()
     checkFunction(checkDB, history3, origData);
 
     // Sync 1 [in-out]
-    syncer1->sync(QUrl::fromLocalFile(syncDir->path()));
+    syncer1->sync();
     QVERIFY(syncSpy1.wait());
     QVERIFY(syncErrorSpy1.isEmpty());
     QVERIFY(historyErrorSpy1.isEmpty());
@@ -1344,7 +1350,7 @@ void tst_Sync::removeOldEdit()
 
     // Sync 3 [in]
     historyUpdateSpy3.clear();
-    syncer3->sync(QUrl::fromLocalFile(syncDir->path()));
+    syncer3->sync();
     QVERIFY(syncSpy3.wait());
     QVERIFY(historyUpdateSpy3.isEmpty());
     QVERIFY(syncErrorSpy3.isEmpty());
@@ -1442,13 +1448,13 @@ void tst_Sync::removeOldInsert()
         history1->import(origData);
         QVERIFY(importSpy.wait());
 
-        syncer1->sync(QUrl::fromLocalFile(syncDir->path()));
+        syncer1->sync();
         QVERIFY(syncSpy1.wait());
 
-        syncer2->sync(QUrl::fromLocalFile(syncDir->path()));
+        syncer2->sync();
         QVERIFY(syncSpy2. wait());
 
-        syncer3->sync(QUrl::fromLocalFile(syncDir->path()));
+        syncer3->sync();
         QVERIFY(syncSpy3. wait());
     }
 
@@ -1467,7 +1473,7 @@ void tst_Sync::removeOldInsert()
     QVERIFY(removeSpy.wait());
 
     // Sync 2 [out]
-    syncer2->sync(QUrl::fromLocalFile(syncDir->path()));
+    syncer2->sync();
     QVERIFY(syncSpy2.wait());
     QVERIFY(syncErrorSpy2.isEmpty());
     QVERIFY(historyErrorSpy2.isEmpty());
@@ -1475,7 +1481,7 @@ void tst_Sync::removeOldInsert()
 
     // Sync 3 [in]
     historyUpdateSpy.clear();
-    syncer3->sync(QUrl::fromLocalFile(syncDir->path()));
+    syncer3->sync();
     QVERIFY(syncSpy3.wait());
     QVERIFY(historyUpdateSpy.isEmpty());
     QVERIFY(syncErrorSpy3.isEmpty());
@@ -1485,7 +1491,7 @@ void tst_Sync::removeOldInsert()
     checkFunction(checkDB, history3, origData);
 
     // Sync 1 [in-out]
-    syncer1->sync(QUrl::fromLocalFile(syncDir->path()));
+    syncer1->sync();
     QVERIFY(syncSpy1.wait());
     QVERIFY(syncErrorSpy1.isEmpty());
     QVERIFY(historyErrorSpy1.isEmpty());
@@ -1494,7 +1500,7 @@ void tst_Sync::removeOldInsert()
     // Sync 3 [in]
     insertSpy3.clear();
     historyUpdateSpy.clear();
-    syncer3->sync(QUrl::fromLocalFile(syncDir->path()));
+    syncer3->sync();
     QVERIFY(syncSpy3.wait());
     QVERIFY(insertSpy3.isEmpty());
     QVERIFY(historyUpdateSpy.isEmpty());
@@ -1573,13 +1579,13 @@ void tst_Sync::removeOldRemove()
     history1->import(origData);
     QVERIFY(importSpy.wait());
 
-    syncer1->sync(QUrl::fromLocalFile(syncDir->path()));
+    syncer1->sync();
     QVERIFY(syncSpy1.wait());
 
-    syncer2->sync(QUrl::fromLocalFile(syncDir->path()));
+    syncer2->sync();
     QVERIFY(syncSpy2. wait());
 
-    syncer3->sync(QUrl::fromLocalFile(syncDir->path()));
+    syncer3->sync();
     QVERIFY(syncSpy3. wait());
 
     historyDataSpy.clear();
@@ -1602,7 +1608,7 @@ void tst_Sync::removeOldRemove()
     QVERIFY(removeSpy2.wait());
 
     // Sync 2 [out]
-    syncer2->sync(QUrl::fromLocalFile(syncDir->path()));
+    syncer2->sync();
     QVERIFY(syncSpy2.wait());
     QVERIFY(syncErrorSpy2.isEmpty());
     QVERIFY(historyErrorSpy2.isEmpty());
@@ -1610,7 +1616,7 @@ void tst_Sync::removeOldRemove()
 
     // Sync 3 [in]
     historyUpdateSpy.clear();
-    syncer3->sync(QUrl::fromLocalFile(syncDir->path()));
+    syncer3->sync();
     QVERIFY(syncSpy3.wait());
     QVERIFY(!removeSpy3.isEmpty() || removeSpy3.wait());
     QVERIFY(syncErrorSpy3.isEmpty());
@@ -1622,7 +1628,7 @@ void tst_Sync::removeOldRemove()
     checkFunction(checkDB, history3, origData);
 
     // Sync 1 [in-out]
-    syncer1->sync(QUrl::fromLocalFile(syncDir->path()));
+    syncer1->sync();
     QVERIFY(syncSpy1.wait());
     QVERIFY(syncErrorSpy1.isEmpty());
     QVERIFY(historyErrorSpy1.isEmpty());
@@ -1631,7 +1637,7 @@ void tst_Sync::removeOldRemove()
     // Sync 3 [in]
     removeSpy3.clear();
     historyUpdateSpy.clear();
-    syncer3->sync(QUrl::fromLocalFile(syncDir->path()));
+    syncer3->sync();
     QVERIFY(syncSpy3.wait());
     QVERIFY(removeSpy3.isEmpty());
     QVERIFY(historyUpdateSpy.isEmpty());
@@ -1694,15 +1700,15 @@ void tst_Sync::editOldEdit()
     QVERIFY(importSpy.wait());
 
     // Sync 1 [out]
-    syncer1->sync(QUrl::fromLocalFile(syncDir->path()));
+    syncer1->sync();
     QVERIFY(syncSpy1.wait());
 
     // Sync 2 [in]
-    syncer2->sync(QUrl::fromLocalFile(syncDir->path()));
+    syncer2->sync();
     QVERIFY(syncSpy2. wait());
 
     // Sync 3 [in]
-    syncer3->sync(QUrl::fromLocalFile(syncDir->path()));
+    syncer3->sync();
     QVERIFY(syncSpy3. wait());
 
     historyDataSpy.clear();
@@ -1756,7 +1762,7 @@ void tst_Sync::editOldEdit()
     origData[index] = entry;
 
     // Sync 2 [out]
-    syncer2->sync(QUrl::fromLocalFile(syncDir->path()));
+    syncer2->sync();
     QVERIFY(syncSpy2.wait());
     QVERIFY(syncErrorSpy2.isEmpty());
     QVERIFY(historyErrorSpy2.isEmpty());
@@ -1764,7 +1770,7 @@ void tst_Sync::editOldEdit()
 
     // Sync 3 [in]
     historyUpdateSpy3.clear();
-    syncer3->sync(QUrl::fromLocalFile(syncDir->path()));
+    syncer3->sync();
     QVERIFY(syncSpy3.wait());
     QVERIFY(!historyUpdateSpy3.isEmpty() || historyUpdateSpy3.wait());
     QVERIFY(syncErrorSpy3.isEmpty());
@@ -1776,7 +1782,7 @@ void tst_Sync::editOldEdit()
     checkFunction(checkDB, history3, origData);
 
     // Sync 1 [in-out]
-    syncer1->sync(QUrl::fromLocalFile(syncDir->path()));
+    syncer1->sync();
     QVERIFY(syncSpy1.wait());
     QVERIFY(syncErrorSpy1.isEmpty());
     QVERIFY(historyErrorSpy1.isEmpty());
@@ -1784,7 +1790,7 @@ void tst_Sync::editOldEdit()
 
     // Sync 3 [in]
     historyUpdateSpy3.clear();
-    syncer3->sync(QUrl::fromLocalFile(syncDir->path()));
+    syncer3->sync();
     QVERIFY(syncSpy3.wait());
     QVERIFY(historyUpdateSpy3.isEmpty());
     QVERIFY(syncErrorSpy3.isEmpty());
@@ -1907,15 +1913,15 @@ void tst_Sync::editOldRemove()
     QVERIFY(importSpy.wait());
 
     // Sync 1 [out]
-    syncer1->sync(QUrl::fromLocalFile(syncDir->path()));
+    syncer1->sync();
     QVERIFY(syncSpy1.wait());
 
     // Sync 2 [in]
-    syncer2->sync(QUrl::fromLocalFile(syncDir->path()));
+    syncer2->sync();
     QVERIFY(syncSpy2. wait());
 
     // Sync 3 [in]
-    syncer3->sync(QUrl::fromLocalFile(syncDir->path()));
+    syncer3->sync();
     QVERIFY(syncSpy3. wait());
 
     historyDataSpy.clear();
@@ -1954,7 +1960,7 @@ void tst_Sync::editOldRemove()
     origData[index] = entry;
 
     // Sync 2 [out]
-    syncer2->sync(QUrl::fromLocalFile(syncDir->path()));
+    syncer2->sync();
     QVERIFY(syncSpy2.wait());
     QVERIFY(syncErrorSpy2.isEmpty());
     QVERIFY(historyErrorSpy2.isEmpty());
@@ -1962,7 +1968,7 @@ void tst_Sync::editOldRemove()
 
     // Sync 3 [in]
     historyUpdateSpy3.clear();
-    syncer3->sync(QUrl::fromLocalFile(syncDir->path()));
+    syncer3->sync();
     QVERIFY(syncSpy3.wait());
     QVERIFY(!historyUpdateSpy3.isEmpty() || historyUpdateSpy3.wait());
     QVERIFY(syncErrorSpy3.isEmpty());
@@ -1974,7 +1980,7 @@ void tst_Sync::editOldRemove()
     checkFunction(checkDB, history3, origData);
 
     // Sync 1 [in-out]
-    syncer1->sync(QUrl::fromLocalFile(syncDir->path()));
+    syncer1->sync();
     QVERIFY(syncSpy1.wait());
     QVERIFY(syncErrorSpy1.isEmpty());
     QVERIFY(historyErrorSpy1.isEmpty());
@@ -1983,7 +1989,7 @@ void tst_Sync::editOldRemove()
     // Sync 3 [in]
     removeSpy3.clear();
     historyUpdateSpy3.clear();
-    syncer3->sync(QUrl::fromLocalFile(syncDir->path()));
+    syncer3->sync();
     QVERIFY(syncSpy3.wait());
     QVERIFY(removeSpy3.isEmpty());
     QVERIFY(historyUpdateSpy3.isEmpty());

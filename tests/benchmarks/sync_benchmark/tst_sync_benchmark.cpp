@@ -67,6 +67,10 @@ tst_Sync_benchmark::~tst_Sync_benchmark()
 
 void tst_Sync_benchmark::init()
 {
+    syncDir = new QTemporaryDir();
+    Q_CHECK_PTR(syncDir);
+    QVERIFY(syncDir->isValid());
+
     dataDir1 = new QTemporaryDir();
     Q_CHECK_PTR(dataDir1);
     QVERIFY(dataDir1->isValid());
@@ -76,6 +80,8 @@ void tst_Sync_benchmark::init()
     syncer1 = new DataSyncer(history1);
     Q_CHECK_PTR(syncer1);
     syncer1->init(dataDir1->path());
+    syncer1->setAutoSync(false);
+    syncer1->setSyncPath(QUrl::fromLocalFile(syncDir->path()));
 
     dataDir2 = new QTemporaryDir();
     Q_CHECK_PTR(dataDir2);
@@ -86,10 +92,8 @@ void tst_Sync_benchmark::init()
     syncer2 = new DataSyncer(history2);
     Q_CHECK_PTR(syncer2);
     syncer2->init(dataDir2->path());
-
-    syncDir = new QTemporaryDir();
-    Q_CHECK_PTR(syncDir);
-    QVERIFY(syncDir->isValid());
+    syncer2->setAutoSync(false);
+    syncer2->setSyncPath(QUrl::fromLocalFile(syncDir->path()));
 }
 
 void tst_Sync_benchmark::cleanup()
@@ -157,14 +161,14 @@ void tst_Sync_benchmark::import()
 
     QBENCHMARK_ONCE {
     // Sync 1 [out]
-        syncer1->sync(QUrl::fromLocalFile(syncDir->path()));
+        syncer1->sync();
         QVERIFY(syncSpy1.wait(maxTimeout));
         QVERIFY(syncErrorSpy1.isEmpty());
         QVERIFY(historyErrorSpy1.isEmpty());
         QVERIFY(historyOutdateSpy1.isEmpty());
 
     // Sync 2 [in]
-        syncer2->sync(QUrl::fromLocalFile(syncDir->path()));
+        syncer2->sync();
         QVERIFY(syncSpy2.wait(maxTimeout));
         QVERIFY(syncErrorSpy2.isEmpty());
         QVERIFY(historyErrorSpy2.isEmpty());
@@ -212,10 +216,10 @@ void tst_Sync_benchmark::insert()
         history1->import(origData);
         QVERIFY(importSpy.wait(maxTimeout));
 
-        syncer1->sync(QUrl::fromLocalFile(syncDir->path()));
+        syncer1->sync();
         QVERIFY(syncSpy1.wait(maxTimeout));
 
-        syncer2->sync(QUrl::fromLocalFile(syncDir->path()));
+        syncer2->sync();
         QVERIFY(syncSpy2. wait(maxTimeout));
     }
 
@@ -236,14 +240,14 @@ void tst_Sync_benchmark::insert()
 
     QBENCHMARK_ONCE {
         // Sync 1 [out]
-        syncer1->sync(QUrl::fromLocalFile(syncDir->path()));
+        syncer1->sync();
         QVERIFY(syncSpy1.wait(maxTimeout));
         QVERIFY(syncErrorSpy1.isEmpty());
         QVERIFY(historyErrorSpy1.isEmpty());
         QVERIFY(historyOutdateSpy1.isEmpty());
 
         // Sync 2 [in]
-        syncer2->sync(QUrl::fromLocalFile(syncDir->path()));
+        syncer2->sync();
         QVERIFY(syncSpy2.wait(maxTimeout));
         QVERIFY(syncErrorSpy2.isEmpty());
         QVERIFY(historyErrorSpy2.isEmpty());
@@ -310,10 +314,10 @@ void tst_Sync_benchmark::remove()
     history1->import(origData);
     QVERIFY(importSpy.wait(maxTimeout));
 
-    syncer1->sync(QUrl::fromLocalFile(syncDir->path()));
+    syncer1->sync();
     QVERIFY(syncSpy1.wait(maxTimeout));
 
-    syncer2->sync(QUrl::fromLocalFile(syncDir->path()));
+    syncer2->sync();
     QVERIFY(syncSpy2. wait(maxTimeout));
 
     QFETCH(int, entriesCount);
@@ -341,7 +345,7 @@ void tst_Sync_benchmark::remove()
     QBENCHMARK_ONCE {
         // Sync 1 [out]
         syncSpy1.clear();
-        syncer1->sync(QUrl::fromLocalFile(syncDir->path()));
+        syncer1->sync();
         QVERIFY(syncSpy1.wait(maxTimeout));
         QVERIFY(syncErrorSpy1.isEmpty());
         QVERIFY(historyErrorSpy1.isEmpty());
@@ -349,7 +353,7 @@ void tst_Sync_benchmark::remove()
 
         // Sync 2 [in]
         syncSpy2.clear();
-        syncer2->sync(QUrl::fromLocalFile(syncDir->path()));
+        syncer2->sync();
         QVERIFY(syncSpy2.wait(maxTimeout));
         QVERIFY(syncErrorSpy2.isEmpty());
         QVERIFY(historyErrorSpy2.isEmpty());
@@ -413,10 +417,10 @@ void tst_Sync_benchmark::edit()
     history1->import(origData);
     QVERIFY(importSpy.wait(maxTimeout));
 
-    syncer1->sync(QUrl::fromLocalFile(syncDir->path()));
+    syncer1->sync();
     QVERIFY(syncSpy1.wait(maxTimeout));
 
-    syncer2->sync(QUrl::fromLocalFile(syncDir->path()));
+    syncer2->sync();
     QVERIFY(syncSpy2. wait(maxTimeout));
 
     QFETCH(int, entriesCount);
@@ -444,14 +448,14 @@ void tst_Sync_benchmark::edit()
 
     QBENCHMARK_ONCE {
         // Sync 1 [out]
-        syncer1->sync(QUrl::fromLocalFile(syncDir->path()));
+        syncer1->sync();
         QVERIFY(syncSpy1.wait(maxTimeout));
         QVERIFY(syncErrorSpy1.isEmpty());
         QVERIFY(historyErrorSpy1.isEmpty());
         QVERIFY(historyOutdateSpy1.isEmpty());
 
         // Sync 2 [in]
-        syncer2->sync(QUrl::fromLocalFile(syncDir->path()));
+        syncer2->sync();
         QVERIFY(syncSpy2.wait(maxTimeout));
         QVERIFY(syncErrorSpy2.isEmpty());
         QVERIFY(historyErrorSpy2.isEmpty());
@@ -514,10 +518,10 @@ void tst_Sync_benchmark::renameCategory()
     history1->import(origData);
     QVERIFY(importSpy.wait(maxTimeout));
 
-    syncer1->sync(QUrl::fromLocalFile(syncDir->path()));
+    syncer1->sync();
     QVERIFY(syncSpy1.wait(maxTimeout));
 
-    syncer2->sync(QUrl::fromLocalFile(syncDir->path()));
+    syncer2->sync();
     QVERIFY(syncSpy2. wait(maxTimeout));
 
     int index = std::ceil((origData.size() - 1) / 2.0);
@@ -535,14 +539,14 @@ void tst_Sync_benchmark::renameCategory()
 
     QBENCHMARK_ONCE {
         // Sync 1 [out]
-        syncer1->sync(QUrl::fromLocalFile(syncDir->path()));
+        syncer1->sync();
         QVERIFY(syncSpy1.wait(maxTimeout));
         QVERIFY(syncErrorSpy1.isEmpty());
         QVERIFY(historyErrorSpy1.isEmpty());
         QVERIFY(historyOutdateSpy1.isEmpty());
 
         // Sync 2 [in]
-        syncer2->sync(QUrl::fromLocalFile(syncDir->path()));
+        syncer2->sync();
         QVERIFY(syncSpy2.wait(maxTimeout));
         QVERIFY(syncErrorSpy2.isEmpty());
         QVERIFY(historyErrorSpy2.isEmpty());

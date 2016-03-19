@@ -51,8 +51,8 @@ public slots:
 
     void getSyncData(const QDateTime &mBegin = QDateTime(),
                      const QDateTime &mEnd = QDateTime()) const;
-    void checkHasSyncData(const QDateTime &mBegin = QDateTime::fromMSecsSinceEpoch(0, Qt::UTC),
-                          const QDateTime &mEnd = QDateTime::currentDateTimeUtc()) const;
+    void getSyncDataSize(const QDateTime &mBegin = QDateTime::fromMSecsSinceEpoch(0, Qt::UTC),
+                         const QDateTime &mEnd = QDateTime::currentDateTimeUtc()) const;
 
     void getHashes(const QDateTime &maxDate = QDateTime(), bool noUpdate = false);
 
@@ -66,7 +66,7 @@ signals:
     void dataRemoved(const TimeLogEntry &data) const;
     void statsDataAvailable(QVector<TimeLogStats> data, QDateTime until) const;
     void syncDataAvailable(QVector<TimeLogSyncData> data, QDateTime until) const;
-    void hasSyncData(bool hasData, QDateTime mBegin, QDateTime mEnd) const;
+    void syncDataSizeAvailable(qlonglong size, QDateTime mBegin, QDateTime mEnd) const;
     void syncStatsAvailable(QVector<TimeLogSyncData> removedOld, QVector<TimeLogSyncData> removedNew,
                             QVector<TimeLogSyncData> insertedOld, QVector<TimeLogSyncData> insertedNew,
                             QVector<TimeLogSyncData> updatedOld, QVector<TimeLogSyncData> updatedNew) const;

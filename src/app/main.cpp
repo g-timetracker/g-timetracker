@@ -55,6 +55,8 @@ int main(int argc, char *argv[])
     parser.addOption(separatorOption);
     QCommandLineOption dataPathOption("dataPath", "Use specified path to program's data", "path");
     parser.addOption(dataPathOption);
+    QCommandLineOption syncPathOption("syncPath", "Override path to sync folder", "path");
+    parser.addOption(syncPathOption);
 
     parser.process(app);
 
@@ -109,6 +111,7 @@ int main(int argc, char *argv[])
         QQmlApplicationEngine engine;
         engine.addImportPath(QString("%1/qml").arg(app.applicationDirPath()));
         engine.rootContext()->setContextProperty("TimeLogDataPath", parser.value(dataPathOption));
+        engine.rootContext()->setContextProperty("TimeLogSyncPath", parser.value(syncPathOption));
         engine.load(QUrl(QStringLiteral("qrc:/qml/timetracker/main.qml")));
         return app.exec();
     }
