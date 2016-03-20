@@ -11,6 +11,7 @@ class QStateMachine;
 class QState;
 class QFinalState;
 class QTimer;
+class QFileSystemWatcher;
 
 class TimeLogHistory;
 class DBSyncer;
@@ -69,6 +70,7 @@ private slots:
     void cleanState();
 
     void checkSyncFolder();
+    void syncWatcherEvent(const QString &path);
 
 private:
     void compareWithDir(const QString &path);
@@ -108,6 +110,8 @@ private:
     QString m_externalSyncPath;
     bool m_noPack;
     QTimer *m_syncCacheTimer;
+    QFileSystemWatcher *m_syncWatcher;
+    QTimer *m_syncWatcherTimer;
 
     QDir m_internalSyncDir;
     QString m_currentSyncPath;

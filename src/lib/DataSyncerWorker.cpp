@@ -12,6 +12,7 @@
 #include <QStateMachine>
 #include <QFinalState>
 #include <QTimer>
+#include <QFileSystemWatcher>
 
 #include <QLoggingCategory>
 
@@ -41,6 +42,7 @@ const QRegularExpression packFileNameRegexp(packFileNamePattern);
 
 const int syncCacheTimeout = 10;
 const int defaultSyncCacheSize = 10;
+const int fileWatchTimeout = 5;
 
 DataSyncerWorker::DataSyncerWorker(TimeLogHistory *db, QObject *parent) :
     QObject(parent),
@@ -59,6 +61,8 @@ DataSyncerWorker::DataSyncerWorker(TimeLogHistory *db, QObject *parent) :
     m_syncCacheSize(defaultSyncCacheSize),
     m_noPack(false),
     m_syncCacheTimer(new QTimer(this)),
+    m_syncWatcher(new QFileSystemWatcher(this)),
+    m_syncWatcherTimer(new QTimer(this)),
     m_cachedSyncChanges(0),
     m_wroteToExternalSync(false),
     m_dbSyncer(nullptr),
@@ -100,6 +104,13 @@ DataSyncerWorker::DataSyncerWorker(TimeLogHistory *db, QObject *parent) :
     m_syncCacheTimer->setSingleShot(true);
     connect(m_syncCacheTimer, SIGNAL(timeout()), this, SLOT(sync()));
     connect(m_sm, SIGNAL(started()), m_syncCacheTimer, SLOT(stop()));
+
+    connect(m_syncWatcher, SIGNAL(directoryChanged(QString)), this, SLOT(syncWatcherEvent(QString)));
+    m_syncWatcherTimer->setTimerType(Qt::VeryCoarseTimer);
+    m_syncWatcherTimer->setInterval(fileWatchTimeout * 1000);
+    m_syncWatcherTimer->setSingleShot(true);
+    connect(m_syncWatcherTimer, SIGNAL(timeout()), this, SLOT(checkSyncFolder()));
+    connect(m_sm, SIGNAL(started()), m_syncWatcherTimer, SLOT(stop()));
 
     connect(m_db, SIGNAL(error(QString)),
             this, SLOT(historyError(QString)));
@@ -161,6 +172,7 @@ void DataSyncerWorker::setAutoSync(bool autoSync)
         checkSyncFolder();
     } else {
         m_syncCacheTimer->stop();
+        m_syncWatcherTimer->stop();
     }
 }
 
@@ -183,9 +195,21 @@ void DataSyncerWorker::setSyncPath(const QString &path)
         return;
     }
 
+    if (!m_externalSyncPath.isEmpty()) {
+        if (!m_syncWatcher->removePath(m_externalSyncPath)) {
+            qCCritical(SYNC_WORKER_CATEGORY) << "Fail to remove directory from watcher";
+        }
+    }
+
     m_externalSyncPath = path;
 
     if (!m_externalSyncPath.isEmpty()) {
+        if (!m_syncWatcher->addPath(m_externalSyncPath)) {
+            qCCritical(SYNC_WORKER_CATEGORY) << "Fail to add directory to watcher";
+        }
+    }
+
+    if (m_autoSync && !m_externalSyncPath.isEmpty()) {
         checkSyncFolder();
     }
 }
@@ -547,6 +571,15 @@ void DataSyncerWorker::checkSyncFolder()
         }
     } else {
         m_db->getSyncDataSize(dataDirInfo.lastModified());
+    }
+}
+
+void DataSyncerWorker::syncWatcherEvent(const QString &path)
+{
+    qCDebug(SYNC_WORKER_CATEGORY) << "Event for sync directory" << path;
+
+    if (m_autoSync) {
+        m_syncWatcherTimer->start();
     }
 }
 
