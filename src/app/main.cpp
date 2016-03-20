@@ -31,6 +31,7 @@ static QObject *timeTrackerSingletonTypeProvider(QQmlEngine *engine, QJSEngine *
 
 int main(int argc, char *argv[])
 {
+    QApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
     QApplication app(argc, argv);
     app.setOrganizationName("G-TimeTracker");
     app.setOrganizationDomain("g-timetracker.org");
