@@ -975,7 +975,7 @@ bool TimeLogHistoryWorker::editCategoryData(QString oldName, QString newName)
     }
 
     query.next();
-    bool hasOldCategoryItems = query.value(0).toULongLong() > 0;
+    bool hasOldCategoryItems = query.value(0).toLongLong() > 0;
     query.finish();
 
     if (!hasOldCategoryItems) {
@@ -1499,7 +1499,7 @@ bool TimeLogHistoryWorker::updateSize()
     }
 
     query.next();
-    setSize(query.value(0).toULongLong());
+    setSize(query.value(0).toLongLong());
     query.finish();
 
     return true;
