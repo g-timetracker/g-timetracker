@@ -28,6 +28,7 @@ public:
 
     Q_INVOKABLE void setAutoSync(bool autoSync);
     Q_INVOKABLE void setSyncCacheSize(int syncCacheSize);
+    Q_INVOKABLE void setSyncCacheTimeout(int syncCacheTimeout);
     Q_INVOKABLE void setSyncPath(const QString &path);
     Q_INVOKABLE void setNoPack(bool noPack);
 
@@ -51,7 +52,7 @@ private slots:
     void historyDataInserted(const TimeLogEntry &data);
     void historyDataRemoved(const TimeLogEntry &data);
     void syncDataAvailable(QVector<TimeLogSyncData> data, QDateTime until);
-    void syncDataSizeAvailable(qlonglong size, QDateTime mBegin, QDateTime mEnd);
+    void syncDataAmountAvailable(qlonglong size, QDateTime maxMTime, QDateTime mBegin, QDateTime mEnd);
     void syncStatsAvailable(QVector<TimeLogSyncData> removedOld, QVector<TimeLogSyncData> removedNew,
                             QVector<TimeLogSyncData> insertedOld, QVector<TimeLogSyncData> insertedNew,
                             QVector<TimeLogSyncData> updatedOld, QVector<TimeLogSyncData> updatedNew) const;
@@ -109,9 +110,11 @@ private:
     int m_syncCacheSize;
     QString m_externalSyncPath;
     bool m_noPack;
-    QTimer *m_syncCacheTimer;
+    QTimer *m_syncStartTimer;
     QFileSystemWatcher *m_syncWatcher;
     QTimer *m_syncWatcherTimer;
+    int m_syncCacheTimeout;
+    QTimer *m_syncCacheTimer;
 
     QDir m_internalSyncDir;
     QString m_currentSyncPath;

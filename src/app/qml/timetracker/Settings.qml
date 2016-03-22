@@ -8,6 +8,7 @@ Item {
     property bool isConfirmationsEnabled: true
     property bool isAutoSync: true
     property int syncCacheSize: 10
+    property int syncCacheTimeout: 3600
     property url syncPath
     property url dataPath
 
@@ -20,6 +21,7 @@ Item {
     Settings {
         property alias autoSync: settings.isAutoSync
         property alias syncCacheSize: settings.syncCacheSize
+        property alias syncCacheTimeout: settings.syncCacheTimeout
         property alias syncPath: settings.syncPath
         property alias dataPath: settings.dataPath
 

@@ -404,13 +404,13 @@ void TimeLogHistoryWorker::getSyncData(const QDateTime &mBegin, const QDateTime 
     emit syncDataAvailable(getSyncData(query), mEnd);
 }
 
-void TimeLogHistoryWorker::getSyncDataSize(const QDateTime &mBegin, const QDateTime &mEnd) const
+void TimeLogHistoryWorker::getSyncDataAmount(const QDateTime &mBegin, const QDateTime &mEnd) const
 {
     Q_ASSERT(m_isInitialized);
 
     QSqlDatabase db = QSqlDatabase::database(m_connectionName);
     QSqlQuery query(db);
-    QString queryString("SELECT count(*) FROM ( "
+    QString queryString("SELECT count(*), max(mtime) FROM ( "
                         "    SELECT mtime FROM timelog "
                         "    WHERE (mtime > :mBegin AND mtime <= :mEnd) "
                         "UNION "
@@ -435,9 +435,13 @@ void TimeLogHistoryWorker::getSyncDataSize(const QDateTime &mBegin, const QDateT
 
     query.next();
     qlonglong result = query.value(0).toLongLong();
+    QDateTime maxMTime;
+    if (!query.isNull(1)) {
+        maxMTime = QDateTime::fromMSecsSinceEpoch(query.value(1).toLongLong(), Qt::UTC);
+    }
     query.finish();
 
-    emit syncDataSizeAvailable(result, mBegin, mEnd);
+    emit syncDataAmountAvailable(result, maxMTime, mBegin, mEnd);
 }
 
 void TimeLogHistoryWorker::getHashes(const QDateTime &maxDate, bool noUpdate)

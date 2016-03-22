@@ -230,6 +230,13 @@ ApplicationWindow {
         when: TimeTracker.syncer
     }
 
+    Binding {
+        target: TimeTracker.syncer
+        property: "syncCacheTimeout"
+        value: Settings.syncCacheTimeout
+        when: TimeTracker.syncer
+    }
+
     Connections {
         target: TimeTracker
 

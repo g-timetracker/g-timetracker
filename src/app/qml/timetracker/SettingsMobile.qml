@@ -77,6 +77,17 @@ Item {
 
                 onClicked: TimeTracker.showDialogRequested(syncCacheSizeDialog)
             }
+
+            SettingsAdvancedDelegate {
+                width: parent.width
+                enabled: Settings.isAutoSync
+                isLastItem: Positioner.isLastItem
+                text: "Sync cache timeout"
+                additionalText: Settings.syncCacheTimeout ? "%1 seconds".arg(Settings.syncCacheTimeout)
+                                                          : "Disabled"
+
+                onClicked: TimeTracker.showDialogRequested(syncCacheTimeoutDialog)
+            }
         }
     }
 
@@ -92,5 +103,9 @@ Item {
 
     SettingsSyncCacheSize {
         id: syncCacheSizeDialog
+    }
+
+    SettingsSyncCacheTimeout {
+        id: syncCacheTimeoutDialog
     }
 }

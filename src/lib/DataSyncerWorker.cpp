@@ -40,9 +40,10 @@ const QRegularExpression syncFileNameRegexp(syncFileNamePattern);
 const QString packFileNamePattern = QString("^%1\\.pack$").arg(fileNamePattern);
 const QRegularExpression packFileNameRegexp(packFileNamePattern);
 
-const int syncCacheTimeout = 10;
+const int syncStartTimeout = 10;
 const int defaultSyncCacheSize = 10;
 const int fileWatchTimeout = 5;
+const int defaultSyncCacheTimeout = 3600;
 
 DataSyncerWorker::DataSyncerWorker(TimeLogHistory *db, QObject *parent) :
     QObject(parent),
@@ -60,9 +61,11 @@ DataSyncerWorker::DataSyncerWorker(TimeLogHistory *db, QObject *parent) :
     m_autoSync(true),
     m_syncCacheSize(defaultSyncCacheSize),
     m_noPack(false),
-    m_syncCacheTimer(new QTimer(this)),
+    m_syncStartTimer(new QTimer(this)),
     m_syncWatcher(new QFileSystemWatcher(this)),
     m_syncWatcherTimer(new QTimer(this)),
+    m_syncCacheTimeout(defaultSyncCacheTimeout),
+    m_syncCacheTimer(new QTimer(this)),
     m_cachedSyncChanges(0),
     m_wroteToExternalSync(false),
     m_dbSyncer(nullptr),
@@ -99,11 +102,11 @@ DataSyncerWorker::DataSyncerWorker(TimeLogHistory *db, QObject *parent) :
     connect(m_sm, SIGNAL(stopped()), this, SLOT(cleanState()));
     connect(m_sm, SIGNAL(finished()), this, SLOT(cleanState()));
 
-    m_syncCacheTimer->setTimerType(Qt::VeryCoarseTimer);
-    m_syncCacheTimer->setInterval(syncCacheTimeout * 1000);
-    m_syncCacheTimer->setSingleShot(true);
-    connect(m_syncCacheTimer, SIGNAL(timeout()), this, SLOT(sync()));
-    connect(m_sm, SIGNAL(started()), m_syncCacheTimer, SLOT(stop()));
+    m_syncStartTimer->setTimerType(Qt::VeryCoarseTimer);
+    m_syncStartTimer->setInterval(syncStartTimeout * 1000);
+    m_syncStartTimer->setSingleShot(true);
+    connect(m_syncStartTimer, SIGNAL(timeout()), this, SLOT(sync()));
+    connect(m_sm, SIGNAL(started()), m_syncStartTimer, SLOT(stop()));
 
     connect(m_syncWatcher, SIGNAL(directoryChanged(QString)), this, SLOT(syncWatcherEvent(QString)));
     m_syncWatcherTimer->setTimerType(Qt::VeryCoarseTimer);
@@ -111,6 +114,12 @@ DataSyncerWorker::DataSyncerWorker(TimeLogHistory *db, QObject *parent) :
     m_syncWatcherTimer->setSingleShot(true);
     connect(m_syncWatcherTimer, SIGNAL(timeout()), this, SLOT(checkSyncFolder()));
     connect(m_sm, SIGNAL(started()), m_syncWatcherTimer, SLOT(stop()));
+
+    m_syncCacheTimer->setTimerType(Qt::VeryCoarseTimer);
+    m_syncCacheTimer->setInterval(m_syncCacheTimeout * 1000);
+    m_syncCacheTimer->setSingleShot(true);
+    connect(m_syncCacheTimer, SIGNAL(timeout()), this, SLOT(sync()));
+    connect(m_sm, SIGNAL(started()), m_syncCacheTimer, SLOT(stop()));
 
     connect(m_db, SIGNAL(error(QString)),
             this, SLOT(historyError(QString)));
@@ -122,8 +131,8 @@ DataSyncerWorker::DataSyncerWorker(TimeLogHistory *db, QObject *parent) :
             this, SLOT(historyDataRemoved(TimeLogEntry)));
     connect(m_db, SIGNAL(syncDataAvailable(QVector<TimeLogSyncData>,QDateTime)),
             this, SLOT(syncDataAvailable(QVector<TimeLogSyncData>,QDateTime)));
-    connect(m_db, SIGNAL(syncDataSizeAvailable(qlonglong,QDateTime,QDateTime)),
-            this, SLOT(syncDataSizeAvailable(qlonglong,QDateTime,QDateTime)));
+    connect(m_db, SIGNAL(syncDataAmountAvailable(qlonglong,QDateTime,QDateTime,QDateTime)),
+            this, SLOT(syncDataAmountAvailable(qlonglong,QDateTime,QDateTime,QDateTime)));
     connect(m_db, SIGNAL(syncStatsAvailable(QVector<TimeLogSyncData>,QVector<TimeLogSyncData>,
                                             QVector<TimeLogSyncData>,QVector<TimeLogSyncData>,
                                             QVector<TimeLogSyncData>,QVector<TimeLogSyncData>)),
@@ -171,6 +180,7 @@ void DataSyncerWorker::setAutoSync(bool autoSync)
     if (m_autoSync && !m_externalSyncPath.isEmpty()) {
         checkSyncFolder();
     } else {
+        m_syncStartTimer->stop();
         m_syncCacheTimer->stop();
         m_syncWatcherTimer->stop();
     }
@@ -186,6 +196,30 @@ void DataSyncerWorker::setSyncCacheSize(int syncCacheSize)
 
     if (m_autoSync && !m_externalSyncPath.isEmpty()) {
         checkCachedSyncChanges();
+    }
+}
+
+void DataSyncerWorker::setSyncCacheTimeout(int syncCacheTimeout)
+{
+    if (m_syncCacheTimeout == syncCacheTimeout) {
+        return;
+    }
+
+    m_syncCacheTimeout = syncCacheTimeout;
+
+    if (m_syncCacheTimeout <= 0) {
+        m_syncCacheTimer->stop();
+    }
+
+    if (m_syncCacheTimer->isActive()) {
+        qint64 elapsedTime = m_syncCacheTimer->interval() - m_syncCacheTimer->remainingTime();
+        if (elapsedTime > m_syncCacheTimeout * 1000) {
+            sync();
+        } else {
+            m_syncCacheTimer->setInterval(m_syncCacheTimeout * 1000 - elapsedTime);
+        }
+    } else {
+        m_syncCacheTimer->setInterval(m_syncCacheTimeout * 1000);
     }
 }
 
@@ -255,6 +289,9 @@ void DataSyncerWorker::historyDataUpdated(QVector<TimeLogEntry> data, QVector<Ti
 
     for (TimeLogHistory::Fields field: fields) {
         if (field & TimeLogHistory::AllFieldsMask) {
+            if (m_autoSync && m_syncCacheTimeout > 0) {
+                m_syncCacheTimer->start(m_syncCacheTimeout * 1000);
+            }
             addCachedSyncChanges();
             return;
         }
@@ -269,6 +306,10 @@ void DataSyncerWorker::historyDataInserted(const TimeLogEntry &data)
         return;
     }
 
+    if (m_autoSync && m_syncCacheTimeout > 0) {
+        m_syncCacheTimer->start(m_syncCacheTimeout * 1000);
+    }
+
     addCachedSyncChanges();
 }
 
@@ -278,6 +319,10 @@ void DataSyncerWorker::historyDataRemoved(const TimeLogEntry &data)
 
     if (m_sm->isRunning()) {
         return;
+    }
+
+    if (m_autoSync && m_syncCacheTimeout > 0) {
+        m_syncCacheTimer->start(m_syncCacheTimeout * 1000);
     }
 
     addCachedSyncChanges();
@@ -302,7 +347,7 @@ void DataSyncerWorker::syncDataAvailable(QVector<TimeLogSyncData> data, QDateTim
     emit exported(QPrivateSignal());
 }
 
-void DataSyncerWorker::syncDataSizeAvailable(qlonglong size, QDateTime mBegin, QDateTime mEnd)
+void DataSyncerWorker::syncDataAmountAvailable(qlonglong size, QDateTime maxMTime, QDateTime mBegin, QDateTime mEnd)
 {
     Q_UNUSED(mBegin)
     Q_UNUSED(mEnd)
@@ -315,8 +360,20 @@ void DataSyncerWorker::syncDataSizeAvailable(qlonglong size, QDateTime mBegin, Q
             emit dirsSynced(QPrivateSignal());
         }
     } else {
-        qCDebug(SYNC_WORKER_CATEGORY) << "Cached sync changes from DB:" << size;
-        addCachedSyncChanges(size);
+        qCDebug(SYNC_WORKER_CATEGORY) << "Cached sync changes from DB:" << size << maxMTime;
+        qint64 elapsedTime = 0;
+        if (m_autoSync && !m_externalSyncPath.isEmpty() && m_syncCacheTimeout > 0 && !maxMTime.isNull()
+            && (elapsedTime = maxMTime.msecsTo(QDateTime::currentDateTimeUtc())) >= m_syncCacheTimeout * 1000
+            && !m_syncCacheTimer->isActive()) {
+            sync();
+        } else {
+            if (m_autoSync && !m_externalSyncPath.isEmpty() && m_syncCacheTimeout > 0 && elapsedTime > 0
+                && (!m_syncCacheTimer->isActive()
+                    || m_syncCacheTimer->remainingTime() < m_syncCacheTimeout * 1000 - elapsedTime)) {
+                m_syncCacheTimer->start(m_syncCacheTimeout * 1000 - elapsedTime);   // found newer entry
+            }
+            addCachedSyncChanges(size);
+        }
     }
 }
 
@@ -509,7 +566,7 @@ void DataSyncerWorker::packSync()
     if (m_forcePack) {
         exportPack();
     } else if (m_packMTime < packPeriodStart) {
-        m_db->getSyncDataSize(m_packMTime, packPeriodStart.addMonths(1).addMSecs(-1));
+        m_db->getSyncDataAmount(m_packMTime, packPeriodStart.addMonths(1).addMSecs(-1));
     } else {
         emit dirsSynced(QPrivateSignal());
     }
@@ -570,7 +627,7 @@ void DataSyncerWorker::checkSyncFolder()
             sync();
         }
     } else {
-        m_db->getSyncDataSize(dataDirInfo.lastModified());
+        m_db->getSyncDataAmount(dataDirInfo.lastModified());
     }
 }
 
@@ -978,6 +1035,6 @@ void DataSyncerWorker::checkCachedSyncChanges()
     if (!m_autoSync || m_sm->isRunning() || m_externalSyncPath.isEmpty()) {
         return;
     } else if (m_cachedSyncChanges > m_syncCacheSize) {
-        m_syncCacheTimer->start();
+        m_syncStartTimer->start();
     }
 }

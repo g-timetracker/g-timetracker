@@ -72,6 +72,20 @@ void DataSyncer::setSyncCacheSize(int syncCacheSize)
     emit syncCacheSizeChanged(m_syncCacheSize);
 }
 
+void DataSyncer::setSyncCacheTimeout(int syncCacheTimeout)
+{
+    if (m_syncCacheTimeout == syncCacheTimeout) {
+        return;
+    }
+
+    m_syncCacheTimeout = syncCacheTimeout;
+
+    QMetaObject::invokeMethod(m_worker, "setSyncCacheTimeout", Qt::AutoConnection,
+                              Q_ARG(int, syncCacheTimeout));
+
+    emit syncCacheTimeoutChanged(m_syncCacheTimeout);
+}
+
 void DataSyncer::setSyncPath(const QUrl &syncPathUrl)
 {
     if (m_syncPath == syncPathUrl) {

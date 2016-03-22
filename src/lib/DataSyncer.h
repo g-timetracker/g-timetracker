@@ -16,6 +16,7 @@ class DataSyncer : public QObject
     Q_PROPERTY(bool isRunning READ isRunning NOTIFY isRunningChanged)
     Q_PROPERTY(bool autoSync MEMBER m_autoSync WRITE setAutoSync NOTIFY autoSyncChanged)
     Q_PROPERTY(int syncCacheSize MEMBER m_syncCacheSize WRITE setSyncCacheSize NOTIFY syncCacheSizeChanged)
+    Q_PROPERTY(int syncCacheTimeout MEMBER m_syncCacheTimeout WRITE setSyncCacheTimeout NOTIFY syncCacheTimeoutChanged)
     Q_PROPERTY(QUrl syncPath MEMBER m_syncPath WRITE setSyncPath NOTIFY syncPathChanged)
 public:
     explicit DataSyncer(TimeLogHistory *history, QObject *parent = 0);
@@ -28,6 +29,7 @@ public:
 
     void setAutoSync(bool autoSync);
     void setSyncCacheSize(int syncCacheSize);
+    void setSyncCacheTimeout(int syncCacheTimeout);
     void setSyncPath(const QUrl &syncPathUrl);
     void setNoPack(bool noPack);
 
@@ -35,6 +37,7 @@ signals:
     void isRunningChanged(bool newIsRunning) const;
     void autoSyncChanged(bool newAutoSync) const;
     void syncCacheSizeChanged(int newSyncCacheSize) const;
+    void syncCacheTimeoutChanged(int newSyncCacheTimeout) const;
     void syncPathChanged(const QUrl &newSyncPath) const;
     void error(const QString &errorText) const;
     void synced(QPrivateSignal);
@@ -53,6 +56,7 @@ private:
     bool m_isRunning;
     bool m_autoSync;
     int m_syncCacheSize;
+    int m_syncCacheTimeout;
     QUrl m_syncPath;
     QThread *m_thread;
     DataSyncerWorker *m_worker;
