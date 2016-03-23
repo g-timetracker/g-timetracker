@@ -722,6 +722,7 @@ void tst_Sync::bothRemove()
     history1->remove(historyData.at(index));
     QVERIFY(removeSpy1.wait());
 
+    QTest::qSleep(1);   // Ensure entries has different mTime
     removeSpy2.clear();
     history2->remove(historyData.at(index));
     QVERIFY(removeSpy2.wait());
@@ -835,6 +836,7 @@ void tst_Sync::bothEdit()
     history1->edit(entry, fields);
     QVERIFY(historyUpdateSpy1.wait());
 
+    QTest::qSleep(1);   // Ensure entries has different mTime
     entry = historyData.at(index);
     fields = TimeLogHistory::NoFields;
     if (entry.startTime != newData2.startTime) {
@@ -1016,6 +1018,7 @@ void tst_Sync::editRemove()
     history1->edit(entry, fields);
     QVERIFY(historyUpdateSpy.wait());
 
+    QTest::qSleep(1);   // Ensure entries has different mTime
     removeSpy2.clear();
     history2->remove(historyData.at(index));
     QVERIFY(removeSpy2.wait());
@@ -1146,6 +1149,7 @@ void tst_Sync::removeEdit()
     history1->remove(historyData.at(index));
     QVERIFY(removeSpy.wait());
 
+    QTest::qSleep(1);   // Ensure entries has different mTime
     TimeLogEntry entry = historyData.at(index);
     TimeLogHistory::Fields fields;
     if (entry.startTime != newData.startTime) {
@@ -1316,6 +1320,7 @@ void tst_Sync::removeOldEdit()
     history1->edit(entry, fields);
     QVERIFY(historyUpdateSpy1.wait());
 
+    QTest::qSleep(1);   // Ensure entries has different mTime
     removeSpy2.clear();
     history2->remove(historyData.at(index));
     QVERIFY(removeSpy2.wait());
@@ -1465,6 +1470,7 @@ void tst_Sync::removeOldInsert()
     history1->insert(newData);
     QVERIFY(insertSpy1.wait());
 
+    QTest::qSleep(1);   // Ensure entries has different mTime
     insertSpy2.clear();
     history2->insert(newData);
     QVERIFY(insertSpy2.wait());
@@ -1603,6 +1609,7 @@ void tst_Sync::removeOldRemove()
     history1->remove(historyData.at(index));
     QVERIFY(removeSpy1.wait());
 
+    QTest::qSleep(1);   // Ensure entries has different mTime
     removeSpy2.clear();
     history2->remove(historyData.at(index));
     QVERIFY(removeSpy2.wait());
@@ -1742,6 +1749,7 @@ void tst_Sync::editOldEdit()
     history1->edit(entry, fields);
     QVERIFY(historyUpdateSpy1.wait());
 
+    QTest::qSleep(1);   // Ensure entries has different mTime
     entry = historyData.at(index);
     fields = TimeLogHistory::NoFields;
     if (entry.startTime != newData2.startTime) {
@@ -1940,6 +1948,7 @@ void tst_Sync::editOldRemove()
     history1->remove(historyData.at(index));
     QVERIFY(removeSpy1.wait());
 
+    QTest::qSleep(1);   // Ensure entries has different mTime
     TimeLogEntry entry = historyData.at(index);
     TimeLogHistory::Fields fields;
     if (entry.startTime != newData.startTime) {
