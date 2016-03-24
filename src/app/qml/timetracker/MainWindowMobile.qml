@@ -13,6 +13,9 @@ ApplicationWindow {
     height: 960
     visible: true
 
+    Material.primary: Material.BlueGrey
+    Material.accent: Material.Cyan
+
     Component {
         id: mainToolBar
 
