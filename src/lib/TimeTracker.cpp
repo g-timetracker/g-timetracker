@@ -101,7 +101,12 @@ int TimeTracker::undoCount() const
 
 TimeLogData TimeTracker::createTimeLogData(QDateTime startTime, QString category, QString comment)
 {
-    return TimeLogData(startTime, category, comment);
+    // Clear milliseconds to make it equal to fromTime_t()
+    QTime time(startTime.time());
+    time.setHMS(time.hour(), time.minute(), time.second(), 0);
+    startTime.setTime(time);
+
+    return TimeLogData(startTime.toUTC(), category, comment);
 }
 
 void TimeTracker::undo()
