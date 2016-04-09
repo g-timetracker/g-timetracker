@@ -507,7 +507,7 @@ bool compareData(const QVector<T> &d1, const QVector<T> &d2)
         return false;
     }
 
-    for (int i = 0; i < d1.size() - 1; i++) {
+    for (int i = 0; i < d1.size(); i++) {
         if (!compareData(d1.at(i), d2.at(i))) {
             dumpData(d1);
             dumpData(d2);
