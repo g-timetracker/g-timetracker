@@ -2170,13 +2170,43 @@ void tst_DB::hashesOld_data()
 
     auto addEditTest = [](int size, int index, const QDateTime &mTime, const QString &info)
     {
-        TimeLogEntry entry = defaultEntries().at(index);
+        TimeLogEntry entry;
+        TimeLogSyncDataEntry syncEntry;
+
+        entry = defaultEntries().at(index);
+        entry.startTime = entry.startTime.addSecs(100);
+        syncEntry = TimeLogSyncDataEntry(entry, mTime);
+
+        QTest::newRow(QString("%1 entries, edit start %2 %3").arg(size).arg(index).arg(info).toLocal8Bit())
+                << size << 0
+                << (QVector<TimeLogSyncDataEntry>() << syncEntry)
+                << QVector<TimeLogSyncDataCategory>();
+
+        entry = defaultEntries().at(index);
+        entry.category = "CategoryNew";
+        syncEntry = TimeLogSyncDataEntry(entry, mTime);
+
+        QTest::newRow(QString("%1 entries, edit category %2 %3").arg(size).arg(index).arg(info).toLocal8Bit())
+                << size << 0
+                << (QVector<TimeLogSyncDataEntry>() << syncEntry)
+                << QVector<TimeLogSyncDataCategory>();
+
+        entry = defaultEntries().at(index);
+        entry.comment = "Test comment";
+        syncEntry = TimeLogSyncDataEntry(entry, mTime);
+
+        QTest::newRow(QString("%1 entries, edit comment %2 %3").arg(size).arg(index).arg(info).toLocal8Bit())
+                << size << 0
+                << (QVector<TimeLogSyncDataEntry>() << syncEntry)
+                << QVector<TimeLogSyncDataCategory>();
+
+        entry = defaultEntries().at(index);
         entry.startTime = entry.startTime.addSecs(100);
         entry.category = "CategoryNew";
         entry.comment = "Test comment";
-        TimeLogSyncDataEntry syncEntry = TimeLogSyncDataEntry(entry, mTime);
+        syncEntry = TimeLogSyncDataEntry(entry, mTime);
 
-        QTest::newRow(QString("%1 entries, edit %2 %3").arg(size).arg(index).arg(info).toLocal8Bit())
+        QTest::newRow(QString("%1 entries, edit all %2 %3").arg(size).arg(index).arg(info).toLocal8Bit())
                 << size << 0
                 << (QVector<TimeLogSyncDataEntry>() << syncEntry)
                 << QVector<TimeLogSyncDataCategory>();

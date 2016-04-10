@@ -758,7 +758,16 @@ bool TimeLogHistoryWorker::setupTriggers()
         return false;
     }
 
-    queryString = "CREATE TRIGGER IF NOT EXISTS update_timelog AFTER UPDATE OF start ON timelog "
+    // Update hash on change of the any field, except duration
+    queryString = "CREATE TRIGGER IF NOT EXISTS update_timelog AFTER UPDATE OF start, category, comment, mtime, uuid ON timelog "
+                  "BEGIN "
+                  "    INSERT OR REPLACE INTO hashes (start, hash) VALUES(strftime('%s', NEW.mtime/1000, 'unixepoch', 'start of month'), NULL); "
+                  "END;";
+    if (!prepareAndExecQuery(query, queryString)) {
+        return false;
+    }
+
+    queryString = "CREATE TRIGGER IF NOT EXISTS update_timelog_start AFTER UPDATE OF start ON timelog "
                   "BEGIN "
                   "    UPDATE timelog SET duration=(NEW.start - start) "
                   "    WHERE start=( "
@@ -775,7 +784,6 @@ bool TimeLogHistoryWorker::setupTriggers()
                   "        ( SELECT start FROM timelog WHERE start > NEW.start ORDER BY start ASC LIMIT 1 ) - NEW.start, "
                   "        -1 "
                   "    ) WHERE start=NEW.start; "
-                  "    INSERT OR REPLACE INTO hashes (start, hash) VALUES(strftime('%s', NEW.mtime/1000, 'unixepoch', 'start of month'), NULL); "
                   "END;";
     if (!prepareAndExecQuery(query, queryString)) {
         return false;
