@@ -3,7 +3,7 @@
 
 #include "TimeTracker.h"
 #include "TimeLogHistory.h"
-#include "TimeLogCategory.h"
+#include "TimeLogCategoryTreeNode.h"
 #include "DataSyncer.h"
 
 enum TimeUnits {
@@ -89,7 +89,7 @@ TimeLogHistory *TimeTracker::history()
     return m_history;
 }
 
-QSharedPointer<TimeLogCategory> TimeTracker::categories() const
+QSharedPointer<TimeLogCategoryTreeNode> TimeTracker::categories() const
 {
     return m_categories;
 }
@@ -109,6 +109,11 @@ TimeLogData TimeTracker::createTimeLogData(QDateTime startTime, QString category
     return TimeLogData(startTime.toUTC(), category, comment);
 }
 
+TimeLogCategoryData TimeTracker::createTimeLogCategoryData(QString name, QVariantMap data)
+{
+    return TimeLogCategoryData(name, data);
+}
+
 void TimeTracker::undo()
 {
     if (!m_history) {
@@ -116,15 +121,6 @@ void TimeTracker::undo()
     }
 
     m_history->undo();
-}
-
-void TimeTracker::editCategory(QString oldName, QString newName)
-{
-    if (!m_history) {
-        return;
-    }
-
-    m_history->editCategory(oldName, newName);
 }
 
 void TimeTracker::getStats(const QDateTime &begin, const QDateTime &end, const QString &category, const QString &separator)
@@ -170,6 +166,33 @@ QPointF TimeTracker::mapToGlobal(QQuickItem *item)
     return (item->window()->mapToGlobal(QPoint()) + item->mapToScene(QPointF()));
 }
 
+void TimeTracker::addCategory(const TimeLogCategory &category)
+{
+    if (!m_history) {
+        return;
+    }
+
+    m_history->addCategory(category);
+}
+
+void TimeTracker::removeCategory(const QString &name)
+{
+    if (!m_history) {
+        return;
+    }
+
+    m_history->removeCategory(name);
+}
+
+void TimeTracker::editCategory(const QString &oldName, const TimeLogCategory &category)
+{
+    if (!m_history) {
+        return;
+    }
+
+    m_history->editCategory(oldName, category);
+}
+
 void TimeTracker::statsDataAvailable(QVector<TimeLogStats> data, QDateTime until) const
 {
     QVariantMap result;
@@ -197,7 +220,7 @@ void TimeTracker::statsDataAvailable(QVector<TimeLogStats> data, QDateTime until
     emit statsDataAvailable(result, until);
 }
 
-void TimeTracker::updateCategories(const QSharedPointer<TimeLogCategory> &categories)
+void TimeTracker::updateCategories(const QSharedPointer<TimeLogCategoryTreeNode> &categories)
 {
     m_categories = categories;
 
@@ -230,15 +253,15 @@ void TimeTracker::setHistory(TimeLogHistory *history)
                 this, SIGNAL(error(QString)));
         connect(m_history, SIGNAL(statsDataAvailable(QVector<TimeLogStats>,QDateTime)),
                 this, SLOT(statsDataAvailable(QVector<TimeLogStats>,QDateTime)));
-        connect(m_history, SIGNAL(categoriesChanged(QSharedPointer<TimeLogCategory>)),
-                this, SLOT(updateCategories(QSharedPointer<TimeLogCategory>)));
+        connect(m_history, SIGNAL(categoriesChanged(QSharedPointer<TimeLogCategoryTreeNode>)),
+                this, SLOT(updateCategories(QSharedPointer<TimeLogCategoryTreeNode>)));
         connect(m_history, SIGNAL(undoCountChanged(int)),
                 this, SLOT(updateUndoCount(int)));
     }
 
     emit historyChanged(m_history);
 
-    updateCategories(m_history ? m_history->categories() : QSharedPointer<TimeLogCategory>());
+    updateCategories(m_history ? m_history->categories() : QSharedPointer<TimeLogCategoryTreeNode>());
     updateUndoCount(m_history ? m_history->undoCount() : 0);
 
     if (oldHistory) {

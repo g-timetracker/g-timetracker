@@ -87,5 +87,10 @@
         <file>qml/timetracker/SettingsAdvancedDelegate.qml</file>
         <file>qml/timetracker/SettingsSyncCacheSize.qml</file>
         <file>qml/timetracker/SettingsSyncCacheTimeout.qml</file>
+        <file>qml/timetracker/CategoryEditor.qml</file>
+        <file>qml/timetracker/CategoryEditDialog.qml</file>
+        <file>qml/timetracker/CategoryNewDialog.qml</file>
+        <file>qml/timetracker/TextFieldControl.qml</file>
+        <file>qml/timetracker/TextAreaControl.qml</file>
     </qresource>
 </RCC>

@@ -3,11 +3,13 @@
 #include <QSqlError>
 #include <QDataStream>
 #include <QCryptographicHash>
+#include <QJsonDocument>
+#include <QJsonObject>
 
 #include <QLoggingCategory>
 
 #include "TimeLogHistoryWorker.h"
-#include "TimeLogCategory.h"
+#include "TimeLogCategoryTreeNode.h"
 
 Q_LOGGING_CATEGORY(HISTORY_WORKER_CATEGORY, "TimeLogHistoryWorker", QtInfoMsg)
 
@@ -82,11 +84,7 @@ bool TimeLogHistoryWorker::init(const QString &dataPath, const QString &filePath
         return false;
     }
 
-    if (!updateSize()) {
-        return false;
-    }
-
-    if (!updateCategories()) {
+    if (!fetchCategories()) {
         return false;
     }
 
@@ -100,7 +98,7 @@ qlonglong TimeLogHistoryWorker::size() const
     return m_size;
 }
 
-QSharedPointer<TimeLogCategory> TimeLogHistoryWorker::categories() const
+QSharedPointer<TimeLogCategoryTreeNode> TimeLogHistoryWorker::categories() const
 {
     return m_categoryTree;
 }
@@ -110,8 +108,8 @@ void TimeLogHistoryWorker::insert(const TimeLogEntry &data)
     Q_ASSERT(m_isInitialized);
 
     Undo undo;
-    undo.type = Undo::Insert;
-    undo.data.append(data);
+    undo.type = Undo::InsertEntry;
+    undo.entryData.append(data);
     pushUndo(undo);
 
     insertEntry(data);
@@ -121,7 +119,7 @@ void TimeLogHistoryWorker::import(const QVector<TimeLogEntry> &data)
 {
     Q_ASSERT(m_isInitialized);
 
-    if (insertData(data)) {
+    if (insertEntryData(data) && fetchCategories()) {
         emit dataImported(data);
     } else {
         processFail();
@@ -136,8 +134,8 @@ void TimeLogHistoryWorker::remove(const TimeLogEntry &data)
 
     TimeLogEntry entry = getEntry(data.uuid);
     Undo undo;
-    undo.type = Undo::Remove;
-    undo.data.append(entry);
+    undo.type = Undo::RemoveEntry;
+    undo.entryData.append(entry);
     pushUndo(undo);
 
     removeEntry(data);
@@ -149,87 +147,175 @@ void TimeLogHistoryWorker::edit(const TimeLogEntry &data, TimeLogHistory::Fields
 
     TimeLogEntry entry = getEntry(data.uuid);
     Undo undo;
-    undo.type = Undo::Edit;
-    undo.data.append(entry);
-    undo.fields.append(fields);
+    undo.type = Undo::EditEntry;
+    undo.entryData.append(entry);
+    undo.entryFields.append(fields);
     pushUndo(undo);
 
     editEntry(data, fields);
 }
 
-void TimeLogHistoryWorker::editCategory(QString oldName, QString newName)
+void TimeLogHistoryWorker::addCategory(const TimeLogCategory &category)
 {
     Q_ASSERT(m_isInitialized);
 
-    if (newName.isEmpty()) {
-        qCCritical(HISTORY_WORKER_CATEGORY) << "Empty category name";
+    QString categoryName(fixCategoryName(category.name));
+
+    if (categoryName.isEmpty()) {
+        qCCritical(HISTORY_WORKER_CATEGORY) << QString("Empty category name");
         emit error("Empty category name");
         return;
-    } else if (oldName == newName) {
-        qCWarning(HISTORY_WORKER_CATEGORY) << "Same category name:" << newName;
+    } else if (m_categories.contains(categoryName) && m_categories.value(categoryName).isValid()) {
+        qCCritical(HISTORY_WORKER_CATEGORY) << QString("Category '%1' already exists").arg(categoryName);
+        emit error(QString("Category '%1' already exists").arg(categoryName));
         return;
     }
 
-    QVector<TimeLogEntry> entries = getEntries(oldName);
+    TimeLogCategory newCategory(category);
+    newCategory.name = categoryName;
+
     Undo undo;
-    undo.type = Undo::EditCategory;
-    undo.data.swap(entries);
-    undo.fields.insert(0, undo.data.size(), TimeLogHistory::Category);
+    undo.type = Undo::AddCategory;
+    undo.categoryData = newCategory;
     pushUndo(undo);
 
-    if (editCategoryData(oldName, newName)) {
-        emit dataOutdated();    // TODO: more precise update signal
-    } else {
-        processFail();
-    }
+    addCategoryData(newCategory);
 }
 
-void TimeLogHistoryWorker::sync(const QVector<TimeLogSyncData> &updatedData, const QVector<TimeLogSyncData> &removedData)
+void TimeLogHistoryWorker::removeCategory(const QString &name)
 {
     Q_ASSERT(m_isInitialized);
 
-    QVector<TimeLogSyncData> removedNew;
-    QVector<TimeLogSyncData> removedOld;
-    QVector<TimeLogSyncData> insertedNew;
-    QVector<TimeLogSyncData> insertedOld;
-    QVector<TimeLogSyncData> updatedNew;
-    QVector<TimeLogSyncData> updatedOld;
-
-    foreach (const TimeLogSyncData &entry, removedData) {
-        QVector<TimeLogSyncData> affected = getSyncAffected(entry.uuid);
-        if (!affected.isEmpty() && affected.constFirst().mTime >= entry.mTime) {
-            continue;
-        }
-
-        removedNew.append(entry);
-        removedOld.append(affected.isEmpty() ? TimeLogSyncData() : affected.constFirst());
+    if (name.isEmpty()) {
+        qCCritical(HISTORY_WORKER_CATEGORY) << QString("Empty category name");
+        emit error("Empty category name");
+        return;
+    } else if (!m_categories.contains(name)) {
+        qCCritical(HISTORY_WORKER_CATEGORY) << QString("No such category: %1").arg(name);
+        emit error(QString("No such category: %1").arg(name));
+        return;
     }
 
-    foreach (const TimeLogSyncData &entry, updatedData) {
-        QVector<TimeLogSyncData> affected = getSyncAffected(entry.uuid);
-        if (!affected.isEmpty() && affected.constFirst().mTime >= entry.mTime) {
-            continue;
-        }
+    Undo undo;
+    undo.type = Undo::RemoveCategory;
+    undo.categoryData = m_categories.value(name);
+    if (undo.categoryData.uuid.isNull()) {  // Entry-only category
+        undo.categoryData.uuid = QUuid::createUuid();
+    }
+    pushUndo(undo);
 
-        if (affected.isEmpty() || !affected.constFirst().isValid()) {
-            insertedNew.append(entry);
-            insertedOld.append(affected.isEmpty() ? TimeLogSyncData() : affected.constFirst());
+    removeCategoryData(undo.categoryData);
+}
+
+void TimeLogHistoryWorker::editCategory(const QString &oldName, const TimeLogCategory &category)
+{
+    Q_ASSERT(m_isInitialized);
+
+    QString categoryName(fixCategoryName(category.name));
+
+    if (categoryName.isEmpty()) {
+        qCCritical(HISTORY_WORKER_CATEGORY) << QString("Empty category name");
+        emit error("Empty category name");
+        return;
+    } else if (!m_categories.contains(oldName)) {
+        qCCritical(HISTORY_WORKER_CATEGORY) << QString("No such category: %1").arg(oldName);
+        emit error(QString("No such category: %1").arg(oldName));
+        return;
+    }
+
+    TimeLogCategory newCategory(category);
+    newCategory.name = categoryName;
+
+    TimeLogCategory oldCategory = m_categories.value(oldName);
+    QVector<TimeLogEntry> entries = getEntries(oldName);
+    Undo undo;
+    if (oldName != categoryName && m_categories.contains(categoryName)) {
+        undo.type = Undo::MergeCategories;
+        if (oldCategory.uuid.isNull()) {    // Entry-only category
+            oldCategory.uuid = QUuid::createUuid();
+        }
+    } else {
+        undo.type = Undo::EditCategory;
+    }
+    QVector<TimeLogEntry> editedEntries;
+    if (oldName != categoryName) {
+        editedEntries.reserve(entries.size());
+        for (const TimeLogEntry &entry: entries) {
+            TimeLogEntry editedEntry(entry);
+            editedEntry.category = categoryName;
+            editedEntries.append(editedEntry);
+        }
+        undo.entryData.swap(entries);
+        undo.entryFields.insert(0, undo.entryData.size(), TimeLogHistory::Category);
+    }
+    undo.categoryData = oldCategory;
+    if (undo.type == Undo::EditCategory && undo.categoryData.uuid.isNull()) {   // Entry-only category
+        undo.categoryData.uuid = newCategory.uuid;
+    }
+    undo.categoryNewName = categoryName;
+    pushUndo(undo);
+
+    QSqlDatabase db = QSqlDatabase::database(m_connectionName);
+
+    if (!startTransaction(db)) {
+        goto fail;
+    }
+
+    if (!editedEntries.isEmpty()) {
+        if (!editEntriesCategory(oldName, categoryName)) {
+            goto rollback;
+        }
+        for (const TimeLogEntry &entry: editedEntries) {
+            notifyEditUpdates(entry, TimeLogHistory::Category);
+        }
+    }
+
+    if (undo.type == Undo::EditCategory) {
+        if (!oldCategory.isValid()) {  // Entry-only category, need to create db record
+            if (!addCategoryData(newCategory)) {
+                goto rollback;
+            }
         } else {
-            updatedNew.append(entry);
-            updatedOld.append(affected.constFirst());
+            if (!editCategoryData(oldName, newCategory)) {
+                goto rollback;
+            }
+        }
+    } else {    // merge
+        if (!removeCategoryData(oldCategory)) {
+            goto rollback;
         }
     }
 
-    emit syncStatsAvailable(removedOld, removedNew, insertedOld, insertedNew, updatedOld, updatedNew);
-
-    QVector<TimeLogSyncData> removedMerged(removedNew.size());
-    for (int i = 0; i < removedMerged.size(); i++) {
-        removedMerged[i] = removedOld.at(i);
-        removedMerged[i].uuid = removedNew.at(i).uuid;
-        removedMerged[i].mTime = removedNew.at(i).mTime;
+    if (!commitTransaction(db)) {
+        goto fail;
     }
 
-    if (syncData(removedMerged, insertedNew, updatedNew, updatedOld)) {
+    return;
+
+rollback:
+    rollbackTransaction(db);
+
+fail:
+    processFail();
+}
+
+void TimeLogHistoryWorker::sync(const QVector<TimeLogSyncDataEntry> &updatedData,
+                                const QVector<TimeLogSyncDataEntry> &removedData,
+                                const QVector<TimeLogSyncDataCategory> &categoryData)
+{
+    Q_ASSERT(m_isInitialized);
+
+    QSqlDatabase db = QSqlDatabase::database(m_connectionName);
+    if (!startTransaction(db)) {
+        return;
+    }
+
+    if (!syncCategories(categoryData) || !syncEntries(updatedData, removedData)) {
+        rollbackTransaction(db);
+        return;
+    } else if (!commitTransaction(db)) {
+        return;
+    } else {
         emit dataSynced(updatedData, removedData);
     }
 }
@@ -250,18 +336,67 @@ void TimeLogHistoryWorker::undo()
 
     Undo undo = m_undoStack.pop();
     switch (undo.type) {
-    case Undo::Insert:
-        removeEntry(undo.data.constFirst());
+    case Undo::InsertEntry:
+        removeEntry(undo.entryData.constFirst());
         break;
-    case Undo::Remove:
-        insertEntry(undo.data.constFirst());
+    case Undo::RemoveEntry:
+        insertEntry(undo.entryData.constFirst());
         break;
-    case Undo::Edit:
-        editEntry(undo.data.constFirst(), undo.fields.constFirst());
+    case Undo::EditEntry:
+        editEntry(undo.entryData.constFirst(), undo.entryFields.constFirst());
         break;
-    case Undo::EditCategory:
-        editEntries(undo.data, undo.fields);
+    case Undo::AddCategory:
+        removeCategoryData(undo.categoryData);
         break;
+    case Undo::RemoveCategory:
+        addCategoryData(undo.categoryData);
+        break;
+    case Undo::EditCategory: {
+        QSqlDatabase db = QSqlDatabase::database(m_connectionName);
+
+        if (!startTransaction(db)) {
+            break;
+        }
+
+        if (!editCategoryData(undo.categoryNewName, undo.categoryData)) {
+            rollbackTransaction(db);
+            break;
+        }
+
+        if (!undo.entryData.isEmpty() && !editEntries(undo.entryData, undo.entryFields)) {
+            rollbackTransaction(db);
+            break;
+        }
+
+        if (!commitTransaction(db)) {
+            break;
+        }
+
+        break;
+    }
+    case Undo::MergeCategories: {
+        QSqlDatabase db = QSqlDatabase::database(m_connectionName);
+
+        if (!startTransaction(db)) {
+            break;
+        }
+
+        if (!addCategoryData(undo.categoryData)) {
+            rollbackTransaction(db);
+            break;
+        }
+
+        if (!undo.entryData.isEmpty() && !editEntries(undo.entryData, undo.entryFields)) {
+            rollbackTransaction(db);
+            break;
+        }
+
+        if (!commitTransaction(db)) {
+            break;
+        }
+
+        break;
+    }
     }
 
     emit undoCountChanged(m_undoStack.size());
@@ -336,6 +471,47 @@ void TimeLogHistoryWorker::getHistoryBefore(qlonglong id, const uint limit, cons
     emit historyRequestCompleted(result, id);
 }
 
+void TimeLogHistoryWorker::getStoredCategories() const
+{
+    QSqlDatabase db = QSqlDatabase::database(m_connectionName);
+    QSqlQuery query(db);
+    QString queryString("SELECT uuid, category, data FROM categories ORDER BY category ASC ");
+    if (!prepareAndExecQuery(query, queryString)) {
+        emit error(tr("DB error: %1").arg(query.lastError().text()));
+        return;
+    }
+
+    QVector<TimeLogCategory> result;
+
+    while (query.next()) {
+        TimeLogCategory category;
+
+        category.uuid = QUuid::fromRfc4122(query.value(0).toByteArray());
+        category.name = query.value(1).toString();
+
+        if (!query.value(2).isNull()) {
+            QByteArray jsonString = query.value(2).toByteArray();
+            QJsonParseError parseError;
+            QJsonDocument document = QJsonDocument::fromJson(jsonString, &parseError);
+            if (parseError.error != QJsonParseError::NoError) {
+                qCCritical(HISTORY_WORKER_CATEGORY) << "Fail to parse category data JSON:"
+                                                    << jsonString << "error at offset"
+                                                    << parseError.offset
+                                                    << parseError.errorString() << parseError.error;
+                emit error(tr("Fail to parse category data: %1").arg(parseError.errorString()));
+                return;
+            }
+            category.data = document.object().toVariantMap();
+        }
+
+        result.append(category);
+    }
+
+    query.finish();
+
+    emit storedCategoriesAvailable(result);
+}
+
 void TimeLogHistoryWorker::getStats(const QDateTime &begin, const QDateTime &end, const QString &category, const QString &separator) const
 {
     QSqlDatabase db = QSqlDatabase::database(m_connectionName);
@@ -374,34 +550,7 @@ void TimeLogHistoryWorker::getSyncData(const QDateTime &mBegin, const QDateTime 
 {
     Q_ASSERT(m_isInitialized);
 
-    QSqlDatabase db = QSqlDatabase::database(m_connectionName);
-    QSqlQuery query(db);
-    QString where = QString(mBegin.isValid() ? "mtime > :mBegin" : "")
-                    + QString(mBegin.isValid() && mEnd.isValid() ? " AND " : "")
-                    + QString(mEnd.isValid() ? "mtime <= :mEnd" : "");
-    if (!where.isEmpty()) {
-        where = "WHERE (" + where + ")";
-    }
-    QString queryString = QString("WITH result AS ( "
-                                  "    SELECT uuid, start, category, comment, mtime FROM timelog %1 "
-                                  "UNION ALL "
-                                  "    SELECT uuid, NULL, NULL, NULL, mtime FROM removed %1 "
-                                  ") "
-                                  "SELECT * FROM result ORDER BY mtime ASC").arg(where);
-    if (!query.prepare(queryString)) {
-        qCCritical(HISTORY_WORKER_CATEGORY) << "Fail to prepare query:" << query.lastError().text()
-                                            << query.lastQuery();
-        emit error(query.lastError().text());
-        return;
-    }
-    if (mBegin.isValid()) {
-        query.bindValue(":mBegin", mBegin.toMSecsSinceEpoch());
-    }
-    if (mEnd.isValid()) {
-        query.bindValue(":mEnd", mEnd.toMSecsSinceEpoch());
-    }
-
-    emit syncDataAvailable(getSyncData(query), mEnd);
+    emit syncDataAvailable(getSyncEntryData(mBegin, mEnd), getSyncCategoryData(mBegin, mEnd), mEnd);
 }
 
 void TimeLogHistoryWorker::getSyncDataAmount(const QDateTime &mBegin, const QDateTime &mEnd) const
@@ -414,7 +563,13 @@ void TimeLogHistoryWorker::getSyncDataAmount(const QDateTime &mBegin, const QDat
                         "    SELECT mtime FROM timelog "
                         "    WHERE (mtime > :mBegin AND mtime <= :mEnd) "
                         "UNION "
-                        "    SELECT mtime FROM removed "
+                        "    SELECT mtime FROM timelog_removed "
+                        "    WHERE (mtime > :mBegin AND mtime <= :mEnd) "
+                        "UNION "
+                        "    SELECT mtime FROM categories "
+                        "    WHERE (mtime > :mBegin AND mtime <= :mEnd) "
+                        "UNION "
+                        "    SELECT mtime FROM categories_removed "
                         "    WHERE (mtime > :mBegin AND mtime <= :mEnd) "
                         ")");
     if (!query.prepare(queryString)) {
@@ -457,65 +612,8 @@ void TimeLogHistoryWorker::getHashes(const QDateTime &maxDate, bool noUpdate)
     emit hashesAvailable(hashes);
 }
 
-bool TimeLogHistoryWorker::setupTable()
+bool TimeLogHistoryWorker::prepareAndExecQuery(QSqlQuery &query, const QString &queryString) const
 {
-    QSqlDatabase db = QSqlDatabase::database(m_connectionName);
-    QSqlQuery query(db);
-    QString queryString("CREATE TABLE IF NOT EXISTS timelog"
-                        " (uuid BLOB UNIQUE, start INTEGER PRIMARY KEY, category TEXT, comment TEXT,"
-                        " duration INTEGER, mtime INTEGER);");
-    if (!query.prepare(queryString)) {
-        qCCritical(HISTORY_WORKER_CATEGORY) << "Fail to prepare query:" << query.lastError().text()
-                                            << query.lastQuery();
-        return false;
-    }
-
-    if (!query.exec()) {
-        qCCritical(HISTORY_WORKER_CATEGORY) << "Fail to execute query:" << query.lastError().text()
-                                            << query.executedQuery();
-        return false;
-    }
-
-    queryString = "CREATE INDEX IF NOT EXISTS timelog_mtime_index ON timelog (mtime);";
-    if (!query.prepare(queryString)) {
-        qCCritical(HISTORY_WORKER_CATEGORY) << "Fail to prepare query:" << query.lastError().text()
-                                            << query.lastQuery();
-        return false;
-    }
-
-    if (!query.exec()) {
-        qCCritical(HISTORY_WORKER_CATEGORY) << "Fail to execute query:" << query.lastError().text()
-                                            << query.executedQuery();
-        return false;
-    }
-
-    queryString = "CREATE TABLE IF NOT EXISTS removed (uuid BLOB PRIMARY KEY, mtime INTEGER) WITHOUT ROWID;";
-    if (!query.prepare(queryString)) {
-        qCCritical(HISTORY_WORKER_CATEGORY) << "Fail to prepare query:" << query.lastError().text()
-                                            << query.lastQuery();
-        return false;
-    }
-
-    if (!query.exec()) {
-        qCCritical(HISTORY_WORKER_CATEGORY) << "Fail to execute query:" << query.lastError().text()
-                                            << query.executedQuery();
-        return false;
-    }
-
-    queryString = "CREATE INDEX IF NOT EXISTS removed_mtime_index ON removed (mtime);";
-    if (!query.prepare(queryString)) {
-        qCCritical(HISTORY_WORKER_CATEGORY) << "Fail to prepare query:" << query.lastError().text()
-                                            << query.lastQuery();
-        return false;
-    }
-
-    if (!query.exec()) {
-        qCCritical(HISTORY_WORKER_CATEGORY) << "Fail to execute query:" << query.lastError().text()
-                                            << query.executedQuery();
-        return false;
-    }
-
-    queryString = "CREATE TABLE IF NOT EXISTS hashes (start INTEGER PRIMARY KEY, hash BLOB);";
     if (!query.prepare(queryString)) {
         qCCritical(HISTORY_WORKER_CATEGORY) << "Fail to prepare query:" << query.lastError().text()
                                             << query.lastQuery();
@@ -531,29 +629,91 @@ bool TimeLogHistoryWorker::setupTable()
     return true;
 }
 
+bool TimeLogHistoryWorker::setupTable()
+{
+    QSqlDatabase db = QSqlDatabase::database(m_connectionName);
+    QSqlQuery query(db);
+    QString queryString;
+
+    /* timelog */
+    queryString = "CREATE TABLE IF NOT EXISTS timelog"
+                  " (uuid BLOB UNIQUE NOT NULL, start INTEGER PRIMARY KEY, category TEXT NOT NULL,"
+                  " comment TEXT, duration INTEGER, mtime INTEGER);";
+    if (!prepareAndExecQuery(query, queryString)) {
+        return false;
+    }
+
+    queryString = "CREATE INDEX IF NOT EXISTS timelog_category_index ON timelog (category);";
+    if (!prepareAndExecQuery(query, queryString)) {
+        return false;
+    }
+
+    queryString = "CREATE INDEX IF NOT EXISTS timelog_mtime_index ON timelog (mtime);";
+    if (!prepareAndExecQuery(query, queryString)) {
+        return false;
+    }
+
+    /* timelog removed */
+    queryString = "CREATE TABLE IF NOT EXISTS timelog_removed"
+                  "(uuid BLOB PRIMARY KEY, mtime INTEGER) WITHOUT ROWID;";
+    if (!prepareAndExecQuery(query, queryString)) {
+        return false;
+    }
+
+    queryString = "CREATE INDEX IF NOT EXISTS timelog_removed_mtime_index ON timelog_removed (mtime);";
+    if (!prepareAndExecQuery(query, queryString)) {
+        return false;
+    }
+
+    /* categories */
+    queryString = "CREATE TABLE IF NOT EXISTS categories"
+                  " (uuid BLOB PRIMARY KEY, category TEXT UNIQUE NOT NULL, data BLOB, mtime INTEGER) WITHOUT ROWID;";
+    if (!prepareAndExecQuery(query, queryString)) {
+        return false;
+    }
+
+    queryString = "CREATE INDEX IF NOT EXISTS categories_mtime_index ON categories (mtime);";
+    if (!prepareAndExecQuery(query, queryString)) {
+        return false;
+    }
+
+    /* categories removed */
+    queryString = "CREATE TABLE IF NOT EXISTS categories_removed"
+                  " (uuid BLOB PRIMARY KEY, mtime INTEGER) WITHOUT ROWID;";
+    if (!prepareAndExecQuery(query, queryString)) {
+        return false;
+    }
+
+    queryString = "CREATE INDEX IF NOT EXISTS categories_removed_mtime_index ON categories_removed (mtime);";
+    if (!prepareAndExecQuery(query, queryString)) {
+        return false;
+    }
+
+    /* hashes */
+    queryString = "CREATE TABLE IF NOT EXISTS hashes (start INTEGER PRIMARY KEY, hash BLOB);";
+    if (!prepareAndExecQuery(query, queryString)) {
+        return false;
+    }
+
+    return true;
+}
+
 bool TimeLogHistoryWorker::setupTriggers()
 {
     QSqlDatabase db = QSqlDatabase::database(m_connectionName);
     QSqlQuery query(db);
     QString queryString;
 
+    /* timelog */
     queryString = "CREATE TRIGGER IF NOT EXISTS check_insert_timelog BEFORE INSERT ON timelog "
                   "BEGIN "
                   "    SELECT mtime, "
                   "        CASE WHEN NEW.mtime < mtime "
                   "            THEN RAISE(IGNORE) "
                   "        END "
-                  "    FROM removed WHERE uuid=NEW.uuid; "
+                  "    FROM timelog_removed WHERE uuid=NEW.uuid; "
                   "END;";
-    if (!query.prepare(queryString)) {
-        qCCritical(HISTORY_WORKER_CATEGORY) << "Fail to prepare query:" << query.lastError().text()
-                                            << query.lastQuery();
-        return false;
-    }
-
-    if (!query.exec()) {
-        qCCritical(HISTORY_WORKER_CATEGORY) << "Fail to execute query:" << query.lastError().text()
-                                            << query.executedQuery();
+    if (!prepareAndExecQuery(query, queryString)) {
         return false;
     }
 
@@ -567,18 +727,10 @@ bool TimeLogHistoryWorker::setupTriggers()
                   "        ( SELECT start FROM timelog WHERE start > NEW.start ORDER BY start ASC LIMIT 1 ) - NEW.start, "
                   "        -1 "
                   "    ) WHERE start=NEW.start; "
-                  "    DELETE FROM removed WHERE uuid=NEW.uuid; "
+                  "    DELETE FROM timelog_removed WHERE uuid=NEW.uuid; "
                   "    INSERT OR REPLACE INTO hashes (start, hash) VALUES(strftime('%s', NEW.mtime/1000, 'unixepoch', 'start of month'), NULL); "
                   "END;";
-    if (!query.prepare(queryString)) {
-        qCCritical(HISTORY_WORKER_CATEGORY) << "Fail to prepare query:" << query.lastError().text()
-                                            << query.lastQuery();
-        return false;
-    }
-
-    if (!query.exec()) {
-        qCCritical(HISTORY_WORKER_CATEGORY) << "Fail to execute query:" << query.lastError().text()
-                                            << query.executedQuery();
+    if (!prepareAndExecQuery(query, queryString)) {
         return false;
     }
 
@@ -591,15 +743,7 @@ bool TimeLogHistoryWorker::setupTriggers()
                   "        SELECT start FROM timelog WHERE start < OLD.start ORDER BY start DESC LIMIT 1 "
                   "    ); "
                   "END;";
-    if (!query.prepare(queryString)) {
-        qCCritical(HISTORY_WORKER_CATEGORY) << "Fail to prepare query:" << query.lastError().text()
-                                            << query.lastQuery();
-        return false;
-    }
-
-    if (!query.exec()) {
-        qCCritical(HISTORY_WORKER_CATEGORY) << "Fail to execute query:" << query.lastError().text()
-                                            << query.executedQuery();
+    if (!prepareAndExecQuery(query, queryString)) {
         return false;
     }
 
@@ -610,15 +754,7 @@ bool TimeLogHistoryWorker::setupTriggers()
                   "            THEN RAISE(IGNORE) "
                   "        END; "
                   "END;";
-    if (!query.prepare(queryString)) {
-        qCCritical(HISTORY_WORKER_CATEGORY) << "Fail to prepare query:" << query.lastError().text()
-                                            << query.lastQuery();
-        return false;
-    }
-
-    if (!query.exec()) {
-        qCCritical(HISTORY_WORKER_CATEGORY) << "Fail to execute query:" << query.lastError().text()
-                                            << query.executedQuery();
+    if (!prepareAndExecQuery(query, queryString)) {
         return false;
     }
 
@@ -641,52 +777,92 @@ bool TimeLogHistoryWorker::setupTriggers()
                   "    ) WHERE start=NEW.start; "
                   "    INSERT OR REPLACE INTO hashes (start, hash) VALUES(strftime('%s', NEW.mtime/1000, 'unixepoch', 'start of month'), NULL); "
                   "END;";
-    if (!query.prepare(queryString)) {
-        qCCritical(HISTORY_WORKER_CATEGORY) << "Fail to prepare query:" << query.lastError().text()
-                                            << query.lastQuery();
+    if (!prepareAndExecQuery(query, queryString)) {
         return false;
     }
 
-    if (!query.exec()) {
-        qCCritical(HISTORY_WORKER_CATEGORY) << "Fail to execute query:" << query.lastError().text()
-                                            << query.executedQuery();
-        return false;
-    }
-
-    queryString = "CREATE TRIGGER IF NOT EXISTS check_insert_removed BEFORE INSERT ON removed "
+    /* timelog removed */
+    queryString = "CREATE TRIGGER IF NOT EXISTS check_insert_timelog_removed BEFORE INSERT ON timelog_removed "
                   "BEGIN "
                   "    SELECT mtime, "
                   "        CASE WHEN NEW.mtime < mtime "
                   "            THEN RAISE(IGNORE) "
                   "        END "
-                  "    FROM removed WHERE uuid=NEW.uuid; "
+                  "    FROM timelog_removed WHERE uuid=NEW.uuid; "
                   "END;";
-    if (!query.prepare(queryString)) {
-        qCCritical(HISTORY_WORKER_CATEGORY) << "Fail to prepare query:" << query.lastError().text()
-                                            << query.lastQuery();
+    if (!prepareAndExecQuery(query, queryString)) {
         return false;
     }
 
-    if (!query.exec()) {
-        qCCritical(HISTORY_WORKER_CATEGORY) << "Fail to execute query:" << query.lastError().text()
-                                            << query.executedQuery();
-        return false;
-    }
-
-    queryString = "CREATE TRIGGER IF NOT EXISTS insert_removed AFTER INSERT ON removed "
+    queryString = "CREATE TRIGGER IF NOT EXISTS insert_timelog_removed AFTER INSERT ON timelog_removed "
                   "BEGIN "
                   "    DELETE FROM timelog WHERE uuid=NEW.uuid; "
                   "    INSERT OR REPLACE INTO hashes (start, hash) VALUES(strftime('%s', NEW.mtime/1000, 'unixepoch', 'start of month'), NULL); "
                   "END;";
-    if (!query.prepare(queryString)) {
-        qCCritical(HISTORY_WORKER_CATEGORY) << "Fail to prepare query:" << query.lastError().text()
-                                            << query.lastQuery();
+    if (!prepareAndExecQuery(query, queryString)) {
         return false;
     }
 
-    if (!query.exec()) {
-        qCCritical(HISTORY_WORKER_CATEGORY) << "Fail to execute query:" << query.lastError().text()
-                                            << query.executedQuery();
+    /* categories */
+    queryString = "CREATE TRIGGER IF NOT EXISTS check_insert_categories BEFORE INSERT ON categories "
+                  "BEGIN "
+                  "    SELECT mtime, "
+                  "        CASE WHEN NEW.mtime < mtime "
+                  "            THEN RAISE(IGNORE) "
+                  "        END "
+                  "    FROM categories_removed WHERE uuid=NEW.uuid; "
+                  "END;";
+    if (!prepareAndExecQuery(query, queryString)) {
+        return false;
+    }
+
+    queryString = "CREATE TRIGGER IF NOT EXISTS insert_categories AFTER INSERT ON categories "
+                  "BEGIN "
+                  "    DELETE FROM categories_removed WHERE uuid=NEW.uuid; "
+                  "    INSERT OR REPLACE INTO hashes (start, hash) VALUES(strftime('%s', NEW.mtime/1000, 'unixepoch', 'start of month'), NULL); "
+                  "END;";
+    if (!prepareAndExecQuery(query, queryString)) {
+        return false;
+    }
+
+    queryString = "CREATE TRIGGER IF NOT EXISTS check_update_categories BEFORE UPDATE ON categories "
+                  "BEGIN "
+                  "    SELECT "
+                  "        CASE WHEN NEW.mtime < OLD.mtime "
+                  "            THEN RAISE(IGNORE) "
+                  "        END; "
+                  "END;";
+    if (!prepareAndExecQuery(query, queryString)) {
+        return false;
+    }
+
+    queryString = "CREATE TRIGGER IF NOT EXISTS update_categories AFTER UPDATE ON categories "
+                  "BEGIN "
+                  "    INSERT OR REPLACE INTO hashes (start, hash) VALUES(strftime('%s', NEW.mtime/1000, 'unixepoch', 'start of month'), NULL); "
+                  "END;";
+    if (!prepareAndExecQuery(query, queryString)) {
+        return false;
+    }
+
+    /* categories removed */
+    queryString = "CREATE TRIGGER IF NOT EXISTS check_insert_categories_removed BEFORE INSERT ON categories_removed "
+                  "BEGIN "
+                  "    SELECT mtime, "
+                  "        CASE WHEN NEW.mtime < mtime "
+                  "            THEN RAISE(IGNORE) "
+                  "        END "
+                  "    FROM categories_removed WHERE uuid=NEW.uuid; "
+                  "END;";
+    if (!prepareAndExecQuery(query, queryString)) {
+        return false;
+    }
+
+    queryString = "CREATE TRIGGER IF NOT EXISTS insert_categories_removed AFTER INSERT ON categories_removed "
+                  "BEGIN "
+                  "    DELETE FROM categories WHERE uuid=NEW.uuid; "
+                  "    INSERT OR REPLACE INTO hashes (start, hash) VALUES(strftime('%s', NEW.mtime/1000, 'unixepoch', 'start of month'), NULL); "
+                  "END;";
+    if (!prepareAndExecQuery(query, queryString)) {
         return false;
     }
 
@@ -704,28 +880,26 @@ void TimeLogHistoryWorker::setSize(qlonglong size)
     emit sizeChanged(m_size);
 }
 
-void TimeLogHistoryWorker::removeFromCategories(QString category)
+void TimeLogHistoryWorker::decrementCategoryCount(const QString &name)
 {
-    if (!m_categorySet.contains(category)) {
+    if (!m_categoryRecordsCount.contains(name)) {
+        fetchCategories();
         return;
+    } else if (--(m_categoryRecordsCount[name]) == 0) {
+        updateCategories();
     }
-
-    m_categorySet.remove(category);
-    m_categoryTree = parseCategories(m_categorySet);
-
-    emit categoriesChanged(m_categoryTree);
 }
 
-void TimeLogHistoryWorker::addToCategories(QString category)
+void TimeLogHistoryWorker::incrementCategoryCount(const QString &name)
 {
-    if (m_categorySet.contains(category)) {
+    if (!m_categoryRecordsCount.contains(name)) {
+        m_categories.insert(name, TimeLogCategory(QUuid(), TimeLogCategoryData(name)));
+        m_categoryRecordsCount.insert(name, 1);
+    } else if ((m_categoryRecordsCount[name])++ > 0) {
         return;
     }
 
-    m_categorySet.insert(category);
-    m_categoryTree = parseCategories(m_categorySet);
-
-    emit categoriesChanged(m_categoryTree);
+    updateCategories();
 }
 
 void TimeLogHistoryWorker::processFail()
@@ -738,9 +912,11 @@ void TimeLogHistoryWorker::processFail()
 
 void TimeLogHistoryWorker::insertEntry(const TimeLogEntry &data)
 {
-    if (insertData(data)) {
+    if (insertEntryData(data)) {
         emit dataInserted(data);
         notifyInsertUpdates(data);
+
+        incrementCategoryCount(data.category);
     } else {
         processFail();
     }
@@ -748,9 +924,11 @@ void TimeLogHistoryWorker::insertEntry(const TimeLogEntry &data)
 
 void TimeLogHistoryWorker::removeEntry(const TimeLogEntry &data)
 {
-    if (removeData(data)) {
+    if (removeEntryData(data)) {
         emit dataRemoved(data);
         notifyRemoveUpdates(data);
+
+        decrementCategoryCount(data.category);
     } else {
         processFail();
     }
@@ -759,10 +937,11 @@ void TimeLogHistoryWorker::removeEntry(const TimeLogEntry &data)
 bool TimeLogHistoryWorker::editEntry(const TimeLogEntry &data, TimeLogHistory::Fields fields)
 {
     QDateTime oldStart;
+    QString oldCategory;
     if (fields == TimeLogHistory::NoFields) {
         qCWarning(HISTORY_WORKER_CATEGORY) << "No fields specified";
         return false;
-    } else if (fields & TimeLogHistory::StartTime) {
+    } else if (fields & (TimeLogHistory::StartTime | TimeLogHistory::Category)) {
         TimeLogEntry oldData = getEntry(data.uuid);
         if (!oldData.isValid()) {
             qCCritical(HISTORY_WORKER_CATEGORY) << "Item to update not found:\n"
@@ -770,11 +949,21 @@ bool TimeLogHistoryWorker::editEntry(const TimeLogEntry &data, TimeLogHistory::F
             processFail();
             return false;
         }
-        oldStart = oldData.startTime;
+        if (fields & TimeLogHistory::StartTime) {
+            oldStart = oldData.startTime;
+        }
+        if (fields & TimeLogHistory::Category) {
+            oldCategory = oldData.category;
+        }
     }
 
-    if (editData(data, fields)) {
+    if (editEntryData(data, fields)) {
         notifyEditUpdates(data, fields, oldStart);
+
+        if (fields & TimeLogHistory::Category) {
+            decrementCategoryCount(oldCategory);
+            incrementCategoryCount(data.category);
+        }
     }  else {
         processFail();
         return false;
@@ -783,51 +972,181 @@ bool TimeLogHistoryWorker::editEntry(const TimeLogEntry &data, TimeLogHistory::F
     return true;
 }
 
-void TimeLogHistoryWorker::editEntries(const QVector<TimeLogEntry> &data, const QVector<TimeLogHistory::Fields> &fields)
+bool TimeLogHistoryWorker::editEntries(const QVector<TimeLogEntry> &data, const QVector<TimeLogHistory::Fields> &fields)
 {
     for (int i = 0; i < data.size(); i++) {
         if (!editEntry(data.at(i), fields.at(i))) {
-            break;
-        }
-    }
-}
-
-bool TimeLogHistoryWorker::insertData(const QVector<TimeLogEntry> &data)
-{
-    QSqlDatabase db = QSqlDatabase::database(m_connectionName);
-    if (!db.transaction()) {
-        qCCritical(HISTORY_WORKER_CATEGORY) << "Fail to start transaction:" << db.lastError().text();
-        emit error(db.lastError().text());
-        return false;
-    }
-
-    foreach (const TimeLogEntry &entry, data) {
-        if (!insertData(entry)) {
-            if (!db.rollback()) {
-                qCCritical(HISTORY_WORKER_CATEGORY) << "Fail to rollback transaction:" << db.lastError().text();
-                emit error(db.lastError().text());
-            }
-
             return false;
         }
     }
 
-    if (!db.commit()) {
-        qCCritical(HISTORY_WORKER_CATEGORY) << "Fail to commit transaction:" << db.lastError().text();
-        emit error(db.lastError().text());
-        if (!db.rollback()) {
-            qCCritical(HISTORY_WORKER_CATEGORY) << "Fail to rollback transaction:" << db.lastError().text();
-            emit error(db.lastError().text());
+    return true;
+}
+
+bool TimeLogHistoryWorker::syncEntries(const QVector<TimeLogSyncDataEntry> &updatedData,
+                                       const QVector<TimeLogSyncDataEntry> &removedData)
+{
+    QVector<TimeLogSyncDataEntry> removedNew;
+    QVector<TimeLogSyncDataEntry> removedOld;
+    QVector<TimeLogSyncDataEntry> insertedNew;
+    QVector<TimeLogSyncDataEntry> insertedOld;
+    QVector<TimeLogSyncDataEntry> updatedNew;
+    QVector<TimeLogSyncDataEntry> updatedOld;
+    QVector<TimeLogHistory::Fields> updateFields;
+
+    for (const TimeLogSyncDataEntry &item: removedData) {
+        QVector<TimeLogSyncDataEntry> affected = getSyncEntriesAffected(item.entry.uuid);
+        if (!affected.isEmpty() && affected.constFirst().sync.mTime >= item.sync.mTime) {
+            continue;
         }
+
+        removedNew.append(item);
+        removedOld.append(affected.isEmpty() ? TimeLogSyncDataEntry() : affected.constFirst());
+    }
+
+    for (const TimeLogSyncDataEntry &item: updatedData) {
+        QVector<TimeLogSyncDataEntry> affected = getSyncEntriesAffected(item.entry.uuid);
+        if (!affected.isEmpty() && affected.constFirst().sync.mTime >= item.sync.mTime) {
+            continue;
+        }
+
+        if (affected.isEmpty() || !affected.constFirst().entry.isValid()) {
+            insertedNew.append(item);
+            insertedOld.append(affected.isEmpty() ? TimeLogSyncDataEntry() : affected.constFirst());
+        } else {
+            const TimeLogSyncDataEntry &oldItem(affected.constFirst());
+            TimeLogHistory::Fields fields(TimeLogHistory::NoFields);
+            if (item.entry.startTime != oldItem.entry.startTime) {
+                fields |= TimeLogHistory::StartTime;
+            }
+            if (item.entry.category != oldItem.entry.category) {
+                fields |= TimeLogHistory::Category;
+            }
+            if (item.entry.comment != oldItem.entry.comment) {
+                fields |= TimeLogHistory::Comment;
+            }
+            updatedNew.append(item);
+            updatedOld.append(oldItem);
+            updateFields.append(fields);
+        }
+    }
+
+    emit syncEntryStatsAvailable(removedOld, removedNew, insertedOld, insertedNew, updatedOld, updatedNew);
+
+    QVector<TimeLogSyncDataEntry> removedMerged(removedOld);
+    for (int i = 0; i < removedMerged.size(); i++) {
+        removedMerged[i].entry.uuid = removedNew.at(i).entry.uuid;
+        removedMerged[i].sync.mTime = removedNew.at(i).sync.mTime;
+    }
+
+    if (!syncEntryData(removedMerged, insertedNew, updatedNew, updateFields)) {
+        return false;
+    }
+
+    for (const TimeLogSyncDataEntry &item: removedMerged) {
+        if (item.entry.isValid()) {
+            emit dataRemoved(item.entry);
+        }
+    }
+    for (const TimeLogSyncDataEntry &item: removedMerged) {
+        if (item.entry.isValid()) {
+            notifyRemoveUpdates(item.entry);
+        }
+    }
+    for (const TimeLogSyncDataEntry &item: insertedNew) {
+        emit dataInserted(item.entry);
+    }
+    for (const TimeLogSyncDataEntry &item: insertedNew) {
+        notifyInsertUpdates(item.entry);
+    }
+    for (int i = 0; i < updatedNew.size(); i++) {
+        notifyEditUpdates(updatedNew.at(i).entry, updateFields.at(i), updatedOld.at(i).entry.startTime);
+    }
+
+    for (const TimeLogSyncDataEntry &item: removedOld) {
+        if (item.entry.isValid()) {
+            decrementCategoryCount(item.entry.category);
+        }
+    }
+    for (const TimeLogSyncDataEntry &item: insertedNew) {
+        incrementCategoryCount(item.entry.category);
+    }
+    for (int i = 0; i < updatedNew.size(); i++) {
+        decrementCategoryCount(updatedOld.at(i).entry.category);
+        incrementCategoryCount(updatedNew.at(i).entry.category);
+    }
+
+    return true;
+}
+
+bool TimeLogHistoryWorker::syncCategories(const QVector<TimeLogSyncDataCategory> &categoryData)
+{
+    QVector<TimeLogSyncDataCategory> removedNew;
+    QVector<TimeLogSyncDataCategory> removedOld;
+    QVector<TimeLogSyncDataCategory> addedNew;
+    QVector<TimeLogSyncDataCategory> addedOld;
+    QVector<TimeLogSyncDataCategory> updatedNew;
+    QVector<TimeLogSyncDataCategory> updatedOld;
+
+    for (const TimeLogSyncDataCategory &item: categoryData) {
+        QVector<TimeLogSyncDataCategory> affected = getSyncCategoriesAffected(item.category.uuid);
+        if (!affected.isEmpty() && affected.constFirst().sync.mTime >= item.sync.mTime) {
+            continue;
+        }
+
+        if (!item.category.isValid()) {
+            removedNew.append(item);
+            removedOld.append(affected.isEmpty() ? TimeLogSyncDataCategory() : affected.constFirst());
+        } else {
+            if (affected.isEmpty() || !affected.constFirst().category.isValid()) {
+                addedNew.append(item);
+                addedOld.append(affected.isEmpty() ? TimeLogSyncDataCategory() : affected.constFirst());
+            } else {
+                updatedNew.append(item);
+                updatedOld.append(affected.constFirst());
+            }
+        }
+    }
+
+    emit syncCategoryStatsAvailable(removedOld, removedNew, addedOld, addedNew, updatedOld, updatedNew);
+
+    QVector<TimeLogSyncDataCategory> removedMerged(removedOld);
+    for (int i = 0; i < removedMerged.size(); i++) {
+        removedMerged[i].category.uuid = removedNew.at(i).category.uuid;
+        removedMerged[i].sync.mTime = removedNew.at(i).sync.mTime;
+    }
+
+    if (!syncCategoryData(removedMerged, addedNew, updatedNew, updatedOld)) {
         return false;
     }
 
     return true;
 }
 
-bool TimeLogHistoryWorker::insertData(const TimeLogSyncData &data)
+bool TimeLogHistoryWorker::insertEntryData(const QVector<TimeLogEntry> &data)
 {
-    Q_ASSERT(data.isValid());
+    QSqlDatabase db = QSqlDatabase::database(m_connectionName);
+    if (!startTransaction(db)) {
+        return false;
+    }
+
+    for (const TimeLogEntry &entry: data) {
+        if (!insertEntryData(entry)) {
+            rollbackTransaction(db);
+            return false;
+        }
+    }
+
+    if (!commitTransaction(db)) {
+        return false;
+    }
+
+    return true;
+}
+
+bool TimeLogHistoryWorker::insertEntryData(const TimeLogSyncDataEntry &data)
+{
+    Q_ASSERT(data.entry.isValid());
 
     if (!m_insertQuery) {
         QSqlDatabase db = QSqlDatabase::database(m_connectionName);
@@ -846,12 +1165,12 @@ bool TimeLogHistoryWorker::insertData(const TimeLogSyncData &data)
         m_insertQuery = query;
     }
 
-    m_insertQuery->bindValue(":uuid", data.uuid.toRfc4122());
-    m_insertQuery->bindValue(":start", data.startTime.toTime_t());
-    m_insertQuery->bindValue(":category", data.category);
-    m_insertQuery->bindValue(":comment", data.comment);
-    m_insertQuery->bindValue(":mtime", data.mTime.isValid() ? data.mTime.toMSecsSinceEpoch()
-                                            : QDateTime::currentMSecsSinceEpoch());
+    m_insertQuery->bindValue(":uuid", data.entry.uuid.toRfc4122());
+    m_insertQuery->bindValue(":start", data.entry.startTime.toTime_t());
+    m_insertQuery->bindValue(":category", data.entry.category);
+    m_insertQuery->bindValue(":comment", data.entry.comment);
+    m_insertQuery->bindValue(":mtime", data.sync.mTime.isValid() ? data.sync.mTime.toMSecsSinceEpoch()
+                                                                 : QDateTime::currentMSecsSinceEpoch());
 
     if (!m_insertQuery->exec()) {
         qCCritical(HISTORY_WORKER_CATEGORY) << "Fail to execute query:"
@@ -863,19 +1182,18 @@ bool TimeLogHistoryWorker::insertData(const TimeLogSyncData &data)
     }
 
     setSize(m_size + m_insertQuery->numRowsAffected());
-    addToCategories(data.category);
 
     return true;
 }
 
-bool TimeLogHistoryWorker::removeData(const TimeLogSyncData &data)
+bool TimeLogHistoryWorker::removeEntryData(const TimeLogSyncDataEntry &data)
 {
-    Q_ASSERT(!data.uuid.isNull());
+    Q_ASSERT(!data.entry.uuid.isNull());
 
     if (!m_removeQuery) {
         QSqlDatabase db = QSqlDatabase::database(m_connectionName);
         QSqlQuery *query = new QSqlQuery(db);
-        QString queryString("INSERT OR REPLACE INTO removed (uuid, mtime) VALUES(:uuid,:mtime);");
+        QString queryString("INSERT OR REPLACE INTO timelog_removed (uuid, mtime) VALUES(:uuid,:mtime);");
         if (!query->prepare(queryString)) {
             qCCritical(HISTORY_WORKER_CATEGORY) << "Fail to prepare query:"
                                                 << query->lastError().text()
@@ -888,9 +1206,9 @@ bool TimeLogHistoryWorker::removeData(const TimeLogSyncData &data)
         m_removeQuery = query;
     }
 
-    m_removeQuery->bindValue(":uuid", data.uuid.toRfc4122());
-    m_removeQuery->bindValue(":mtime", data.mTime.isValid() ? data.mTime.toMSecsSinceEpoch()
-                                                            : QDateTime::currentMSecsSinceEpoch());
+    m_removeQuery->bindValue(":uuid", data.entry.uuid.toRfc4122());
+    m_removeQuery->bindValue(":mtime", data.sync.mTime.isValid() ? data.sync.mTime.toMSecsSinceEpoch()
+                                                                 : QDateTime::currentMSecsSinceEpoch());
 
     if (!m_removeQuery->exec()) {
         qCWarning(HISTORY_WORKER_CATEGORY) << "Fail to execute query:"
@@ -906,9 +1224,9 @@ bool TimeLogHistoryWorker::removeData(const TimeLogSyncData &data)
     return true;
 }
 
-bool TimeLogHistoryWorker::editData(const TimeLogSyncData &data, TimeLogHistory::Fields fields)
+bool TimeLogHistoryWorker::editEntryData(const TimeLogSyncDataEntry &data, TimeLogHistory::Fields fields)
 {
-    Q_ASSERT(data.isValid());
+    Q_ASSERT(data.entry.isValid());
     Q_ASSERT(fields != TimeLogHistory::NoFields);
 
     QSqlDatabase db = QSqlDatabase::database(m_connectionName);
@@ -932,17 +1250,17 @@ bool TimeLogHistoryWorker::editData(const TimeLogSyncData &data, TimeLogHistory:
         return false;
     }
     if (fields & TimeLogHistory::StartTime) {
-        query.addBindValue(data.startTime.toTime_t());
+        query.addBindValue(data.entry.startTime.toTime_t());
     }
     if (fields & TimeLogHistory::Category) {
-        query.addBindValue(data.category);
+        query.addBindValue(data.entry.category);
     }
     if (fields & TimeLogHistory::Comment) {
-        query.addBindValue(data.comment);
+        query.addBindValue(data.entry.comment);
     }
-    query.addBindValue(data.mTime.isValid() ? data.mTime.toMSecsSinceEpoch()
-                                            : QDateTime::currentMSecsSinceEpoch());
-    query.addBindValue(data.uuid.toRfc4122());
+    query.addBindValue(data.sync.mTime.isValid() ? data.sync.mTime.toMSecsSinceEpoch()
+                                                 : QDateTime::currentMSecsSinceEpoch());
+    query.addBindValue(data.entry.uuid.toRfc4122());
 
     if (!query.exec()) {
         qCCritical(HISTORY_WORKER_CATEGORY) << "Fail to execute query:" << query.lastError().text()
@@ -951,14 +1269,10 @@ bool TimeLogHistoryWorker::editData(const TimeLogSyncData &data, TimeLogHistory:
         return false;
     }
 
-    if (fields & TimeLogHistory::Category) {
-        addToCategories(data.category);
-    }
-
     return true;
 }
 
-bool TimeLogHistoryWorker::editCategoryData(QString oldName, QString newName)
+bool TimeLogHistoryWorker::editEntriesCategory(const QString &oldName, const QString &newName)
 {
     QSqlDatabase db = QSqlDatabase::database(m_connectionName);
     QSqlQuery query(db);
@@ -979,12 +1293,11 @@ bool TimeLogHistoryWorker::editCategoryData(QString oldName, QString newName)
     }
 
     query.next();
-    bool hasOldCategoryItems = query.value(0).toLongLong() > 0;
+    qlonglong oldCategoryItemsCount = query.value(0).toLongLong();
     query.finish();
 
-    if (!hasOldCategoryItems) {
-        removeFromCategories(oldName);
-        return false;
+    if (oldCategoryItemsCount == 0) {
+        return true;
     }
 
     queryString = QString("UPDATE timelog SET category=?, mtime=? WHERE category=?;");
@@ -1005,95 +1318,183 @@ bool TimeLogHistoryWorker::editCategoryData(QString oldName, QString newName)
         return false;
     }
 
-    if (!updateCategories()) {
+    m_categoryRecordsCount[oldName] = 0;
+    m_categoryRecordsCount[newName] += oldCategoryItemsCount;
+
+    return true;
+}
+
+bool TimeLogHistoryWorker::addCategoryData(const TimeLogSyncDataCategory &data)
+{
+    QSqlDatabase db = QSqlDatabase::database(m_connectionName);
+    QSqlQuery query(db);
+    QString queryString("INSERT INTO categories (uuid, category, data, mtime) VALUES(?,?,?,?);");
+    if (!query.prepare(queryString)) {
+        qCCritical(HISTORY_WORKER_CATEGORY) << "Fail to prepare query:" << query.lastError().text()
+                                            << query.lastQuery();
+        emit error(query.lastError().text());
         return false;
+    }
+    query.addBindValue(data.category.uuid.toRfc4122());
+    query.addBindValue(data.category.name);
+    query.addBindValue(QJsonDocument(QJsonObject::fromVariantMap(data.category.data)).toJson(QJsonDocument::Compact));
+    query.addBindValue(data.sync.mTime.isValid() ? data.sync.mTime.toMSecsSinceEpoch()
+                                                 : QDateTime::currentMSecsSinceEpoch());
+
+    if (!query.exec()) {
+        qCCritical(HISTORY_WORKER_CATEGORY) << "Fail to execute query:" << query.lastError().text()
+                                            << query.executedQuery() << query.boundValues();
+        emit error(query.lastError().text());
+        return false;
+    }
+
+    if (!m_categories.contains(data.category.name)) {
+        m_categories.insert(data.category.name, data.category);
+        if (!m_categoryRecordsCount.contains(data.category.name)) {
+            m_categoryRecordsCount.insert(data.category.name, 0);
+        }
+        updateCategories();
+    } else if (!m_categories.value(data.category.name).isValid()) { // Entry-only category
+        m_categories.insert(data.category.name, data.category);
+        if (!data.category.data.isEmpty()) {
+            updateCategories();
+        }
+    } else if (m_categories.value(data.category.name).data != data.category.data) {
+        m_categories[data.category.name].data = data.category.data;
+        updateCategories();
     }
 
     return true;
 }
 
-bool TimeLogHistoryWorker::syncData(const QVector<TimeLogSyncData> &removed, const QVector<TimeLogSyncData> &inserted, const QVector<TimeLogSyncData> &updatedNew, const QVector<TimeLogSyncData> &updatedOld)
+bool TimeLogHistoryWorker::removeCategoryData(const TimeLogSyncDataCategory &data)
 {
     QSqlDatabase db = QSqlDatabase::database(m_connectionName);
-    if (!db.transaction()) {
-        qCCritical(HISTORY_WORKER_CATEGORY) << "Fail to start transaction:" << db.lastError().text();
-        emit error(db.lastError().text());
+    QSqlQuery query(db);
+    QString queryString("INSERT OR REPLACE INTO categories_removed (uuid, mtime) VALUES(?,?);");
+    if (!query.prepare(queryString)) {
+        qCCritical(HISTORY_WORKER_CATEGORY) << "Fail to prepare query:" << query.lastError().text()
+                                            << query.lastQuery();
+        emit error(query.lastError().text());
+        return false;
+    }
+    query.addBindValue(data.category.uuid.toRfc4122());
+    query.addBindValue(data.sync.mTime.isValid() ? data.sync.mTime.toMSecsSinceEpoch()
+                                                 : QDateTime::currentMSecsSinceEpoch());
+
+    if (!query.exec()) {
+        qCCritical(HISTORY_WORKER_CATEGORY) << "Fail to execute query:" << query.lastError().text()
+                                            << query.executedQuery() << query.boundValues();
+        emit error(query.lastError().text());
         return false;
     }
 
-    foreach (const TimeLogSyncData &entry, removed) {
-        if (!removeData(entry)) {
-            if (!db.rollback()) {
-                qCCritical(HISTORY_WORKER_CATEGORY) << "Fail to rollback transaction:" << db.lastError().text();
-                emit error(db.lastError().text());
+    QString name(data.category.name);
+    if (name.isEmpty()) {
+        auto it = std::find_if(m_categories.cbegin(), m_categories.cend(),
+                               [&data](const TimeLogCategory &c) {
+            return c.uuid == data.category.uuid;
+        });
+        if (it != m_categories.cend()) {
+            name = it->name;
+        }
+    }
+    if (!name.isEmpty()) {
+        if (m_categoryRecordsCount.value(name)) {
+            if (!m_categories.value(name).data.isEmpty()) {
+                m_categories[name].data.clear();    // Entry-only category has no data
+                updateCategories();
             }
-
-            return false;
+        } else {
+            m_categoryRecordsCount.remove(name);
+            m_categories.remove(name);
+            updateCategories();
         }
     }
 
-    foreach (const TimeLogSyncData &entry, inserted) {
-        if (!insertData(entry)) {
-            if (!db.rollback()) {
-                qCCritical(HISTORY_WORKER_CATEGORY) << "Fail to rollback transaction:" << db.lastError().text();
-                emit error(db.lastError().text());
-            }
+    return true;
+}
 
-            return false;
-        }
+bool TimeLogHistoryWorker::editCategoryData(const QString &oldName, const TimeLogSyncDataCategory &data)
+{
+    QSqlDatabase db = QSqlDatabase::database(m_connectionName);
+    QSqlQuery query(db);
+    QString queryString("UPDATE categories SET category=?, data=?, mtime=? WHERE uuid=?;");
+    if (!query.prepare(queryString)) {
+        qCCritical(HISTORY_WORKER_CATEGORY) << "Fail to prepare query:" << query.lastError().text()
+                                            << query.lastQuery();
+        emit error(query.lastError().text());
+        return false;
     }
+    query.addBindValue(data.category.name);
+    query.addBindValue(QJsonDocument(QJsonObject::fromVariantMap(data.category.data)).toJson(QJsonDocument::Compact));
+    query.addBindValue(data.sync.mTime.isValid() ? data.sync.mTime.toMSecsSinceEpoch()
+                                                 : QDateTime::currentMSecsSinceEpoch());
+    query.addBindValue(data.category.uuid.toRfc4122());
 
-    foreach (const TimeLogSyncData &entry, updatedNew) {
-        if (!editData(entry, TimeLogHistory::AllFieldsMask)) {
-            if (!db.rollback()) {
-                qCCritical(HISTORY_WORKER_CATEGORY) << "Fail to rollback transaction:" << db.lastError().text();
-                emit error(db.lastError().text());
-            }
-
-            return false;
-        }
-    }
-
-    if (!db.commit()) {
-        qCCritical(HISTORY_WORKER_CATEGORY) << "Fail to commit transaction:" << db.lastError().text();
-        emit error(db.lastError().text());
-        if (!db.rollback()) {
-            qCCritical(HISTORY_WORKER_CATEGORY) << "Fail to rollback transaction:" << db.lastError().text();
-            emit error(db.lastError().text());
-        }
+    if (!query.exec()) {
+        qCCritical(HISTORY_WORKER_CATEGORY) << "Fail to execute query:" << query.lastError().text()
+                                            << query.executedQuery() << query.boundValues();
+        emit error(query.lastError().text());
         return false;
     }
 
-    foreach (const TimeLogEntry &entry, removed) {
-        if (entry.isValid()) {
-            emit dataRemoved(entry);
+    m_categories.remove(oldName);
+    m_categories.insert(data.category.name, data.category);
+    m_categoryRecordsCount.insert(data.category.name, m_categoryRecordsCount.take(oldName));
+
+    updateCategories();
+
+    return true;
+}
+
+bool TimeLogHistoryWorker::syncEntryData(const QVector<TimeLogSyncDataEntry> &removed,
+                                         const QVector<TimeLogSyncDataEntry> &inserted,
+                                         const QVector<TimeLogSyncDataEntry> &updated,
+                                         const QVector<TimeLogHistory::Fields> &updateFields)
+{
+    for (const TimeLogSyncDataEntry &item: removed) {
+        if (!removeEntryData(item)) {
+            return false;
         }
     }
-    foreach (const TimeLogEntry &entry, removed) {
-        if (entry.isValid()) {
-            notifyRemoveUpdates(entry);
+
+    for (const TimeLogSyncDataEntry &item: inserted) {
+        if (!insertEntryData(item)) {
+            return false;
         }
     }
-    foreach (const TimeLogEntry &entry, inserted) {
-        emit dataInserted(entry);
+
+    for (int i = 0; i < updated.size(); i++) {
+        if (!editEntryData(updated.at(i), updateFields.at(i))) {
+            return false;
+        }
     }
-    foreach (const TimeLogEntry &entry, inserted) {
-        notifyInsertUpdates(entry);
+
+    return true;
+}
+
+bool TimeLogHistoryWorker::syncCategoryData(const QVector<TimeLogSyncDataCategory> &removed,
+                                            const QVector<TimeLogSyncDataCategory> &inserted,
+                                            const QVector<TimeLogSyncDataCategory> &updatedNew,
+                                            const QVector<TimeLogSyncDataCategory> &updatedOld)
+{
+    for (const TimeLogSyncDataCategory &item: removed) {
+        if (!removeCategoryData(item)) {
+            return false;
+        }
     }
+
+    for (const TimeLogSyncDataCategory &item: inserted) {
+        if (!addCategoryData(item)) {
+            return false;
+        }
+    }
+
     for (int i = 0; i < updatedNew.size(); i++) {
-        const TimeLogSyncData &newField = updatedNew.at(i);
-        const TimeLogSyncData &oldField = updatedOld.at(i);
-        TimeLogHistory::Fields fields(TimeLogHistory::NoFields);
-        if (newField.startTime != oldField.startTime) {
-            fields |= TimeLogHistory::StartTime;
+        if (!editCategoryData(updatedOld.at(i).category.name, updatedNew.at(i))) {
+            return false;
         }
-        if (newField.category != oldField.category) {
-            fields |= TimeLogHistory::Category;
-        }
-        if (newField.comment != oldField.comment) {
-            fields |= TimeLogHistory::Comment;
-        }
-        notifyEditUpdates(updatedNew.at(i), fields, oldField.startTime);
     }
 
     return true;
@@ -1217,9 +1618,41 @@ QVector<TimeLogStats> TimeLogHistoryWorker::getStats(QSqlQuery &query) const
     return result;
 }
 
-QVector<TimeLogSyncData> TimeLogHistoryWorker::getSyncData(QSqlQuery &query) const
+QVector<TimeLogSyncDataEntry> TimeLogHistoryWorker::getSyncEntryData(const QDateTime &mBegin, const QDateTime &mEnd) const
 {
-    QVector<TimeLogSyncData> result;
+    QSqlDatabase db = QSqlDatabase::database(m_connectionName);
+    QSqlQuery query(db);
+    QString where = QString(mBegin.isValid() ? "mtime > :mBegin" : "")
+                    + QString(mBegin.isValid() && mEnd.isValid() ? " AND " : "")
+                    + QString(mEnd.isValid() ? "mtime <= :mEnd" : "");
+    if (!where.isEmpty()) {
+        where = "WHERE (" + where + ")";
+    }
+    QString queryString = QString("WITH result AS ( "
+                                  "    SELECT uuid, start, category, comment, mtime FROM timelog %1 "
+                                  "UNION ALL "
+                                  "    SELECT uuid, NULL, NULL, NULL, mtime FROM timelog_removed %1 "
+                                  ") "
+                                  "SELECT * FROM result ORDER BY mtime ASC").arg(where);
+    if (!query.prepare(queryString)) {
+        qCCritical(HISTORY_WORKER_CATEGORY) << "Fail to prepare query:" << query.lastError().text()
+                                            << query.lastQuery();
+        emit error(query.lastError().text());
+        return QVector<TimeLogSyncDataEntry>();
+    }
+    if (mBegin.isValid()) {
+        query.bindValue(":mBegin", mBegin.toMSecsSinceEpoch());
+    }
+    if (mEnd.isValid()) {
+        query.bindValue(":mEnd", mEnd.toMSecsSinceEpoch());
+    }
+
+    return getSyncEntryData(query);
+}
+
+QVector<TimeLogSyncDataEntry> TimeLogHistoryWorker::getSyncEntryData(QSqlQuery &query) const
+{
+    QVector<TimeLogSyncDataEntry> result;
 
     if (!query.exec()) {
         qCCritical(HISTORY_WORKER_CATEGORY) << "Fail to execute query:" << query.lastError().text()
@@ -1229,14 +1662,89 @@ QVector<TimeLogSyncData> TimeLogHistoryWorker::getSyncData(QSqlQuery &query) con
     }
 
     while (query.next()) {
-        TimeLogSyncData data;
-        data.uuid = QUuid::fromRfc4122(query.value(0).toByteArray());
-        if (!query.isNull(1)) { // Removed item shouldn't has valid start time
-            data.startTime = QDateTime::fromTime_t(query.value(1).toUInt(), Qt::UTC);
+        TimeLogSyncDataEntry data;
+        data.entry.uuid = QUuid::fromRfc4122(query.value(0).toByteArray());
+        data.sync.isRemoved = query.isNull(1);
+        if (!data.sync.isRemoved) { // Removed item shouldn't has valid start time
+            data.entry.startTime = QDateTime::fromTime_t(query.value(1).toUInt(), Qt::UTC);
         }
-        data.category = query.value(2).toString();
-        data.comment = query.value(3).toString();
-        data.mTime = QDateTime::fromMSecsSinceEpoch(query.value(4).toLongLong(), Qt::UTC);
+        data.entry.category = query.value(2).toString();
+        data.entry.comment = query.value(3).toString();
+        data.sync.mTime = QDateTime::fromMSecsSinceEpoch(query.value(4).toLongLong(), Qt::UTC);
+
+        result.append(data);
+    }
+
+    query.finish();
+
+    return result;
+}
+
+QVector<TimeLogSyncDataCategory> TimeLogHistoryWorker::getSyncCategoryData(const QDateTime &mBegin, const QDateTime &mEnd) const
+{
+    QSqlDatabase db = QSqlDatabase::database(m_connectionName);
+    QSqlQuery query(db);
+    QString where = QString(mBegin.isValid() ? "mtime > :mBegin" : "")
+                    + QString(mBegin.isValid() && mEnd.isValid() ? " AND " : "")
+                    + QString(mEnd.isValid() ? "mtime <= :mEnd" : "");
+    if (!where.isEmpty()) {
+        where = "WHERE (" + where + ")";
+    }
+    QString queryString = QString("WITH result AS ( "
+                                  "    SELECT uuid, category, data, mtime FROM categories %1 "
+                                  "UNION ALL "
+                                  "    SELECT uuid, NULL, NULL, mtime FROM categories_removed %1 "
+                                  ") "
+                                  "SELECT * FROM result ORDER BY mtime ASC").arg(where);
+    if (!query.prepare(queryString)) {
+        qCCritical(HISTORY_WORKER_CATEGORY) << "Fail to prepare query:" << query.lastError().text()
+                                            << query.lastQuery();
+        emit error(query.lastError().text());
+        return QVector<TimeLogSyncDataCategory>();
+    }
+    if (mBegin.isValid()) {
+        query.bindValue(":mBegin", mBegin.toMSecsSinceEpoch());
+    }
+    if (mEnd.isValid()) {
+        query.bindValue(":mEnd", mEnd.toMSecsSinceEpoch());
+    }
+
+    return getSyncCategoryData(query);
+}
+
+QVector<TimeLogSyncDataCategory> TimeLogHistoryWorker::getSyncCategoryData(QSqlQuery &query) const
+{
+    QVector<TimeLogSyncDataCategory> result;
+
+    if (!query.exec()) {
+        qCCritical(HISTORY_WORKER_CATEGORY) << "Fail to execute query:" << query.lastError().text()
+                                            << query.executedQuery() << query.boundValues();
+        emit error(query.lastError().text());
+        return result;
+    }
+
+    while (query.next()) {
+        TimeLogSyncDataCategory data;
+        data.category.uuid = QUuid::fromRfc4122(query.value(0).toByteArray());
+        data.category.name = query.value(1).toString();
+
+        if (!query.value(2).isNull()) {
+            QByteArray jsonString = query.value(2).toByteArray();
+            QJsonParseError parseError;
+            QJsonDocument document = QJsonDocument::fromJson(jsonString, &parseError);
+            if (parseError.error != QJsonParseError::NoError) {
+                qCCritical(HISTORY_WORKER_CATEGORY) << "Fail to parse category data JSON:"
+                                                    << jsonString << "error at offset"
+                                                    << parseError.offset
+                                                    << parseError.errorString() << parseError.error;
+                emit error(parseError.errorString());
+                return result;
+            }
+            data.category.data = document.object().toVariantMap();
+        }
+
+        data.sync.isRemoved = !data.category.isValid();
+        data.sync.mTime = QDateTime::fromMSecsSinceEpoch(query.value(3).toLongLong(), Qt::UTC);
 
         result.append(data);
     }
@@ -1291,7 +1799,7 @@ QVector<TimeLogEntry> TimeLogHistoryWorker::getEntries(const QString &category) 
     return getHistory(query);
 }
 
-QVector<TimeLogSyncData> TimeLogHistoryWorker::getSyncAffected(const QUuid &uuid)
+QVector<TimeLogSyncDataEntry> TimeLogHistoryWorker::getSyncEntriesAffected(const QUuid &uuid)
 {
     if (!m_syncAffectedQuery) {
         QSqlDatabase db = QSqlDatabase::database(m_connectionName);
@@ -1300,7 +1808,7 @@ QVector<TimeLogSyncData> TimeLogHistoryWorker::getSyncAffected(const QUuid &uuid
                             "    SELECT uuid, start, category, comment, mtime FROM timelog "
                             "    WHERE uuid=:uuid "
                             "UNION ALL "
-                            "    SELECT uuid, NULL, NULL, NULL, mtime FROM removed "
+                            "    SELECT uuid, NULL, NULL, NULL, mtime FROM timelog_removed "
                             "    WHERE uuid=:uuid "
                             ") "
                             "SELECT * FROM result ORDER BY mtime DESC LIMIT 1");
@@ -1310,7 +1818,7 @@ QVector<TimeLogSyncData> TimeLogHistoryWorker::getSyncAffected(const QUuid &uuid
                                                 << query->lastQuery();
             emit error(query->lastError().text());
             delete query;
-            return QVector<TimeLogSyncData>();
+            return QVector<TimeLogSyncDataEntry>();
         }
 
         m_syncAffectedQuery = query;
@@ -1318,7 +1826,30 @@ QVector<TimeLogSyncData> TimeLogHistoryWorker::getSyncAffected(const QUuid &uuid
 
     m_syncAffectedQuery->bindValue(":uuid", uuid.toRfc4122());
 
-    return getSyncData(*m_syncAffectedQuery);
+    return getSyncEntryData(*m_syncAffectedQuery);
+}
+
+QVector<TimeLogSyncDataCategory> TimeLogHistoryWorker::getSyncCategoriesAffected(const QUuid &uuid)
+{
+    QSqlDatabase db = QSqlDatabase::database(m_connectionName);
+    QSqlQuery query(db);
+    QString queryString("WITH result AS ( "
+                        "    SELECT uuid, category, data, mtime FROM categories "
+                        "    WHERE uuid=:uuid "
+                        "UNION ALL "
+                        "    SELECT uuid, NULL, NULL, mtime FROM categories_removed "
+                        "    WHERE uuid=:uuid "
+                        ") "
+                        "SELECT * FROM result ORDER BY mtime ASC");
+    if (!query.prepare(queryString)) {
+        qCCritical(HISTORY_WORKER_CATEGORY) << "Fail to prepare query:" << query.lastError().text()
+                                            << query.lastQuery();
+        emit error(query.lastError().text());
+        return QVector<TimeLogSyncDataCategory>();
+    }
+    query.bindValue(":uuid", uuid.toRfc4122());
+
+    return getSyncCategoryData(query);
 }
 
 QMap<QDateTime, QByteArray> TimeLogHistoryWorker::getDataHashes(const QDateTime &maxDate) const
@@ -1477,96 +2008,148 @@ void TimeLogHistoryWorker::notifyUpdates(QSqlQuery &query, TimeLogHistory::Field
     QVector<TimeLogHistory::Fields> updatedFields;
 
     if (!updatedData.isEmpty()) {
-        qCDebug(HISTORY_WORKER_CATEGORY) << "Updated items count:" << updatedData.size();
+        qCDebug(HISTORY_WORKER_CATEGORY) << "Updated entries count:" << updatedData.size();
         updatedFields.insert(0, updatedData.size(), fields);
         emit dataUpdated(updatedData, updatedFields);
     }
 }
 
-bool TimeLogHistoryWorker::updateSize()
+bool TimeLogHistoryWorker::startTransaction(QSqlDatabase &db)
 {
-    QSqlDatabase db = QSqlDatabase::database(m_connectionName);
-    QSqlQuery query(db);
-    QString queryString = QString("SELECT count(*) FROM timelog");
-    if (!query.prepare(queryString)) {
-        qCCritical(HISTORY_WORKER_CATEGORY) << "Fail to prepare query:" << query.lastError().text()
-                                            << query.lastQuery();
-        emit error(query.lastError().text());
+    if (!db.transaction()) {
+        qCCritical(HISTORY_WORKER_CATEGORY) << "Fail to start transaction:" << db.lastError().text();
+        emit error(db.lastError().text());
         return false;
     }
-
-    if (!query.exec()) {
-        qCCritical(HISTORY_WORKER_CATEGORY) << "Fail to execute query:" << query.lastError().text()
-                                            << query.executedQuery();
-        emit error(query.lastError().text());
-        return false;
-    }
-
-    query.next();
-    setSize(query.value(0).toLongLong());
-    query.finish();
 
     return true;
 }
 
-bool TimeLogHistoryWorker::updateCategories(const QDateTime &begin, const QDateTime &end)
+bool TimeLogHistoryWorker::commitTransaction(QSqlDatabase &db)
+{
+    if (!db.commit()) {
+        qCCritical(HISTORY_WORKER_CATEGORY) << "Fail to commit transaction:" << db.lastError().text();
+        emit error(db.lastError().text());
+        rollbackTransaction(db);
+        return false;
+    }
+
+    return true;
+}
+
+void TimeLogHistoryWorker::rollbackTransaction(QSqlDatabase &db)
+{
+    if (!db.rollback()) {
+        qCCritical(HISTORY_WORKER_CATEGORY) << "Fail to rollback transaction:" << db.lastError().text();
+        emit error(db.lastError().text());
+    }
+}
+
+QString TimeLogHistoryWorker::fixCategoryName(const QString &name) const
+{
+    return name.split(m_categorySplitRegexp, QString::SkipEmptyParts).join(" > ").trimmed();
+}
+
+bool TimeLogHistoryWorker::fetchCategories()
 {
     QSqlDatabase db = QSqlDatabase::database(m_connectionName);
     QSqlQuery query(db);
-    QString queryString("SELECT DISTINCT category FROM timelog"
-                        " WHERE start BETWEEN ? AND ?");
-    if (!query.prepare(queryString)) {
-        qCCritical(HISTORY_WORKER_CATEGORY) << "Fail to prepare query:" << query.lastError().text()
-                                            << query.lastQuery();
+    // FULL OUTER JOIN
+    QString queryString("WITH t AS (SELECT category, count(*) AS count FROM timelog GROUP BY category), "
+                        "    c AS (SELECT uuid, category, data FROM categories) "
+                        "SELECT "
+                        "    c.uuid AS uuid, "
+                        "    ifnull(c.category, t.category) AS category, "
+                        "    ifnull(t.count, 0) AS count, "
+                        "    c.data AS data "
+                        "FROM t LEFT OUTER JOIN c ON t.category = c.category "
+                        "UNION ALL "
+                        "SELECT "
+                        "    c.uuid AS uuid, "
+                        "    ifnull(c.category, t.category) AS category, "
+                        "    ifnull(t.count, 0) AS count, "
+                        "    c.data AS data "
+                        "FROM c LEFT OUTER JOIN t ON t.category = c.category WHERE t.category IS NULL");
+    if (!prepareAndExecQuery(query, queryString)) {
         emit error(query.lastError().text());
         return false;
     }
-    query.addBindValue(begin.toTime_t());
-    query.addBindValue(end.toTime_t());
 
-    QSet<QString> result;
-
-    if (!query.exec()) {
-        qCCritical(HISTORY_WORKER_CATEGORY) << "Fail to execute query:" << query.lastError().text()
-                                            << query.executedQuery() << query.boundValues();
-        emit error(query.lastError().text());
-        return false;
-    }
+    QMap<QString, TimeLogCategory> resultData;
+    QHash<QString, int> resultRecordsCount;
+    qlonglong size = 0;
 
     while (query.next()) {
-        result.insert(query.value(0).toString());
+        TimeLogCategory category;
+
+        if (!query.value(0).isNull()) {
+            category.uuid = QUuid::fromRfc4122(query.value(0).toByteArray());
+        }   // Entry-only category has null uuid
+
+        category.name = query.value(1).toString();
+
+        int count = query.value(2).toInt();
+
+        if (!query.value(3).isNull()) {
+            QByteArray jsonString = query.value(3).toByteArray();
+            QJsonParseError parseError;
+            QJsonDocument document = QJsonDocument::fromJson(jsonString, &parseError);
+            if (parseError.error != QJsonParseError::NoError) {
+                qCCritical(HISTORY_WORKER_CATEGORY) << "Fail to parse category data JSON:"
+                                                    << jsonString << "error at offset"
+                                                    << parseError.offset
+                                                    << parseError.errorString() << parseError.error;
+                emit error(parseError.errorString());
+                return false;
+            }
+            category.data = document.object().toVariantMap();
+        }
+
+        resultData.insert(category.name, category);
+        resultRecordsCount.insert(category.name, count);
+
+        size += count;
     }
 
     query.finish();
 
-    m_categorySet.swap(result);
-    m_categoryTree = parseCategories(m_categorySet);
+    m_categories.swap(resultData);
+    m_categoryRecordsCount.swap(resultRecordsCount);
 
-    emit categoriesChanged(m_categoryTree);
+    setSize(size);
+
+    updateCategories();
 
     return true;
 }
 
-QSharedPointer<TimeLogCategory> TimeLogHistoryWorker::parseCategories(const QSet<QString> &categories) const
+void TimeLogHistoryWorker::updateCategories()
 {
-    QStringList categoriesList = categories.toList();
-    std::sort(categoriesList.begin(), categoriesList.end());
+    m_categoryTree = parseCategories(m_categories.keys());
 
-    TimeLogCategory *rootCategory = new TimeLogCategory("RootCategory");
+    emit categoriesChanged(m_categoryTree);
+}
 
-    foreach (const QString &category, categoriesList) {
+QSharedPointer<TimeLogCategoryTreeNode> TimeLogHistoryWorker::parseCategories(const QStringList &categories) const
+{
+    TimeLogCategoryTreeNode *rootCategory = new TimeLogCategoryTreeNode("RootCategory");
+
+    for (const QString &category: categories) {
         QStringList categoryFields = category.split(m_categorySplitRegexp, QString::SkipEmptyParts);
-        TimeLogCategory *parentCategory = rootCategory;
-        foreach (const QString &categoryField, categoryFields) {
-            TimeLogCategory *categoryObject = parentCategory->children().value(categoryField);
+        TimeLogCategoryTreeNode *parentCategory = rootCategory;
+        for (const QString &categoryField: categoryFields) {
+            TimeLogCategoryTreeNode *categoryObject = parentCategory->children().value(categoryField);
             if (!categoryObject) {
-                categoryObject = new TimeLogCategory(categoryField, parentCategory);
+                categoryObject = new TimeLogCategoryTreeNode(categoryField, parentCategory);
+                QString fullName(categoryObject->fullName());
+                categoryObject->category = m_categories.value(categoryObject->fullName());
+                categoryObject->hasItems = m_categoryRecordsCount.value(fullName) > 0;
             }
             parentCategory = categoryObject;
         }
     }
 
-    return QSharedPointer<TimeLogCategory>(rootCategory);
+    return QSharedPointer<TimeLogCategoryTreeNode>(rootCategory);
 }
 
 QByteArray TimeLogHistoryWorker::calcHash(const QDateTime &begin, const QDateTime &end) const
@@ -1579,7 +2162,13 @@ QByteArray TimeLogHistoryWorker::calcHash(const QDateTime &begin, const QDateTim
                         "    SELECT mtime, uuid FROM timelog "
                         "    WHERE (mtime BETWEEN :mBegin AND :mEnd) "
                         "UNION ALL "
-                        "    SELECT mtime, uuid FROM removed "
+                        "    SELECT mtime, uuid FROM timelog_removed "
+                        "    WHERE (mtime BETWEEN :mBegin AND :mEnd) "
+                        "UNION ALL "
+                        "    SELECT mtime, uuid FROM categories "
+                        "    WHERE (mtime BETWEEN :mBegin AND :mEnd) "
+                        "UNION ALL "
+                        "    SELECT mtime, uuid FROM categories_removed "
                         "    WHERE (mtime BETWEEN :mBegin AND :mEnd) "
                         ") "
                         "SELECT * FROM result ORDER BY mtime ASC, uuid ASC");

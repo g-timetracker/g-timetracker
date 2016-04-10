@@ -3,7 +3,8 @@
 
 #include <QObject>
 
-#include "TimeLogSyncData.h"
+#include "TimeLogSyncDataEntry.h"
+#include "TimeLogSyncDataCategory.h"
 
 class QStateMachine;
 class QState;
@@ -30,12 +31,13 @@ public slots:
     void start(bool isRecalcHashes, const QDateTime &maxMonth = QDateTime());
 
 private slots:
-    void sourceDataAvailable(QVector<TimeLogSyncData> data, QDateTime until);
+    void sourceDataAvailable(QVector<TimeLogSyncDataEntry> entryData,
+                             QVector<TimeLogSyncDataCategory> categoryData, QDateTime until);
     void sourceHashesAvailable(QMap<QDateTime, QByteArray> hashes);
 
     void destinationHashesAvailable(QMap<QDateTime, QByteArray> hashes);
-    void destinationDataSynced(QVector<TimeLogSyncData> updatedData,
-                               QVector<TimeLogSyncData> removedData);
+    void destinationDataSynced(QVector<TimeLogSyncDataEntry> updatedData,
+                               QVector<TimeLogSyncDataEntry> removedData);
     void destinationHashesUpdated();
 
     void dbSynced();

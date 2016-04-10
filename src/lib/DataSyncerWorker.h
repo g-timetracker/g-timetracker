@@ -51,13 +51,24 @@ private slots:
     void historyDataUpdated(QVector<TimeLogEntry> data, QVector<TimeLogHistory::Fields> fields);
     void historyDataInserted(const TimeLogEntry &data);
     void historyDataRemoved(const TimeLogEntry &data);
-    void syncDataAvailable(QVector<TimeLogSyncData> data, QDateTime until);
+    void historyCategoriesChanged(QSharedPointer<TimeLogCategoryTreeNode> categories);
+    void syncDataAvailable(QVector<TimeLogSyncDataEntry> entryData,
+                           QVector<TimeLogSyncDataCategory> categoryData, QDateTime until);
     void syncDataAmountAvailable(qlonglong size, QDateTime maxMTime, QDateTime mBegin, QDateTime mEnd);
-    void syncStatsAvailable(QVector<TimeLogSyncData> removedOld, QVector<TimeLogSyncData> removedNew,
-                            QVector<TimeLogSyncData> insertedOld, QVector<TimeLogSyncData> insertedNew,
-                            QVector<TimeLogSyncData> updatedOld, QVector<TimeLogSyncData> updatedNew) const;
-    void syncDataSynced(QVector<TimeLogSyncData> updatedData,
-                        QVector<TimeLogSyncData> removedData);
+    void syncEntryStatsAvailable(QVector<TimeLogSyncDataEntry> removedOld,
+                                 QVector<TimeLogSyncDataEntry> removedNew,
+                                 QVector<TimeLogSyncDataEntry> insertedOld,
+                                 QVector<TimeLogSyncDataEntry> insertedNew,
+                                 QVector<TimeLogSyncDataEntry> updatedOld,
+                                 QVector<TimeLogSyncDataEntry> updatedNew) const;
+    void syncCategoryStatsAvailable(QVector<TimeLogSyncDataCategory> removedOld,
+                                    QVector<TimeLogSyncDataCategory> removedNew,
+                                    QVector<TimeLogSyncDataCategory> addedOld,
+                                    QVector<TimeLogSyncDataCategory> addedNew,
+                                    QVector<TimeLogSyncDataCategory> updatedOld,
+                                    QVector<TimeLogSyncDataCategory> updatedNew) const;
+    void syncDataSynced(QVector<TimeLogSyncDataEntry> updatedData,
+                        QVector<TimeLogSyncDataEntry> removedData);
     void syncFinished();
 
     void packImported(QDateTime latestMTime);
@@ -79,19 +90,25 @@ private:
                    bool isRemoveSource);
     bool copyFile(const QString &source, const QString &destination, bool isOverwrite,
                   bool isRemoveSource) const;
-    bool exportFile(const QVector<TimeLogSyncData> &data);
+    bool exportFile(const QVector<TimeLogSyncDataEntry> &entryData,
+                    const QVector<TimeLogSyncDataCategory> &categoryData);
     void importCurrentItem();
     void importFile(const QString &path);
     bool parseFile(const QString &path,
-                   QVector<TimeLogSyncData> &updatedData,
-                   QVector<TimeLogSyncData> &removedData) const;
+                   QVector<TimeLogSyncDataEntry> &updatedData,
+                   QVector<TimeLogSyncDataEntry> &removedData,
+                   QVector<TimeLogSyncDataCategory> &categoryData) const;
     void importPack(const QString &path);
     void processCurrentItemImported();
     void exportPack();
-    QString formatSyncChange(const TimeLogSyncData &oldData, const TimeLogSyncData &newData) const;
+    QString formatSyncEntryChange(const TimeLogSyncDataEntry &oldData,
+                                  const TimeLogSyncDataEntry &newData) const;
+    QString formatSyncCategoryChange(const TimeLogSyncDataCategory &oldData,
+                                     const TimeLogSyncDataCategory &newData) const;
     QDateTime maxPackPeriodStart() const;
     bool removeOldFiles(const QString &packName);
-    void addCachedSyncChanges(int count = 1);
+    void addCachedSyncChange();
+    void addCachedSyncChanges(int count);
     void checkCachedSyncChanges();
 
     bool m_isInitialized;

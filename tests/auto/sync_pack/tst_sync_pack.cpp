@@ -4,7 +4,7 @@
 
 #include "tst_common.h"
 #include "DataSyncer.h"
-#include "TimeLogCategory.h"
+#include "TimeLogCategoryTreeNode.h"
 
 QLoggingCategory::CategoryFilter oldCategoryFilter;
 
@@ -43,11 +43,14 @@ const QRegularExpression syncFileNameRegexp(syncFileNamePattern);
 const QString packFileNamePattern = QString("^%1\\.pack$").arg(fileNamePattern);
 const QRegularExpression packFileNameRegexp(packFileNamePattern);
 
-void importSyncData(TimeLogHistory *history, DataSyncer *syncer, QTemporaryDir *syncDir, const QVector<TimeLogSyncData> &data, int portionSize, bool noPack = true, const QDateTime &syncTime = QDateTime::currentDateTimeUtc())
+void importSyncData(TimeLogHistory *history, DataSyncer *syncer, QTemporaryDir *syncDir,
+                    const QVector<TimeLogSyncDataEntry> &entryData,
+                    const QVector<TimeLogSyncDataCategory> &categoryData, int portionSize,
+                    bool noPack = true, const QDateTime &syncTime = QDateTime::currentDateTimeUtc())
 {
     QSignalSpy historyErrorSpy(history, SIGNAL(error(QString)));
     QSignalSpy historyOutdateSpy(history, SIGNAL(dataOutdated()));
-    QSignalSpy historySyncSpy(history, SIGNAL(dataSynced(QVector<TimeLogSyncData>,QVector<TimeLogSyncData>)));
+    QSignalSpy historySyncSpy(history, SIGNAL(dataSynced(QVector<TimeLogSyncDataEntry>,QVector<TimeLogSyncDataEntry>)));
 
     QSignalSpy syncSpy(syncer, SIGNAL(synced()));
     QSignalSpy syncErrorSpy(syncer, SIGNAL(error(QString)));
@@ -56,19 +59,36 @@ void importSyncData(TimeLogHistory *history, DataSyncer *syncer, QTemporaryDir *
 
     syncer->setSyncPath(QUrl::fromLocalFile(syncDir->path()));
 
-    int importedSize = 0;
-    while (importedSize < data.size()) {
-        int importSize = qMin(portionSize, data.size() - importedSize);
-        QVector<TimeLogSyncData> syncPortion = data.mid(importedSize, importSize);
+    QVector<TimeLogSyncDataEntry> importEntryData(entryData);
+    QVector<TimeLogSyncDataCategory> importCategoryData(categoryData);
 
+    int importedSize = 0;
+    int totalSize = entryData.size() + categoryData.size();
+    while (importedSize < totalSize) {
+        int currentPortionSize = qMin(portionSize, totalSize - importedSize);
+        QVector<TimeLogSyncDataEntry> updatedPortion, removedPortion;
+        QVector<TimeLogSyncDataCategory> categoryPortion;
+        for (int i = 0; i < currentPortionSize; i++) {
+            if (!importEntryData.isEmpty()
+                && (importCategoryData.isEmpty()
+                    || importEntryData.constFirst().sync.mTime < importCategoryData.constFirst().sync.mTime)) {
+                const TimeLogSyncDataEntry &entry = importEntryData.takeFirst();
+                if (entry.entry.isValid()) {
+                    updatedPortion.append(entry);
+                } else {
+                    removedPortion.append(entry);
+                }
+            } else {
+                categoryPortion.append(importCategoryData.takeFirst());
+            }
+        }
         historySyncSpy.clear();
-        history->sync(syncPortion, QVector<TimeLogSyncData>());
+        history->sync(updatedPortion, removedPortion, categoryPortion);
         QVERIFY(historySyncSpy.wait());
         QVERIFY(historyErrorSpy.isEmpty());
         QVERIFY(historyOutdateSpy.isEmpty());
 
-        importedSize += importSize;
-        QCOMPARE(history->size(), importedSize);
+        importedSize += currentPortionSize;
 
         syncSpy.clear();
         syncer->sync(syncTime);
@@ -78,7 +98,7 @@ void importSyncData(TimeLogHistory *history, DataSyncer *syncer, QTemporaryDir *
         QVERIFY(historyOutdateSpy.isEmpty());
     }
 
-    if (data.isEmpty()) {
+    if (entryData.isEmpty() && categoryData.isEmpty()) {
         syncSpy.clear();
         syncer->sync(syncTime);
         QVERIFY(syncSpy.wait());
@@ -98,7 +118,7 @@ void importSyncData(TimeLogHistory *history, DataSyncer *syncer, QTemporaryDir *
         QVERIFY(historyOutdateSpy.isEmpty());
     }
 
-    checkFunction(checkDB, history, data);
+    checkFunction(checkDB, history, entryData, categoryData);
 }
 
 QFileInfoList buildFileList(const QString &path, bool isRecursive = false,
@@ -129,7 +149,7 @@ QFileInfoList buildFileList(const QString &path, bool isRecursive = false,
     return result;
 }
 
-QVector<QDateTime> mTimeList(const QFileInfoList &infoList, const QRegularExpression &regexp)
+QVector<QDateTime> mTimeFileList(const QFileInfoList &infoList, const QRegularExpression &regexp)
 {
     QVector<QDateTime> result;
 
@@ -145,20 +165,55 @@ QVector<QDateTime> mTimeList(const QFileInfoList &infoList, const QRegularExpres
     return result;
 }
 
-QVector<QDateTime> syncMTimeList(const QString &path)
+QVector<QDateTime> syncMTimeFileList(const QString &path)
 {
-    return mTimeList(buildFileList(path, false, QStringList() << "*.sync"), syncFileNameRegexp);
+    return mTimeFileList(buildFileList(path, false, QStringList() << "*.sync"), syncFileNameRegexp);
 }
 
-void checkSyncFolder(const QString &path, const QVector<TimeLogSyncData> &data, int syncPortion)
+QVector<TimeLogSyncDataBase> syncDataBase(const QVector<TimeLogSyncDataEntry> &entryData,
+                                          const QVector<TimeLogSyncDataCategory> &categoryData)
 {
-    QVector<QDateTime> mTimes;
-
-    for (int i = syncPortion - 1; i < data.size(); i += syncPortion) {
-        mTimes.append(data.at(i).mTime);
+    QVector<TimeLogSyncDataEntry> importEntryData(entryData);
+    QVector<TimeLogSyncDataCategory> importCategoryData(categoryData);
+    QVector<TimeLogSyncDataBase> result;
+    int totalSize = importEntryData.size() + importCategoryData.size();
+    for (int i = 0; i < totalSize; i++) {
+        if (!importEntryData.isEmpty()
+            && (importCategoryData.isEmpty()
+                || importEntryData.constFirst().sync.mTime < importCategoryData.constFirst().sync.mTime)) {
+            result.append(importEntryData.takeFirst().sync);
+        } else {
+            result.append(importCategoryData.takeFirst().sync);
+        }
     }
 
-    QCOMPARE(syncMTimeList(path), mTimes);
+    return result;
+}
+
+QVector<QDateTime> syncMTimeList(const QVector<TimeLogSyncDataEntry> &entryData,
+                                 const QVector<TimeLogSyncDataCategory> &categoryData,
+                                 int syncPortion, const QDateTime &maxPacked)
+{
+    QVector<TimeLogSyncDataBase> syncData(syncDataBase(entryData, categoryData));
+
+    QVector<QDateTime> result;
+    for (int stepSize = qMin(syncPortion, syncData.size()), i = stepSize - 1;
+         i >= 0 && i < syncData.size();
+         stepSize = qMin(syncPortion, syncData.size() - i), i += stepSize) {
+        if (maxPacked.isNull() || syncData.at(i).mTime > maxPacked) {
+            result.append(syncData.at(i).mTime);
+        }
+    }
+    std::sort(result.begin(), result.end());
+    result.erase(std::unique(result.begin(), result.end()), result.end());
+
+    return result;
+}
+
+void checkSyncFolder(const QString &path, const QVector<TimeLogSyncDataEntry> &entryData,
+                     const QVector<TimeLogSyncDataCategory> &categoryData, int syncPortion)
+{
+    QCOMPARE(syncMTimeFileList(path), syncMTimeList(entryData, categoryData, syncPortion, QDateTime()));
 }
 
 void checkPackHashes(const QString &path, const QString &file)
@@ -168,38 +223,32 @@ void checkPackHashes(const QString &path, const QString &file)
     checkHashesUpdated(pack.data(), true);
 }
 
-void checkPackFolder(const QString &path, const QVector<TimeLogSyncData> &data, int syncPortion,
+void checkPackFolder(const QString &path, const QVector<TimeLogSyncDataEntry> &entryData,
+                     const QVector<TimeLogSyncDataCategory> &categoryData, int syncPortion,
                      const QDateTime &maxPacked, const QVector<QDateTime> &notPacked = QVector<QDateTime>())
 {
     QVector<QDateTime> mTimes(notPacked);
-
-    QDateTime packMTime;
-
-    for (int stepSize = qMin(syncPortion, data.size()), i = stepSize - 1;
-         i >= 0 && i < data.size();
-         stepSize = qMin(syncPortion, data.size() - i), i += stepSize) {
-        if (data.at(i).mTime > maxPacked) {
-            mTimes.append(data.at(i).mTime);
-        }
-    }
+    mTimes.erase(std::unique(mTimes.begin(), mTimes.end()), mTimes.end());
+    mTimes += syncMTimeList(entryData, categoryData, syncPortion, maxPacked);
     std::sort(mTimes.begin(), mTimes.end());
+    QCOMPARE(syncMTimeFileList(path), mTimes);
 
-    for (const TimeLogSyncData &entry: data) {
-        if (entry.mTime <= maxPacked) {
-            packMTime = entry.mTime;
+    QVector<TimeLogSyncDataBase> syncData(syncDataBase(entryData, categoryData));
+    QDateTime packMTime;
+    for (const TimeLogSyncDataBase &item: syncData) {
+        if (item.mTime <= maxPacked) {
+            packMTime = item.mTime;
         } else {
             break;
         }
     }
-
-    QCOMPARE(syncMTimeList(path), mTimes);
 
     QFileInfoList packList(buildFileList(path, false, QStringList() << "*.pack"));
     for (const QFileInfo &fileInfo: packList) {
         checkPackHashes(path, fileInfo.fileName());
     }
 
-    QCOMPARE(mTimeList(packList, packFileNameRegexp),
+    QCOMPARE(mTimeFileList(packList, packFileNameRegexp),
              packMTime.isValid() ? QVector<QDateTime>() << packMTime : QVector<QDateTime>());
 }
 
@@ -320,8 +369,9 @@ void tst_SyncPack::initTestCase()
     qRegisterMetaType<QVector<TimeLogEntry> >();
     qRegisterMetaType<TimeLogHistory::Fields>();
     qRegisterMetaType<QVector<TimeLogHistory::Fields> >();
-    qRegisterMetaType<QVector<TimeLogSyncData> >();
-    qRegisterMetaType<QSharedPointer<TimeLogCategory> >();
+    qRegisterMetaType<QVector<TimeLogSyncDataEntry> >();
+    qRegisterMetaType<QVector<TimeLogSyncDataCategory> >();
+    qRegisterMetaType<QSharedPointer<TimeLogCategoryTreeNode> >();
     qRegisterMetaType<QMap<QDateTime,QByteArray> >();
 
     oldCategoryFilter = QLoggingCategory::installFilter(nullptr);
@@ -336,9 +386,13 @@ void tst_SyncPack::cleanupTestCase()
 void tst_SyncPack::pack()
 {
     QFETCH(int, entriesCount);
+    QFETCH(int, categoriesCount);
 
-    QVector<TimeLogEntry> origData(defaultData().mid(0, entriesCount));
-    QVector<TimeLogSyncData> origSyncData(genSyncData(origData, defaultMTimes()));
+    QVector<TimeLogEntry> origEntries(defaultEntries().mid(0, entriesCount));
+    QVector<TimeLogCategory> origCategories(defaultCategories().mid(0, categoriesCount));
+
+    QVector<TimeLogSyncDataEntry> origSyncEntries(genSyncData(origEntries, defaultMTimes()));
+    QVector<TimeLogSyncDataCategory> origSyncCategories(genSyncData(origCategories, defaultMTimes()));
 
     QSignalSpy syncSpy1(syncer1, SIGNAL(synced()));
     QSignalSpy syncSpy2(syncer2, SIGNAL(synced()));
@@ -353,9 +407,9 @@ void tst_SyncPack::pack()
     QFETCH(int, syncPortion);
     QFETCH(QDateTime, syncStart);
 
-    checkFunction(importSyncData, history1, syncer1, syncDir1, origSyncData, syncPortion, true);
+    checkFunction(importSyncData, history1, syncer1, syncDir1, origSyncEntries, origSyncCategories, syncPortion, true);
 
-    checkFunction(checkSyncFolder, QDir(dataDir1->path()).filePath("sync"), origSyncData, syncPortion);
+    checkFunction(checkSyncFolder, QDir(dataDir1->path()).filePath("sync"), origSyncEntries, origSyncCategories, syncPortion);
 
     // Pack
     syncSpy1.clear();
@@ -366,8 +420,8 @@ void tst_SyncPack::pack()
     QVERIFY(historyErrorSpy1.isEmpty());
     QVERIFY(historyOutdateSpy1.isEmpty());
 
-    checkFunction(checkPackFolder, QDir(dataDir1->path()).filePath("sync"), origSyncData, syncPortion,
-                  monthStart(syncStart).addMSecs(-1));
+    checkFunction(checkPackFolder, QDir(dataDir1->path()).filePath("sync"), origSyncEntries,
+                  origSyncCategories, syncPortion, monthStart(syncStart).addMSecs(-1));
 
     // Sync 2 [in]
     syncer2->setSyncPath(QUrl::fromLocalFile(syncDir1->path()));
@@ -377,10 +431,11 @@ void tst_SyncPack::pack()
     QVERIFY(historyErrorSpy2.isEmpty());
     QVERIFY(historyOutdateSpy2.isEmpty());
 
-    checkFunction(checkDB, history2, origData);
-    checkFunction(checkDB, history2, origSyncData);
-    checkFunction(checkPackFolder, QDir(dataDir2->path()).filePath("sync"), origSyncData, syncPortion,
-                  monthStart(syncStart).addMSecs(-1));
+    checkFunction(checkDB, history2, origEntries);
+    checkFunction(checkDB, history2, origCategories);
+    checkFunction(checkDB, history2, origSyncEntries, origSyncCategories);
+    checkFunction(checkPackFolder, QDir(dataDir2->path()).filePath("sync"), origSyncEntries,
+                  origSyncCategories, syncPortion, monthStart(syncStart).addMSecs(-1));
 
     // Sync 1 [in]
     syncer1->setSyncPath(QUrl::fromLocalFile(syncDir1->path()));
@@ -390,57 +445,84 @@ void tst_SyncPack::pack()
     QVERIFY(historyErrorSpy1.isEmpty());
     QVERIFY(historyOutdateSpy1.isEmpty());
 
-    checkFunction(checkDB, history1, origData);
-    checkFunction(checkDB, history1, origSyncData);
-    checkFunction(checkPackFolder, QDir(dataDir1->path()).filePath("sync"), origSyncData, syncPortion,
-                  monthStart(syncStart).addMSecs(-1));
+    checkFunction(checkDB, history1, origEntries);
+    checkFunction(checkDB, history1, origCategories);
+    checkFunction(checkDB, history1, origSyncEntries, origSyncCategories);
+    checkFunction(checkPackFolder, QDir(dataDir1->path()).filePath("sync"), origSyncEntries,
+                  origSyncCategories, syncPortion, monthStart(syncStart).addMSecs(-1));
 }
 
 void tst_SyncPack::pack_data()
 {
     QTest::addColumn<int>("entriesCount");
+    QTest::addColumn<int>("categoriesCount");
     QTest::addColumn<int>("syncPortion");
     QTest::addColumn<QDateTime>("syncStart");
 
-    QTest::newRow("empty, pack 0") << 0 << 1 << QDateTime(QDate(2015, 11, 10), QTime(), Qt::UTC);
-    QTest::newRow("1 entry, pack 0") << 1 << 1 << QDateTime(QDate(2015, 11, 10), QTime(), Qt::UTC);
-    QTest::newRow("1 entry, pack 1") << 1 << 1 << QDateTime(QDate(2015, 12, 10), QTime(), Qt::UTC);
-    QTest::newRow("1 entry, pack 1 -1 ms") << 1 << 1 << QDateTime(QDate(2015, 12, 01), QTime(), Qt::UTC).addMSecs(-1);
-    QTest::newRow("1 entry, pack 1 +1 ms") << 1 << 1 << QDateTime(QDate(2015, 12, 01), QTime(), Qt::UTC).addMSecs(1);
-    QTest::newRow("2 entries by 1, pack 0") << 2 << 1 << QDateTime(QDate(2015, 11, 10), QTime(), Qt::UTC);
-    QTest::newRow("2 entries by 1, pack 2") << 2 << 1 << QDateTime(QDate(2015, 12, 10), QTime(), Qt::UTC);
-    QTest::newRow("2 entries by 2, pack 2") << 2 << 2 << QDateTime(QDate(2015, 12, 10), QTime(), Qt::UTC);
-    QTest::newRow("2 entries by 1, pack 2 -1 ms") << 2 << 1 << QDateTime(QDate(2015, 12, 01), QTime(), Qt::UTC).addMSecs(-1);
-    QTest::newRow("2 entries by 1, pack 2 +1 ms") << 2 << 1 << QDateTime(QDate(2015, 12, 01), QTime(), Qt::UTC).addMSecs(1);
-    QTest::newRow("2 entries by 2, pack 2 -1 ms") << 2 << 2 << QDateTime(QDate(2015, 12, 01), QTime(), Qt::UTC).addMSecs(-1);
-    QTest::newRow("2 entries by 2, pack 2 +1 ms") << 2 << 2 << QDateTime(QDate(2015, 12, 01), QTime(), Qt::UTC).addMSecs(1);
-    QTest::newRow("4 entries by 1, pack 0") << 4 << 1 << QDateTime(QDate(2015, 11, 10), QTime(), Qt::UTC);
-    QTest::newRow("4 entries by 1, pack 2") << 4 << 1 << QDateTime(QDate(2015, 12, 10), QTime(), Qt::UTC);
-    QTest::newRow("4 entries by 1, pack 4") << 4 << 1 << QDateTime(QDate(2016, 01, 10), QTime(), Qt::UTC);
-    QTest::newRow("4 entries by 2, pack 4") << 4 << 2 << QDateTime(QDate(2016, 01, 10), QTime(), Qt::UTC);
-    QTest::newRow("4 entries by 4, pack 4") << 4 << 4 << QDateTime(QDate(2016, 01, 10), QTime(), Qt::UTC);
-    QTest::newRow("4 entries by 1, pack 4 -1 ms") << 4 << 1 << QDateTime(QDate(2016, 01, 01), QTime(), Qt::UTC).addMSecs(-1);
-    QTest::newRow("4 entries by 1, pack 4 +1 ms") << 4 << 1 << QDateTime(QDate(2016, 01, 01), QTime(), Qt::UTC).addMSecs(1);
-    QTest::newRow("4 entries by 4, pack 4 -1 ms") << 4 << 4 << QDateTime(QDate(2016, 01, 01), QTime(), Qt::UTC).addMSecs(-1);
-    QTest::newRow("4 entries by 4, pack 4 +1 ms") << 4 << 4 << QDateTime(QDate(2016, 01, 01), QTime(), Qt::UTC).addMSecs(1);
-    QTest::newRow("6 entries by 1, pack 0") << 6 << 1 << QDateTime(QDate(2015, 11, 10), QTime(), Qt::UTC);
-    QTest::newRow("6 entries by 1, pack 2") << 6 << 1 << QDateTime(QDate(2015, 12, 10), QTime(), Qt::UTC);
-    QTest::newRow("6 entries by 1, pack 6") << 6 << 1 << QDateTime(QDate(2016, 01, 10), QTime(), Qt::UTC);
-    QTest::newRow("6 entries by 2, pack 6") << 6 << 2 << QDateTime(QDate(2016, 01, 10), QTime(), Qt::UTC);
-    QTest::newRow("6 entries by 3, pack 6") << 6 << 3 << QDateTime(QDate(2016, 01, 10), QTime(), Qt::UTC);
-    QTest::newRow("6 entries by 6, pack 6") << 6 << 3 << QDateTime(QDate(2016, 01, 10), QTime(), Qt::UTC);
-    QTest::newRow("6 entries by 1, pack 6 -1 ms") << 6 << 1 << QDateTime(QDate(2016, 01, 01), QTime(), Qt::UTC).addMSecs(-1);
-    QTest::newRow("6 entries by 1, pack 6 +1 ms") << 6 << 1 << QDateTime(QDate(2016, 01, 01), QTime(), Qt::UTC).addMSecs(1);
-    QTest::newRow("6 entries by 6, pack 6 -1 ms") << 6 << 6 << QDateTime(QDate(2016, 01, 01), QTime(), Qt::UTC).addMSecs(-1);
-    QTest::newRow("6 entries by 6, pack 6 +1 ms") << 6 << 6 << QDateTime(QDate(2016, 01, 01), QTime(), Qt::UTC).addMSecs(1);
+    auto addTest = [](int size, int syncPortion, int packCount, const QDateTime &syncStart,
+            const QString &info)
+    {
+        QTest::newRow(QString("%1 entries by %2, pack %3%4").arg(size).arg(syncPortion)
+                      .arg(packCount).arg(info.isEmpty() ? "" : " " + info).toLocal8Bit())
+                << size << 0 << syncPortion << syncStart;
+
+        QTest::newRow(QString("%1 categories by %2, pack %3%4").arg(size).arg(syncPortion)
+                      .arg(packCount).arg(info.isEmpty() ? "" : " " + info).toLocal8Bit())
+                << 0 << size << syncPortion << syncStart;
+
+        QTest::newRow(QString("%1 entries, %1 categories by %2, pack %3%4").arg(size)
+                      .arg(syncPortion * 2).arg(packCount * 2)
+                      .arg(info.isEmpty() ? "" : " " + info).toLocal8Bit())
+                << size << size << syncPortion * 2 << syncStart;
+    };
+
+    addTest(0, 1, 0, QDateTime(QDate(2015, 11, 10), QTime(), Qt::UTC), "empty");
+
+    addTest(1, 1, 0, QDateTime(QDate(2015, 11, 10), QTime(), Qt::UTC), "");
+    addTest(1, 1, 1, QDateTime(QDate(2015, 12, 10), QTime(), Qt::UTC), "");
+    addTest(1, 1, 1, QDateTime(QDate(2015, 12, 10), QTime(), Qt::UTC).addMSecs(-1), "-1 ms");
+    addTest(1, 1, 1, QDateTime(QDate(2015, 12, 10), QTime(), Qt::UTC).addMSecs(1), "+1 ms");
+
+    addTest(2, 1, 0, QDateTime(QDate(2015, 11, 10), QTime(), Qt::UTC), "");
+    addTest(2, 1, 2, QDateTime(QDate(2015, 12, 10), QTime(), Qt::UTC), "");
+    addTest(2, 2, 2, QDateTime(QDate(2015, 12, 10), QTime(), Qt::UTC), "");
+    addTest(2, 1, 2, QDateTime(QDate(2015, 12, 10), QTime(), Qt::UTC).addMSecs(-1), "-1 ms");
+    addTest(2, 1, 2, QDateTime(QDate(2015, 12, 10), QTime(), Qt::UTC).addMSecs(1), "+1 ms");
+    addTest(2, 2, 2, QDateTime(QDate(2015, 12, 10), QTime(), Qt::UTC).addMSecs(-1), "-1 ms");
+    addTest(2, 2, 2, QDateTime(QDate(2015, 12, 10), QTime(), Qt::UTC).addMSecs(1), "+1 ms");
+
+    addTest(4, 1, 0, QDateTime(QDate(2015, 11, 10), QTime(), Qt::UTC), "");
+    addTest(4, 1, 2, QDateTime(QDate(2015, 12, 10), QTime(), Qt::UTC), "");
+    addTest(4, 1, 4, QDateTime(QDate(2016, 01, 10), QTime(), Qt::UTC), "");
+    addTest(4, 2, 4, QDateTime(QDate(2016, 01, 10), QTime(), Qt::UTC), "");
+    addTest(4, 4, 4, QDateTime(QDate(2016, 01, 10), QTime(), Qt::UTC), "");
+    addTest(4, 1, 4, QDateTime(QDate(2016, 01, 10), QTime(), Qt::UTC).addMSecs(-1), "-1 ms");
+    addTest(4, 1, 4, QDateTime(QDate(2016, 01, 10), QTime(), Qt::UTC).addMSecs(1), "+1 ms");
+    addTest(4, 4, 4, QDateTime(QDate(2016, 01, 10), QTime(), Qt::UTC).addMSecs(-1), "-1 ms");
+    addTest(4, 4, 4, QDateTime(QDate(2016, 01, 10), QTime(), Qt::UTC).addMSecs(1), "+1 ms");
+
+    addTest(6, 1, 0, QDateTime(QDate(2015, 11, 10), QTime(), Qt::UTC), "");
+    addTest(6, 1, 2, QDateTime(QDate(2015, 12, 10), QTime(), Qt::UTC), "");
+    addTest(6, 1, 6, QDateTime(QDate(2016, 01, 10), QTime(), Qt::UTC), "");
+    addTest(6, 2, 6, QDateTime(QDate(2016, 01, 10), QTime(), Qt::UTC), "");
+    addTest(6, 3, 6, QDateTime(QDate(2016, 01, 10), QTime(), Qt::UTC), "");
+    addTest(6, 6, 6, QDateTime(QDate(2016, 01, 10), QTime(), Qt::UTC), "");
+    addTest(6, 1, 6, QDateTime(QDate(2016, 01, 10), QTime(), Qt::UTC).addMSecs(-1), "-1 ms");
+    addTest(6, 1, 6, QDateTime(QDate(2016, 01, 10), QTime(), Qt::UTC).addMSecs(1), "+1 ms");
+    addTest(6, 6, 6, QDateTime(QDate(2016, 01, 10), QTime(), Qt::UTC).addMSecs(-1), "-1 ms");
+    addTest(6, 6, 6, QDateTime(QDate(2016, 01, 10), QTime(), Qt::UTC).addMSecs(1), "+1 ms");
 }
 
 void tst_SyncPack::syncPack()
 {
     QFETCH(int, entriesCount);
+    QFETCH(int, categoriesCount);
 
-    QVector<TimeLogEntry> origData(defaultData().mid(0, entriesCount));
-    QVector<TimeLogSyncData> origSyncData(genSyncData(origData, defaultMTimes()));
+    QVector<TimeLogEntry> origEntries(defaultEntries().mid(0, entriesCount));
+    QVector<TimeLogCategory> origCategories(defaultCategories().mid(0, categoriesCount));
+
+    QVector<TimeLogSyncDataEntry> origSyncEntries(genSyncData(origEntries, defaultMTimes()));
+    QVector<TimeLogSyncDataCategory> origSyncCategories(genSyncData(origCategories, defaultMTimes()));
 
     QSignalSpy syncSpy1(syncer1, SIGNAL(synced()));
     QSignalSpy syncSpy2(syncer2, SIGNAL(synced()));
@@ -455,7 +537,7 @@ void tst_SyncPack::syncPack()
     QFETCH(int, syncPortion);
     QFETCH(QDateTime, syncStart);
 
-    checkFunction(importSyncData, history1, syncer1, syncDir1, origSyncData, syncPortion, false, syncStart);
+    checkFunction(importSyncData, history1, syncer1, syncDir1, origSyncEntries, origSyncCategories, syncPortion, false, syncStart);
 
     // Sync 1 [out]
     syncer1->setSyncPath(QUrl::fromLocalFile(syncDir1->path()));
@@ -465,10 +547,11 @@ void tst_SyncPack::syncPack()
     QVERIFY(historyErrorSpy1.isEmpty());
     QVERIFY(historyOutdateSpy1.isEmpty());
 
-    checkFunction(checkDB, history1, origData);
-    checkFunction(checkDB, history1, origSyncData);
-    checkFunction(checkPackFolder, QDir(dataDir1->path()).filePath("sync"), origSyncData, syncPortion,
-                  monthStart(syncStart).addMSecs(-1));
+    checkFunction(checkDB, history1, origEntries);
+    checkFunction(checkDB, history1, origCategories);
+    checkFunction(checkDB, history1, origSyncEntries, origSyncCategories);
+    checkFunction(checkPackFolder, QDir(dataDir1->path()).filePath("sync"), origSyncEntries,
+                  origSyncCategories, syncPortion, monthStart(syncStart).addMSecs(-1));
 
     // Sync 2 [in]
     syncer2->setSyncPath(QUrl::fromLocalFile(syncDir1->path()));
@@ -478,10 +561,11 @@ void tst_SyncPack::syncPack()
     QVERIFY(historyErrorSpy2.isEmpty());
     QVERIFY(historyOutdateSpy2.isEmpty());
 
-    checkFunction(checkDB, history2, origData);
-    checkFunction(checkDB, history2, origSyncData);
-    checkFunction(checkPackFolder, QDir(dataDir2->path()).filePath("sync"), origSyncData, syncPortion,
-                  monthStart(syncStart).addMSecs(-1));
+    checkFunction(checkDB, history2, origEntries);
+    checkFunction(checkDB, history2, origCategories);
+    checkFunction(checkDB, history2, origSyncEntries, origSyncCategories);
+    checkFunction(checkPackFolder, QDir(dataDir2->path()).filePath("sync"), origSyncEntries,
+                  origSyncCategories, syncPortion, monthStart(syncStart).addMSecs(-1));
 
     // Sync 1 [in]
     syncer1->setSyncPath(QUrl::fromLocalFile(syncDir1->path()));
@@ -491,57 +575,84 @@ void tst_SyncPack::syncPack()
     QVERIFY(historyErrorSpy1.isEmpty());
     QVERIFY(historyOutdateSpy1.isEmpty());
 
-    checkFunction(checkDB, history1, origData);
-    checkFunction(checkDB, history1, origSyncData);
-    checkFunction(checkPackFolder, QDir(dataDir1->path()).filePath("sync"), origSyncData, syncPortion,
-                  monthStart(syncStart).addMSecs(-1));
+    checkFunction(checkDB, history1, origEntries);
+    checkFunction(checkDB, history1, origCategories);
+    checkFunction(checkDB, history1, origSyncEntries, origSyncCategories);
+    checkFunction(checkPackFolder, QDir(dataDir1->path()).filePath("sync"), origSyncEntries,
+                  origSyncCategories, syncPortion, monthStart(syncStart).addMSecs(-1));
 }
 
 void tst_SyncPack::syncPack_data()
 {
     QTest::addColumn<int>("entriesCount");
+    QTest::addColumn<int>("categoriesCount");
     QTest::addColumn<int>("syncPortion");
     QTest::addColumn<QDateTime>("syncStart");
 
-    QTest::newRow("empty, pack 0") << 0 << 1 << QDateTime(QDate(2015, 11, 10), QTime(), Qt::UTC);
-    QTest::newRow("1 entry, pack 0") << 1 << 1 << QDateTime(QDate(2015, 11, 10), QTime(), Qt::UTC);
-    QTest::newRow("1 entry, pack 1") << 1 << 1 << QDateTime(QDate(2015, 12, 10), QTime(), Qt::UTC);
-    QTest::newRow("1 entry, pack 1 -1 ms") << 1 << 1 << QDateTime(QDate(2015, 12, 01), QTime(), Qt::UTC).addMSecs(-1);
-    QTest::newRow("1 entry, pack 1 +1 ms") << 1 << 1 << QDateTime(QDate(2015, 12, 01), QTime(), Qt::UTC).addMSecs(1);
-    QTest::newRow("2 entries by 1, pack 0") << 2 << 1 << QDateTime(QDate(2015, 11, 10), QTime(), Qt::UTC);
-    QTest::newRow("2 entries by 1, pack 2") << 2 << 1 << QDateTime(QDate(2015, 12, 10), QTime(), Qt::UTC);
-    QTest::newRow("2 entries by 2, pack 2") << 2 << 2 << QDateTime(QDate(2015, 12, 10), QTime(), Qt::UTC);
-    QTest::newRow("2 entries by 1, pack 2 -1 ms") << 2 << 1 << QDateTime(QDate(2015, 12, 01), QTime(), Qt::UTC).addMSecs(-1);
-    QTest::newRow("2 entries by 1, pack 2 +1 ms") << 2 << 1 << QDateTime(QDate(2015, 12, 01), QTime(), Qt::UTC).addMSecs(1);
-    QTest::newRow("2 entries by 2, pack 2 -1 ms") << 2 << 2 << QDateTime(QDate(2015, 12, 01), QTime(), Qt::UTC).addMSecs(-1);
-    QTest::newRow("2 entries by 2, pack 2 +1 ms") << 2 << 2 << QDateTime(QDate(2015, 12, 01), QTime(), Qt::UTC).addMSecs(1);
-    QTest::newRow("4 entries by 1, pack 0") << 4 << 1 << QDateTime(QDate(2015, 11, 10), QTime(), Qt::UTC);
-    QTest::newRow("4 entries by 1, pack 2") << 4 << 1 << QDateTime(QDate(2015, 12, 10), QTime(), Qt::UTC);
-    QTest::newRow("4 entries by 1, pack 4") << 4 << 1 << QDateTime(QDate(2016, 01, 10), QTime(), Qt::UTC);
-    QTest::newRow("4 entries by 2, pack 4") << 4 << 2 << QDateTime(QDate(2016, 01, 10), QTime(), Qt::UTC);
-    QTest::newRow("4 entries by 4, pack 4") << 4 << 4 << QDateTime(QDate(2016, 01, 10), QTime(), Qt::UTC);
-    QTest::newRow("4 entries by 1, pack 4 -1 ms") << 4 << 1 << QDateTime(QDate(2016, 01, 01), QTime(), Qt::UTC).addMSecs(-1);
-    QTest::newRow("4 entries by 1, pack 4 +1 ms") << 4 << 1 << QDateTime(QDate(2016, 01, 01), QTime(), Qt::UTC).addMSecs(1);
-    QTest::newRow("4 entries by 4, pack 4 -1 ms") << 4 << 4 << QDateTime(QDate(2016, 01, 01), QTime(), Qt::UTC).addMSecs(-1);
-    QTest::newRow("4 entries by 4, pack 4 +1 ms") << 4 << 4 << QDateTime(QDate(2016, 01, 01), QTime(), Qt::UTC).addMSecs(1);
-    QTest::newRow("6 entries by 1, pack 0") << 6 << 1 << QDateTime(QDate(2015, 11, 10), QTime(), Qt::UTC);
-    QTest::newRow("6 entries by 1, pack 2") << 6 << 1 << QDateTime(QDate(2015, 12, 10), QTime(), Qt::UTC);
-    QTest::newRow("6 entries by 1, pack 6") << 6 << 1 << QDateTime(QDate(2016, 01, 10), QTime(), Qt::UTC);
-    QTest::newRow("6 entries by 2, pack 6") << 6 << 2 << QDateTime(QDate(2016, 01, 10), QTime(), Qt::UTC);
-    QTest::newRow("6 entries by 3, pack 6") << 6 << 3 << QDateTime(QDate(2016, 01, 10), QTime(), Qt::UTC);
-    QTest::newRow("6 entries by 6, pack 6") << 6 << 3 << QDateTime(QDate(2016, 01, 10), QTime(), Qt::UTC);
-    QTest::newRow("6 entries by 1, pack 6 -1 ms") << 6 << 1 << QDateTime(QDate(2016, 01, 01), QTime(), Qt::UTC).addMSecs(-1);
-    QTest::newRow("6 entries by 1, pack 6 +1 ms") << 6 << 1 << QDateTime(QDate(2016, 01, 01), QTime(), Qt::UTC).addMSecs(1);
-    QTest::newRow("6 entries by 6, pack 6 -1 ms") << 6 << 6 << QDateTime(QDate(2016, 01, 01), QTime(), Qt::UTC).addMSecs(-1);
-    QTest::newRow("6 entries by 6, pack 6 +1 ms") << 6 << 6 << QDateTime(QDate(2016, 01, 01), QTime(), Qt::UTC).addMSecs(1);
+    auto addTest = [](int size, int syncPortion, int packCount, const QDateTime &syncStart,
+            const QString &info)
+    {
+        QTest::newRow(QString("%1 entries by %2, pack %3%4").arg(size).arg(syncPortion)
+                      .arg(packCount).arg(info.isEmpty() ? "" : " " + info).toLocal8Bit())
+                << size << 0 << syncPortion << syncStart;
+
+        QTest::newRow(QString("%1 categories by %2, pack %3%4").arg(size).arg(syncPortion)
+                      .arg(packCount).arg(info.isEmpty() ? "" : " " + info).toLocal8Bit())
+                << 0 << size << syncPortion << syncStart;
+
+        QTest::newRow(QString("%1 entries, %1 categories by %2, pack %3%4").arg(size)
+                      .arg(syncPortion * 2).arg(packCount * 2)
+                      .arg(info.isEmpty() ? "" : " " + info).toLocal8Bit())
+                << size << size << syncPortion * 2 << syncStart;
+    };
+
+    addTest(0, 1, 0, QDateTime(QDate(2015, 11, 10), QTime(), Qt::UTC), "empty");
+
+    addTest(1, 1, 0, QDateTime(QDate(2015, 11, 10), QTime(), Qt::UTC), "");
+    addTest(1, 1, 1, QDateTime(QDate(2015, 12, 10), QTime(), Qt::UTC), "");
+    addTest(1, 1, 1, QDateTime(QDate(2015, 12, 10), QTime(), Qt::UTC).addMSecs(-1), "-1 ms");
+    addTest(1, 1, 1, QDateTime(QDate(2015, 12, 10), QTime(), Qt::UTC).addMSecs(1), "+1 ms");
+
+    addTest(2, 1, 0, QDateTime(QDate(2015, 11, 10), QTime(), Qt::UTC), "");
+    addTest(2, 1, 2, QDateTime(QDate(2015, 12, 10), QTime(), Qt::UTC), "");
+    addTest(2, 2, 2, QDateTime(QDate(2015, 12, 10), QTime(), Qt::UTC), "");
+    addTest(2, 1, 2, QDateTime(QDate(2015, 12, 10), QTime(), Qt::UTC).addMSecs(-1), "-1 ms");
+    addTest(2, 1, 2, QDateTime(QDate(2015, 12, 10), QTime(), Qt::UTC).addMSecs(1), "+1 ms");
+    addTest(2, 2, 2, QDateTime(QDate(2015, 12, 10), QTime(), Qt::UTC).addMSecs(-1), "-1 ms");
+    addTest(2, 2, 2, QDateTime(QDate(2015, 12, 10), QTime(), Qt::UTC).addMSecs(1), "+1 ms");
+
+    addTest(4, 1, 0, QDateTime(QDate(2015, 11, 10), QTime(), Qt::UTC), "");
+    addTest(4, 1, 2, QDateTime(QDate(2015, 12, 10), QTime(), Qt::UTC), "");
+    addTest(4, 1, 4, QDateTime(QDate(2016, 01, 10), QTime(), Qt::UTC), "");
+    addTest(4, 2, 4, QDateTime(QDate(2016, 01, 10), QTime(), Qt::UTC), "");
+    addTest(4, 4, 4, QDateTime(QDate(2016, 01, 10), QTime(), Qt::UTC), "");
+    addTest(4, 1, 4, QDateTime(QDate(2016, 01, 10), QTime(), Qt::UTC).addMSecs(-1), "-1 ms");
+    addTest(4, 1, 4, QDateTime(QDate(2016, 01, 10), QTime(), Qt::UTC).addMSecs(1), "+1 ms");
+    addTest(4, 4, 4, QDateTime(QDate(2016, 01, 10), QTime(), Qt::UTC).addMSecs(-1), "-1 ms");
+    addTest(4, 4, 4, QDateTime(QDate(2016, 01, 10), QTime(), Qt::UTC).addMSecs(1), "+1 ms");
+
+    addTest(6, 1, 0, QDateTime(QDate(2015, 11, 10), QTime(), Qt::UTC), "");
+    addTest(6, 1, 2, QDateTime(QDate(2015, 12, 10), QTime(), Qt::UTC), "");
+    addTest(6, 1, 6, QDateTime(QDate(2016, 01, 10), QTime(), Qt::UTC), "");
+    addTest(6, 2, 6, QDateTime(QDate(2016, 01, 10), QTime(), Qt::UTC), "");
+    addTest(6, 3, 6, QDateTime(QDate(2016, 01, 10), QTime(), Qt::UTC), "");
+    addTest(6, 6, 6, QDateTime(QDate(2016, 01, 10), QTime(), Qt::UTC), "");
+    addTest(6, 1, 6, QDateTime(QDate(2016, 01, 10), QTime(), Qt::UTC).addMSecs(-1), "-1 ms");
+    addTest(6, 1, 6, QDateTime(QDate(2016, 01, 10), QTime(), Qt::UTC).addMSecs(1), "+1 ms");
+    addTest(6, 6, 6, QDateTime(QDate(2016, 01, 10), QTime(), Qt::UTC).addMSecs(-1), "-1 ms");
+    addTest(6, 6, 6, QDateTime(QDate(2016, 01, 10), QTime(), Qt::UTC).addMSecs(1), "+1 ms");
 }
 
 void tst_SyncPack::unpacked()
 {
     QFETCH(int, entriesCount);
+    QFETCH(int, categoriesCount);
 
-    QVector<TimeLogEntry> origData(defaultData().mid(0, entriesCount));
-    QVector<TimeLogSyncData> origSyncData(genSyncData(origData, defaultMTimes()));
+    QVector<TimeLogEntry> origEntries(defaultEntries().mid(0, entriesCount));
+    QVector<TimeLogCategory> origCategories(defaultCategories().mid(0, categoriesCount));
+
+    QVector<TimeLogSyncDataEntry> origSyncEntries(genSyncData(origEntries, defaultMTimes()));
+    QVector<TimeLogSyncDataCategory> origSyncCategories(genSyncData(origCategories, defaultMTimes()));
 
     QSignalSpy syncSpy1(syncer1, SIGNAL(synced()));
     QSignalSpy syncSpy2(syncer2, SIGNAL(synced()));
@@ -562,16 +673,25 @@ void tst_SyncPack::unpacked()
     QFETCH(int, syncPortion);
     QFETCH(QDateTime, syncStart);
 
-    checkFunction(importSyncData, history1, syncer1, syncDir1, origSyncData, syncPortion, false, syncStart);
+    checkFunction(importSyncData, history1, syncer1, syncDir1, origSyncEntries, origSyncCategories, syncPortion, false, syncStart);
 
-    QFETCH(TimeLogSyncData, newData);
+    QFETCH(QVector<TimeLogSyncDataEntry>, newEntries);
+    QFETCH(QVector<TimeLogSyncDataCategory>, newCategories);
 
-    checkFunction(importSyncData, history2, QVector<TimeLogSyncData>() << newData, syncPortion);
+    checkFunction(importSyncData, history2, newEntries, newCategories, syncPortion);
 
-    QVector<TimeLogEntry> updatedData(origData);
-    QVector<TimeLogSyncData> updatedSyncData(origSyncData);
-    updateDataSet(updatedData, static_cast<TimeLogEntry>(newData));
-    updateDataSet(updatedSyncData, newData);
+    QVector<TimeLogEntry> updatedEntries(origEntries);
+    QVector<TimeLogSyncDataEntry> updatedSyncEntries(origSyncEntries);
+    if (!newEntries.isEmpty()) {
+        updateDataSet(updatedEntries, newEntries.constFirst().entry);
+        updateDataSet(updatedSyncEntries, newEntries.constFirst());
+    }
+    QVector<TimeLogCategory> updatedCategories(origCategories);
+    QVector<TimeLogSyncDataCategory> updatedSyncCategories(origSyncCategories);
+    if (!newCategories.isEmpty()) {
+        updateDataSet(updatedCategories, newCategories.constFirst().category);
+        updateDataSet(updatedSyncCategories, newCategories.constFirst());
+    }
 
     // Sync 2 [out]
     syncer2->setNoPack(true);
@@ -593,11 +713,19 @@ void tst_SyncPack::unpacked()
     QVERIFY(historyOutdateSpy1.isEmpty());
 
     QDateTime maxPackedDate = monthStart(syncStart).addMSecs(-1);
+    QVector<QDateTime> unpacked;
+    if (!newEntries.isEmpty()) {
+        unpacked.append(newEntries.constFirst().sync.mTime);
+    }
+    if (!newCategories.isEmpty()) {
+        unpacked.append(newCategories.constFirst().sync.mTime);
+    }
 
-    checkFunction(checkDB, history1, updatedData);
-    checkFunction(checkDB, history1, updatedSyncData);
-    checkFunction(checkPackFolder, QDir(dataDir1->path()).filePath("sync"), origSyncData, syncPortion,
-                  maxPackedDate, QVector<QDateTime>() << newData.mTime);
+    checkFunction(checkDB, history1, updatedEntries);
+    checkFunction(checkDB, history1, updatedCategories);
+    checkFunction(checkDB, history1, updatedSyncEntries, updatedSyncCategories);
+    checkFunction(checkPackFolder, QDir(dataDir1->path()).filePath("sync"), origSyncEntries,
+                  origSyncCategories, syncPortion, maxPackedDate, unpacked);
 
     // Sync 2 [in]
     syncer2->setNoPack(false);
@@ -609,14 +737,16 @@ void tst_SyncPack::unpacked()
     QVERIFY(historyErrorSpy2.isEmpty());
     QVERIFY(historyOutdateSpy2.isEmpty());
 
-    checkFunction(checkDB, history2, updatedData);
-    checkFunction(checkDB, history2, updatedSyncData);
+    checkFunction(checkDB, history2, updatedEntries);
+    checkFunction(checkDB, history2, updatedCategories);
+    checkFunction(checkDB, history2, updatedSyncEntries, updatedSyncCategories);
     checkFunction(checkPackFolder,
                   QDir(dataDir2->path()).filePath("sync"),
-                  maxPackedDate < newData.mTime ? origSyncData : updatedSyncData,
+                  maxPackedDate < unpacked.constFirst() ? origSyncEntries : updatedSyncEntries,
+                  maxPackedDate < unpacked.constFirst() ? origSyncCategories : updatedSyncCategories,
                   syncPortion,
                   maxPackedDate,
-                  maxPackedDate < newData.mTime ? QVector<QDateTime>() << newData.mTime : QVector<QDateTime>());
+                  maxPackedDate < unpacked.constFirst() ? unpacked : QVector<QDateTime>());
 
     // Sync 3 [in]
     syncer3->setSyncPath(QUrl::fromLocalFile(syncDir2->path()));
@@ -626,36 +756,60 @@ void tst_SyncPack::unpacked()
     QVERIFY(historyErrorSpy3.isEmpty());
     QVERIFY(historyOutdateSpy3.isEmpty());
 
-    checkFunction(checkDB, history3, updatedData);
-    checkFunction(checkDB, history3, updatedSyncData);
+    checkFunction(checkDB, history3, updatedEntries);
+    checkFunction(checkDB, history3, updatedCategories);
+    checkFunction(checkDB, history3, updatedSyncEntries, updatedSyncCategories);
     checkFunction(checkPackFolder,
                   QDir(dataDir2->path()).filePath("sync"),
-                  maxPackedDate < newData.mTime ? origSyncData : updatedSyncData,
+                  maxPackedDate < unpacked.constFirst() ? origSyncEntries : updatedSyncEntries,
+                  maxPackedDate < unpacked.constFirst() ? origSyncCategories : updatedSyncCategories,
                   syncPortion,
                   maxPackedDate,
-                  maxPackedDate < newData.mTime ? QVector<QDateTime>() << newData.mTime : QVector<QDateTime>());
+                  maxPackedDate < unpacked.constFirst() ? unpacked : QVector<QDateTime>());
 }
 
 void tst_SyncPack::unpacked_data()
 {
     QTest::addColumn<int>("entriesCount");
+    QTest::addColumn<int>("categoriesCount");
     QTest::addColumn<int>("syncPortion");
     QTest::addColumn<QDateTime>("syncStart");
-    QTest::addColumn<TimeLogSyncData>("newData");
+
+    QTest::addColumn<QVector<TimeLogSyncDataEntry> >("newEntries");
+    QTest::addColumn<QVector<TimeLogSyncDataCategory> >("newCategories");
 
     auto addInsertTest = [](int size, int syncPortion, int packCount, int index,
                             const QDateTime &syncStart, const QDateTime &mTime, const QString &info)
     {
         TimeLogEntry entry;
-        entry.startTime = defaultData().at(index).startTime.addSecs(100);
+        entry.startTime = defaultEntries().at(index).startTime.addSecs(100);
         entry.category = "CategoryNew";
         entry.comment = "Test comment";
         entry.uuid = QUuid::createUuid();
-        TimeLogSyncData syncData = TimeLogSyncData(entry, mTime);
+        TimeLogSyncDataEntry syncEntry = TimeLogSyncDataEntry(entry, mTime);
 
-        QTest::newRow(QString("%1 entries by %2, pack %3, insert %4 %5").arg(size).arg(syncPortion)
+        QTest::newRow(QString("%1 entries by %2, pack %3, add %4 %5").arg(size).arg(syncPortion)
                       .arg(packCount).arg(index).arg(info).toLocal8Bit())
-                << size << syncPortion << syncStart << syncData;
+                << size << 0 << syncPortion << syncStart
+                << (QVector<TimeLogSyncDataEntry>() << syncEntry)
+                << QVector<TimeLogSyncDataCategory>();
+
+        TimeLogCategory category;
+        category.name = "CategoryNew";
+        category.uuid = QUuid::createUuid();
+        TimeLogSyncDataCategory syncCategory = TimeLogSyncDataCategory(category, mTime);
+
+        QTest::newRow(QString("%1 categories by %2, pack %3, add %4 %5").arg(size).arg(syncPortion)
+                      .arg(packCount).arg(index).arg(info).toLocal8Bit())
+                << 0 << size << syncPortion << syncStart
+                << QVector<TimeLogSyncDataEntry>()
+                << (QVector<TimeLogSyncDataCategory>() << syncCategory);
+
+        QTest::newRow(QString("%1 entries, %1 categories by %2, pack %3, add %4 %5").arg(size)
+                      .arg(syncPortion * 2).arg(packCount * 2).arg(index).arg(info).toLocal8Bit())
+                << size << size << (syncPortion * 2) << syncStart
+                << (QVector<TimeLogSyncDataEntry>() << syncEntry)
+                << (QVector<TimeLogSyncDataCategory>() << syncCategory);
     };
 
     auto addInsertTests = [&addInsertTest](int size, int syncPortion, int packCount, int index, const QDateTime &syncStart)
@@ -707,16 +861,33 @@ void tst_SyncPack::unpacked_data()
     auto addEditTest = [](int size, int syncPortion, int packCount, int index,
                           const QDateTime &syncStart, const QDateTime &mTime, const QString &info)
     {
-        TimeLogEntry entry = defaultData().at(index);
+        TimeLogEntry entry = defaultEntries().at(index);
         entry.startTime = entry.startTime.addSecs(100);
         entry.category = "CategoryNew";
         entry.comment = "Test comment";
-        entry.uuid = defaultData().at(index).uuid;
-        TimeLogSyncData syncData = TimeLogSyncData(entry, mTime);
+        TimeLogSyncDataEntry syncEntry = TimeLogSyncDataEntry(entry, mTime);
 
         QTest::newRow(QString("%1 entries by %2, pack %3, edit %4 %5").arg(size).arg(syncPortion)
                       .arg(packCount).arg(index).arg(info).toLocal8Bit())
-                << size << syncPortion << syncStart << syncData;
+                << size << 0 << syncPortion << syncStart
+                << (QVector<TimeLogSyncDataEntry>() << syncEntry)
+                << QVector<TimeLogSyncDataCategory>();
+
+        TimeLogCategory category = defaultCategories().at(index);
+        category.name = "CategoryNew";
+        TimeLogSyncDataCategory syncCategory = TimeLogSyncDataCategory(category, mTime);
+
+        QTest::newRow(QString("%1 categories by %2, pack %3, edit %4 %5").arg(size).arg(syncPortion)
+                      .arg(packCount).arg(index).arg(info).toLocal8Bit())
+                << 0 << size << syncPortion << syncStart
+                << QVector<TimeLogSyncDataEntry>()
+                << (QVector<TimeLogSyncDataCategory>() << syncCategory);
+
+        QTest::newRow(QString("%1 entries, %1 categories by %2, pack %3, edit %4 %5").arg(size)
+                      .arg(syncPortion * 2).arg(packCount * 2).arg(index).arg(info).toLocal8Bit())
+                << size << size << (syncPortion * 2) << syncStart
+                << (QVector<TimeLogSyncDataEntry>() << syncEntry)
+                << (QVector<TimeLogSyncDataCategory>() << syncCategory);
     };
 
     auto addEditTests = [&addEditTest](int size, int syncPortion, int packCount, int index, const QDateTime &syncStart)
@@ -763,12 +934,30 @@ void tst_SyncPack::unpacked_data()
                             const QDateTime &syncStart, const QDateTime &mTime, const QString &info)
     {
         TimeLogEntry entry;
-        entry.uuid = defaultData().at(index).uuid;
-        TimeLogSyncData syncData = TimeLogSyncData(entry, mTime);
+        entry.uuid = defaultEntries().at(index).uuid;
+        TimeLogSyncDataEntry syncEntry = TimeLogSyncDataEntry(entry, mTime);
 
         QTest::newRow(QString("%1 entries by %2, pack %3, remove %4 %5").arg(size).arg(syncPortion)
                       .arg(packCount).arg(index).arg(info).toLocal8Bit())
-                << size << syncPortion << syncStart << syncData;
+                << size << 0 << syncPortion << syncStart
+                << (QVector<TimeLogSyncDataEntry>() << syncEntry)
+                << QVector<TimeLogSyncDataCategory>();
+
+        TimeLogCategory category;
+        category.uuid = defaultCategories().at(index).uuid;
+        TimeLogSyncDataCategory syncCategory = TimeLogSyncDataCategory(category, mTime);
+
+        QTest::newRow(QString("%1 categories by %2, pack %3, remove %4 %5").arg(size).arg(syncPortion)
+                      .arg(packCount).arg(index).arg(info).toLocal8Bit())
+                << 0 << size << syncPortion << syncStart
+                << QVector<TimeLogSyncDataEntry>()
+                << (QVector<TimeLogSyncDataCategory>() << syncCategory);
+
+        QTest::newRow(QString("%1 entries, %1 categories by %2, pack %3, remove %4 %5").arg(size)
+                      .arg(syncPortion * 2).arg(packCount * 2).arg(index).arg(info).toLocal8Bit())
+                << size << size << (syncPortion * 2) << syncStart
+                << (QVector<TimeLogSyncDataEntry>() << syncEntry)
+                << (QVector<TimeLogSyncDataCategory>() << syncCategory);
     };
 
     auto addRemoveTests = [&addRemoveTest](int size, int syncPortion, int packCount, int index, const QDateTime &syncStart)
@@ -815,9 +1004,13 @@ void tst_SyncPack::unpacked_data()
 void tst_SyncPack::twoPacks()
 {
     QFETCH(int, entriesCount);
+    QFETCH(int, categoriesCount);
 
-    QVector<TimeLogEntry> origData(defaultData().mid(0, entriesCount));
-    QVector<TimeLogSyncData> origSyncData(genSyncData(origData, defaultMTimes()));
+    QVector<TimeLogEntry> origEntries(defaultEntries().mid(0, entriesCount));
+    QVector<TimeLogCategory> origCategories(defaultCategories().mid(0, categoriesCount));
+
+    QVector<TimeLogSyncDataEntry> origSyncEntries(genSyncData(origEntries, defaultMTimes()));
+    QVector<TimeLogSyncDataCategory> origSyncCategories(genSyncData(origCategories, defaultMTimes()));
 
     QSignalSpy syncSpy1(syncer1, SIGNAL(synced()));
     QSignalSpy syncSpy2(syncer2, SIGNAL(synced()));
@@ -838,20 +1031,30 @@ void tst_SyncPack::twoPacks()
     QFETCH(int, syncPortion);
     QFETCH(QDateTime, syncStart);
 
-    checkFunction(importSyncData, history1, syncer1, syncDir1, origSyncData, syncPortion, false, syncStart);
+    checkFunction(importSyncData, history1, syncer1, syncDir1, origSyncEntries, origSyncCategories, syncPortion, false, syncStart);
 
-    QFETCH(TimeLogSyncData, newData);
+    QFETCH(QVector<TimeLogSyncDataEntry>, newEntries);
+    QFETCH(QVector<TimeLogSyncDataCategory>, newCategories);
 
-    checkFunction(importSyncData, history2, QVector<TimeLogSyncData>() << newData, syncPortion);
+    checkFunction(importSyncData, history2, newEntries, newCategories, syncPortion);
 
-    updateDataSet(origData, static_cast<TimeLogEntry>(newData));
-    updateDataSet(origSyncData, newData);
+    QDateTime newDataMTime;
+    if (!newEntries.isEmpty()) {
+        updateDataSet(origEntries, newEntries.constFirst().entry);
+        updateDataSet(origSyncEntries, newEntries.constFirst());
+        newDataMTime = qMax(newDataMTime, newEntries.constFirst().sync.mTime);
+    }
+    if (!newCategories.isEmpty()) {
+        updateDataSet(origCategories, newCategories.constFirst().category);
+        updateDataSet(origSyncCategories, newCategories.constFirst());
+        newDataMTime = qMax(newDataMTime, newCategories.constFirst().sync.mTime);
+    }
 
     // Sync 2 [out]
     syncer2->setNoPack(false);
     syncSpy2.clear();
     syncer2->setSyncPath(QUrl::fromLocalFile(syncDir2->path()));
-    syncer2->sync(monthStart(newData.mTime.addMonths(1)));
+    syncer2->sync(monthStart(newDataMTime.addMonths(1)));
     QVERIFY(syncSpy2.wait());
     QVERIFY(syncErrorSpy2.isEmpty());
     QVERIFY(historyErrorSpy2.isEmpty());
@@ -866,12 +1069,14 @@ void tst_SyncPack::twoPacks()
     QVERIFY(historyErrorSpy1.isEmpty());
     QVERIFY(historyOutdateSpy1.isEmpty());
 
-    QDateTime maxPackedDate = qMax(monthStart(syncStart).addMSecs(-1), monthStart(newData.mTime.addMonths(1)).addMSecs(-1));
+    QDateTime maxPackedDate = qMax(monthStart(syncStart).addMSecs(-1),
+                                   monthStart(newDataMTime.addMonths(1)).addMSecs(-1));
 
-    checkFunction(checkDB, history1, origData);
-    checkFunction(checkDB, history1, origSyncData);
-    checkFunction(checkPackFolder, QDir(dataDir1->path()).filePath("sync"), origSyncData, syncPortion,
-                  maxPackedDate);
+    checkFunction(checkDB, history1, origEntries);
+    checkFunction(checkDB, history1, origCategories);
+    checkFunction(checkDB, history1, origSyncEntries, origSyncCategories);
+    checkFunction(checkPackFolder, QDir(dataDir1->path()).filePath("sync"), origSyncEntries,
+                  origSyncCategories, syncPortion, maxPackedDate);
 
     // Sync 2 [in]
     syncSpy2.clear();
@@ -882,10 +1087,11 @@ void tst_SyncPack::twoPacks()
     QVERIFY(historyErrorSpy2.isEmpty());
     QVERIFY(historyOutdateSpy2.isEmpty());
 
-    checkFunction(checkDB, history2, origData);
-    checkFunction(checkDB, history2, origSyncData);
-    checkFunction(checkPackFolder, QDir(dataDir2->path()).filePath("sync"), origSyncData, syncPortion,
-                  maxPackedDate);
+    checkFunction(checkDB, history2, origEntries);
+    checkFunction(checkDB, history2, origCategories);
+    checkFunction(checkDB, history2, origSyncEntries, origSyncCategories);
+    checkFunction(checkPackFolder, QDir(dataDir2->path()).filePath("sync"), origSyncEntries,
+                  origSyncCategories, syncPortion, maxPackedDate);
 
     // Sync 3 [in]
     syncer3->setSyncPath(QUrl::fromLocalFile(syncDir2->path()));
@@ -895,32 +1101,55 @@ void tst_SyncPack::twoPacks()
     QVERIFY(historyErrorSpy3.isEmpty());
     QVERIFY(historyOutdateSpy3.isEmpty());
 
-    checkFunction(checkDB, history3, origData);
-    checkFunction(checkDB, history3, origSyncData);
-    checkFunction(checkPackFolder, QDir(dataDir2->path()).filePath("sync"), origSyncData, syncPortion,
-                  maxPackedDate);
+    checkFunction(checkDB, history3, origEntries);
+    checkFunction(checkDB, history3, origCategories);
+    checkFunction(checkDB, history3, origSyncEntries, origSyncCategories);
+    checkFunction(checkPackFolder, QDir(dataDir2->path()).filePath("sync"), origSyncEntries,
+                  origSyncCategories, syncPortion, maxPackedDate);
 }
 
 void tst_SyncPack::twoPacks_data()
 {
     QTest::addColumn<int>("entriesCount");
+    QTest::addColumn<int>("categoriesCount");
     QTest::addColumn<int>("syncPortion");
     QTest::addColumn<QDateTime>("syncStart");
-    QTest::addColumn<TimeLogSyncData>("newData");
+
+    QTest::addColumn<QVector<TimeLogSyncDataEntry> >("newEntries");
+    QTest::addColumn<QVector<TimeLogSyncDataCategory> >("newCategories");
 
     auto addInsertTest = [](int size, int syncPortion, int packCount, int index,
                             const QDateTime &syncStart, const QDateTime &mTime, const QString &info)
     {
         TimeLogEntry entry;
-        entry.startTime = defaultData().at(index).startTime.addSecs(100);
+        entry.startTime = defaultEntries().at(index).startTime.addSecs(100);
         entry.category = "CategoryNew";
         entry.comment = "Test comment";
         entry.uuid = QUuid::createUuid();
-        TimeLogSyncData syncData = TimeLogSyncData(entry, mTime);
+        TimeLogSyncDataEntry syncEntry = TimeLogSyncDataEntry(entry, mTime);
 
-        QTest::newRow(QString("%1 entries by %2, pack %3, insert %4 %5").arg(size).arg(syncPortion)
+        QTest::newRow(QString("%1 entries by %2, pack %3, add %4 %5").arg(size).arg(syncPortion)
                       .arg(packCount).arg(index).arg(info).toLocal8Bit())
-                << size << syncPortion << syncStart << syncData;
+                << size << 0 << syncPortion << syncStart
+                << (QVector<TimeLogSyncDataEntry>() << syncEntry)
+                << QVector<TimeLogSyncDataCategory>();
+
+        TimeLogCategory category;
+        category.name = "CategoryNew";
+        category.uuid = QUuid::createUuid();
+        TimeLogSyncDataCategory syncCategory = TimeLogSyncDataCategory(category, mTime);
+
+        QTest::newRow(QString("%1 categories by %2, pack %3, add %4 %5").arg(size).arg(syncPortion)
+                      .arg(packCount).arg(index).arg(info).toLocal8Bit())
+                << 0 << size << syncPortion << syncStart
+                << QVector<TimeLogSyncDataEntry>()
+                << (QVector<TimeLogSyncDataCategory>() << syncCategory);
+
+        QTest::newRow(QString("%1 entries, %1 categories by %2, pack %3, add %4 %5").arg(size)
+                      .arg(syncPortion * 2).arg(packCount * 2).arg(index).arg(info).toLocal8Bit())
+                << size << size << (syncPortion * 2) << syncStart
+                << (QVector<TimeLogSyncDataEntry>() << syncEntry)
+                << (QVector<TimeLogSyncDataCategory>() << syncCategory);
     };
 
     auto addInsertTests = [&addInsertTest](int size, int syncPortion, int packCount, int index, const QDateTime &syncStart)
@@ -972,16 +1201,33 @@ void tst_SyncPack::twoPacks_data()
     auto addEditTest = [](int size, int syncPortion, int packCount, int index,
                           const QDateTime &syncStart, const QDateTime &mTime, const QString &info)
     {
-        TimeLogEntry entry = defaultData().at(index);
+        TimeLogEntry entry = defaultEntries().at(index);
         entry.startTime = entry.startTime.addSecs(100);
         entry.category = "CategoryNew";
         entry.comment = "Test comment";
-        entry.uuid = defaultData().at(index).uuid;
-        TimeLogSyncData syncData = TimeLogSyncData(entry, mTime);
+        TimeLogSyncDataEntry syncEntry = TimeLogSyncDataEntry(entry, mTime);
 
         QTest::newRow(QString("%1 entries by %2, pack %3, edit %4 %5").arg(size).arg(syncPortion)
                       .arg(packCount).arg(index).arg(info).toLocal8Bit())
-                << size << syncPortion << syncStart << syncData;
+                << size << 0 << syncPortion << syncStart
+                << (QVector<TimeLogSyncDataEntry>() << syncEntry)
+                << QVector<TimeLogSyncDataCategory>();
+
+        TimeLogCategory category = defaultCategories().at(index);
+        category.name = "CategoryNew";
+        TimeLogSyncDataCategory syncCategory = TimeLogSyncDataCategory(category, mTime);
+
+        QTest::newRow(QString("%1 categories by %2, pack %3, edit %4 %5").arg(size).arg(syncPortion)
+                      .arg(packCount).arg(index).arg(info).toLocal8Bit())
+                << 0 << size << syncPortion << syncStart
+                << QVector<TimeLogSyncDataEntry>()
+                << (QVector<TimeLogSyncDataCategory>() << syncCategory);
+
+        QTest::newRow(QString("%1 entries, %1 categories by %2, pack %3, edit %4 %5").arg(size)
+                      .arg(syncPortion * 2).arg(packCount * 2).arg(index).arg(info).toLocal8Bit())
+                << size << size << (syncPortion * 2) << syncStart
+                << (QVector<TimeLogSyncDataEntry>() << syncEntry)
+                << (QVector<TimeLogSyncDataCategory>() << syncCategory);
     };
 
     auto addEditTests = [&addEditTest](int size, int syncPortion, int packCount, int index, const QDateTime &syncStart)
@@ -1031,12 +1277,30 @@ void tst_SyncPack::twoPacks_data()
                             const QDateTime &syncStart, const QDateTime &mTime, const QString &info)
     {
         TimeLogEntry entry;
-        entry.uuid = defaultData().at(index).uuid;
-        TimeLogSyncData syncData = TimeLogSyncData(entry, mTime);
+        entry.uuid = defaultEntries().at(index).uuid;
+        TimeLogSyncDataEntry syncEntry = TimeLogSyncDataEntry(entry, mTime);
 
         QTest::newRow(QString("%1 entries by %2, pack %3, remove %4 %5").arg(size).arg(syncPortion)
                       .arg(packCount).arg(index).arg(info).toLocal8Bit())
-                << size << syncPortion << syncStart << syncData;
+                << size << 0 << syncPortion << syncStart
+                << (QVector<TimeLogSyncDataEntry>() << syncEntry)
+                << QVector<TimeLogSyncDataCategory>();
+
+        TimeLogCategory category;
+        category.uuid = defaultCategories().at(index).uuid;
+        TimeLogSyncDataCategory syncCategory = TimeLogSyncDataCategory(category, mTime);
+
+        QTest::newRow(QString("%1 categories by %2, pack %3, remove %4 %5").arg(size).arg(syncPortion)
+                      .arg(packCount).arg(index).arg(info).toLocal8Bit())
+                << 0 << size << syncPortion << syncStart
+                << QVector<TimeLogSyncDataEntry>()
+                << (QVector<TimeLogSyncDataCategory>() << syncCategory);
+
+        QTest::newRow(QString("%1 entries, %1 categories by %2, pack %3, remove %4 %5").arg(size)
+                      .arg(syncPortion * 2).arg(packCount * 2).arg(index).arg(info).toLocal8Bit())
+                << size << size << (syncPortion * 2) << syncStart
+                << (QVector<TimeLogSyncDataEntry>() << syncEntry)
+                << (QVector<TimeLogSyncDataCategory>() << syncCategory);
     };
 
     auto addRemoveTests = [&addRemoveTest](int size, int syncPortion, int packCount, int index, const QDateTime &syncStart)

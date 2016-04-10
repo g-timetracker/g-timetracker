@@ -4,7 +4,9 @@
 #include <QAbstractItemModel>
 #include <QSharedPointer>
 
-class TimeLogCategory;
+#include "TimeLogCategoryData.h"
+
+class TimeLogCategoryTreeNode;
 class TimeTracker;
 
 class TimeLogCategoryTreeModel : public QAbstractItemModel
@@ -15,7 +17,10 @@ class TimeLogCategoryTreeModel : public QAbstractItemModel
 public:
     enum Roles {
         NameRole = Qt::UserRole + 1,
-        FullNameRole
+        FullNameRole,
+        DataRole,
+        CommentRole,
+        HasItemsRole
     };
     Q_ENUM(Roles)
 
@@ -32,17 +37,21 @@ public:
     virtual QHash<int, QByteArray> roleNames() const;
     virtual Qt::ItemFlags flags(const QModelIndex &index) const;
 
+    Q_INVOKABLE void removeItem(const QModelIndex &index);
+    Q_INVOKABLE void addItem(TimeLogCategoryData data);
+    Q_INVOKABLE void editItem(const QModelIndex &index, TimeLogCategoryData data);
+
     void setTimeTracker(TimeTracker *timeTracker);
 
 signals:
     void timeTrackerChanged(TimeTracker *newTimeTracker);
 
 private slots:
-    void updateCategories(const QSharedPointer<TimeLogCategory> &categories);
+    void updateCategories(const QSharedPointer<TimeLogCategoryTreeNode> &categories);
 
 private:
     TimeTracker *m_timeTracker;
-    QSharedPointer<TimeLogCategory> m_root;
+    QSharedPointer<TimeLogCategoryTreeNode> m_root;
 };
 
 #endif // TIMELOGCATEGORYTREEMODEL_H

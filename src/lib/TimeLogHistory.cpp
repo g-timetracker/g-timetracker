@@ -16,6 +16,8 @@ TimeLogHistory::TimeLogHistory(QObject *parent) :
             this, SIGNAL(dataOutdated()));
     connect(m_worker, SIGNAL(historyRequestCompleted(QVector<TimeLogEntry>,qlonglong)),
             this, SIGNAL(historyRequestCompleted(QVector<TimeLogEntry>,qlonglong)));
+    connect(m_worker, SIGNAL(storedCategoriesAvailable(QVector<TimeLogCategory>)),
+            this, SIGNAL(storedCategoriesAvailable(QVector<TimeLogCategory>)));
     connect(m_worker, SIGNAL(dataUpdated(QVector<TimeLogEntry>,QVector<TimeLogHistory::Fields>)),
             this, SIGNAL(dataUpdated(QVector<TimeLogEntry>,QVector<TimeLogHistory::Fields>)));
     connect(m_worker, SIGNAL(dataInserted(TimeLogEntry)),
@@ -28,24 +30,44 @@ TimeLogHistory::TimeLogHistory(QObject *parent) :
             this, SLOT(workerSizeChanged(qlonglong)));
     connect(m_worker, SIGNAL(undoCountChanged(int)),
             this, SLOT(workerUndoCountChanged(int)));
-    connect(m_worker, SIGNAL(categoriesChanged(QSharedPointer<TimeLogCategory>)),
-            this, SLOT(workerCategoriesChanged(QSharedPointer<TimeLogCategory>)));
+    connect(m_worker, SIGNAL(categoriesChanged(QSharedPointer<TimeLogCategoryTreeNode>)),
+            this, SLOT(workerCategoriesChanged(QSharedPointer<TimeLogCategoryTreeNode>)));
     connect(m_worker, SIGNAL(statsDataAvailable(QVector<TimeLogStats>,QDateTime)),
             this, SIGNAL(statsDataAvailable(QVector<TimeLogStats>,QDateTime)));
-    connect(m_worker, SIGNAL(syncDataAvailable(QVector<TimeLogSyncData>,QDateTime)),
-            this, SIGNAL(syncDataAvailable(QVector<TimeLogSyncData>,QDateTime)));
+    connect(m_worker, SIGNAL(syncDataAvailable(QVector<TimeLogSyncDataEntry>,
+                                               QVector<TimeLogSyncDataCategory>,QDateTime)),
+            this, SIGNAL(syncDataAvailable(QVector<TimeLogSyncDataEntry>,
+                                           QVector<TimeLogSyncDataCategory>,QDateTime)));
     connect(m_worker, SIGNAL(syncDataAmountAvailable(qlonglong,QDateTime,QDateTime,QDateTime)),
             this, SIGNAL(syncDataAmountAvailable(qlonglong,QDateTime,QDateTime,QDateTime)));
-    connect(m_worker, SIGNAL(syncStatsAvailable(QVector<TimeLogSyncData>,QVector<TimeLogSyncData>,
-                                                QVector<TimeLogSyncData>,QVector<TimeLogSyncData>,
-                                                QVector<TimeLogSyncData>,QVector<TimeLogSyncData>)),
-            this, SIGNAL(syncStatsAvailable(QVector<TimeLogSyncData>,QVector<TimeLogSyncData>,
-                                            QVector<TimeLogSyncData>,QVector<TimeLogSyncData>,
-                                            QVector<TimeLogSyncData>,QVector<TimeLogSyncData>)));
+    connect(m_worker, SIGNAL(syncEntryStatsAvailable(QVector<TimeLogSyncDataEntry>,
+                                                     QVector<TimeLogSyncDataEntry>,
+                                                     QVector<TimeLogSyncDataEntry>,
+                                                     QVector<TimeLogSyncDataEntry>,
+                                                     QVector<TimeLogSyncDataEntry>,
+                                                     QVector<TimeLogSyncDataEntry>)),
+            this, SIGNAL(syncEntryStatsAvailable(QVector<TimeLogSyncDataEntry>,
+                                                 QVector<TimeLogSyncDataEntry>,
+                                                 QVector<TimeLogSyncDataEntry>,
+                                                 QVector<TimeLogSyncDataEntry>,
+                                                 QVector<TimeLogSyncDataEntry>,
+                                                 QVector<TimeLogSyncDataEntry>)));
+    connect(m_worker, SIGNAL(syncCategoryStatsAvailable(QVector<TimeLogSyncDataCategory>,
+                                                        QVector<TimeLogSyncDataCategory>,
+                                                        QVector<TimeLogSyncDataCategory>,
+                                                        QVector<TimeLogSyncDataCategory>,
+                                                        QVector<TimeLogSyncDataCategory>,
+                                                        QVector<TimeLogSyncDataCategory>)),
+            this, SIGNAL(syncCategoryStatsAvailable(QVector<TimeLogSyncDataCategory>,
+                                                    QVector<TimeLogSyncDataCategory>,
+                                                    QVector<TimeLogSyncDataCategory>,
+                                                    QVector<TimeLogSyncDataCategory>,
+                                                    QVector<TimeLogSyncDataCategory>,
+                                                    QVector<TimeLogSyncDataCategory>)));
     connect(m_worker, SIGNAL(hashesAvailable(QMap<QDateTime,QByteArray>)),
             this, SIGNAL(hashesAvailable(QMap<QDateTime,QByteArray>)));
-    connect(m_worker, SIGNAL(dataSynced(QVector<TimeLogSyncData>,QVector<TimeLogSyncData>)),
-            this, SIGNAL(dataSynced(QVector<TimeLogSyncData>,QVector<TimeLogSyncData>)));
+    connect(m_worker, SIGNAL(dataSynced(QVector<TimeLogSyncDataEntry>,QVector<TimeLogSyncDataEntry>)),
+            this, SIGNAL(dataSynced(QVector<TimeLogSyncDataEntry>,QVector<TimeLogSyncDataEntry>)));
     connect(m_worker, SIGNAL(hashesUpdated()),
             this, SIGNAL(hashesUpdated()));
 }
@@ -77,7 +99,7 @@ qlonglong TimeLogHistory::size() const
     return m_size;
 }
 
-QSharedPointer<TimeLogCategory> TimeLogHistory::categories() const
+QSharedPointer<TimeLogCategoryTreeNode> TimeLogHistory::categories() const
 {
     return m_categories;
 }
@@ -109,17 +131,32 @@ void TimeLogHistory::edit(const TimeLogEntry &data, TimeLogHistory::Fields field
                               Q_ARG(TimeLogHistory::Fields, fields));
 }
 
-void TimeLogHistory::editCategory(QString oldName, QString newName)
+void TimeLogHistory::addCategory(const TimeLogCategory &category)
 {
-    QMetaObject::invokeMethod(m_worker, "editCategory", Qt::AutoConnection,
-                              Q_ARG(QString, oldName), Q_ARG(QString, newName));
+    QMetaObject::invokeMethod(m_worker, "addCategory", Qt::AutoConnection,
+                              Q_ARG(TimeLogCategory, category));
 }
 
-void TimeLogHistory::sync(const QVector<TimeLogSyncData> &updatedData, const QVector<TimeLogSyncData> &removedData)
+void TimeLogHistory::removeCategory(const QString &name)
+{
+    QMetaObject::invokeMethod(m_worker, "removeCategory", Qt::AutoConnection,
+                              Q_ARG(QString, name));
+}
+
+void TimeLogHistory::editCategory(const QString &oldName, const TimeLogCategory &category)
+{
+    QMetaObject::invokeMethod(m_worker, "editCategory", Qt::AutoConnection,
+                              Q_ARG(QString, oldName), Q_ARG(TimeLogCategory, category));
+}
+
+void TimeLogHistory::sync(const QVector<TimeLogSyncDataEntry> &updatedData,
+                          const QVector<TimeLogSyncDataEntry> &removedData,
+                          const QVector<TimeLogSyncDataCategory> &categoryData)
 {
     QMetaObject::invokeMethod(m_worker, "sync", Qt::AutoConnection,
-                              Q_ARG(QVector<TimeLogSyncData>, updatedData),
-                              Q_ARG(QVector<TimeLogSyncData>, removedData));
+                              Q_ARG(QVector<TimeLogSyncDataEntry>, updatedData),
+                              Q_ARG(QVector<TimeLogSyncDataEntry>, removedData),
+                              Q_ARG(QVector<TimeLogSyncDataCategory>, categoryData));
 }
 
 void TimeLogHistory::updateHashes()
@@ -148,6 +185,11 @@ void TimeLogHistory::getHistoryBefore(qlonglong id, const uint limit, const QDat
 {
     QMetaObject::invokeMethod(m_worker, "getHistoryBefore", Qt::AutoConnection, Q_ARG(qlonglong, id),
                               Q_ARG(uint, limit), Q_ARG(QDateTime, until));
+}
+
+void TimeLogHistory::getStoredCategories() const
+{
+    QMetaObject::invokeMethod(m_worker, "getStoredCategories", Qt::AutoConnection);
 }
 
 void TimeLogHistory::getStats(const QDateTime &begin, const QDateTime &end, const QString &category, const QString &separator) const
@@ -180,7 +222,7 @@ void TimeLogHistory::workerSizeChanged(qlonglong size)
     m_size = size;
 }
 
-void TimeLogHistory::workerCategoriesChanged(QSharedPointer<TimeLogCategory> categories)
+void TimeLogHistory::workerCategoriesChanged(QSharedPointer<TimeLogCategoryTreeNode> categories)
 {
     m_categories = categories;
 

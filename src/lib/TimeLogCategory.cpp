@@ -1,66 +1,50 @@
+#include <QJsonDocument>
+#include <QJsonObject>
+
+#include <QDebug>
+
 #include "TimeLogCategory.h"
 
-TimeLogCategory::TimeLogCategory(const QString &category, TimeLogCategory *parent) :
-    name(category),
-    m_parent(nullptr)
+TimeLogCategory::TimeLogCategory(const QUuid &uuid, const TimeLogCategoryData &data) :
+    TimeLogCategoryData(data),
+    uuid(uuid)
 {
-    if (parent) {
-        setParent(parent);
-    }
+
 }
 
-TimeLogCategory::~TimeLogCategory()
+bool TimeLogCategory::isValid() const
 {
-    if (m_parent) {
-        m_parent->m_children.remove(name);
-    }
-
-    qDeleteAll(m_children.values());
+    return (SUPER::isValid() && !uuid.isNull());
 }
 
-QString TimeLogCategory::fullName() const
+QString TimeLogCategory::toString() const
 {
-    QString result(name);
-
-    for (TimeLogCategory *category = m_parent; category && category->m_parent;
-         category = category->m_parent) {
-        result.prepend(QString("%1 > ").arg(category->name));
-    }
-
-    return result;
+    return QString("name: %1, data: %2, uuid: %3").arg(name)
+            .arg(QString::fromUtf8(QJsonDocument(QJsonObject::fromVariantMap(data)).toJson(QJsonDocument::Compact)))
+            .arg(uuid.toString());
 }
 
-int TimeLogCategory::depth() const
+
+QDataStream &operator<<(QDataStream &stream, const TimeLogCategory &data)
 {
-    int result = 0;
-
-    const TimeLogCategory *category = this;
-    while ((category = category->m_parent)) {
-        ++result;
-    }
-
-    return result;
+    return stream << data.uuid << data.name
+                  << QJsonDocument(QJsonObject::fromVariantMap(data.data)).toBinaryData();
 }
 
-const QMap<QString, TimeLogCategory *> &TimeLogCategory::children() const
+QDataStream &operator>>(QDataStream &stream, TimeLogCategory &data)
 {
-    return m_children;
-}
+    QByteArray jsonData;
 
-TimeLogCategory *TimeLogCategory::parent() const
-{
-    return m_parent;
-}
+    stream >> data.uuid >> data.name >> jsonData;
 
-void TimeLogCategory::setParent(TimeLogCategory *parent)
-{
-    if (m_parent) {
-        m_parent->m_children.remove(name);
+    if (!jsonData.isNull()) {
+        data.data = QJsonDocument::fromBinaryData(jsonData).object().toVariantMap();
     }
 
-    m_parent = parent;
+    return stream;
+}
 
-    if (parent) {
-        m_parent->m_children.insert(name, this);
-    }
+QDebug &operator<<(QDebug &stream, const TimeLogCategory &data)
+{
+    return stream << data.toString();
 }

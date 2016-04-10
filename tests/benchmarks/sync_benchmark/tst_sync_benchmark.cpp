@@ -4,7 +4,7 @@
 
 #include "tst_common.h"
 #include "DataSyncer.h"
-#include "TimeLogCategory.h"
+#include "TimeLogCategoryTreeNode.h"
 
 QLoggingCategory::CategoryFilter oldCategoryFilter;
 
@@ -128,8 +128,9 @@ void tst_Sync_benchmark::initTestCase()
     qRegisterMetaType<QVector<TimeLogEntry> >();
     qRegisterMetaType<TimeLogHistory::Fields>();
     qRegisterMetaType<QVector<TimeLogHistory::Fields> >();
-    qRegisterMetaType<QVector<TimeLogSyncData> >();
-    qRegisterMetaType<QSharedPointer<TimeLogCategory> >();
+    qRegisterMetaType<QVector<TimeLogSyncDataEntry> >();
+    qRegisterMetaType<QVector<TimeLogSyncDataCategory> >();
+    qRegisterMetaType<QSharedPointer<TimeLogCategoryTreeNode> >();
     qRegisterMetaType<QMap<QDateTime,QByteArray> >();
 
     oldCategoryFilter = QLoggingCategory::installFilter(Q_NULLPTR);
@@ -533,7 +534,8 @@ void tst_Sync_benchmark::renameCategory()
         }
     }
 
-    history1->editCategory(origData.at(index).category, "CategoryNew");
+    history1->editCategory(origData.at(index).category, TimeLogCategory(QUuid::createUuid(),
+                                                                        TimeLogCategoryData("CategoryNew")));
     QVERIFY(historyOutdateSpy1.wait(maxTimeout));
     historyOutdateSpy1.clear();
 

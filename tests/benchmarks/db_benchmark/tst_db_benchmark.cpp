@@ -3,7 +3,7 @@
 #include <QtTest/QtTest>
 
 #include "tst_common.h"
-#include "TimeLogCategory.h"
+#include "TimeLogCategoryTreeNode.h"
 
 QTemporaryDir *dataDir = Q_NULLPTR;
 TimeLogHistory *history = Q_NULLPTR;
@@ -73,7 +73,7 @@ void tst_DB_Benchmark::initTestCase()
     qRegisterMetaType<QVector<TimeLogEntry> >();
     qRegisterMetaType<TimeLogHistory::Fields>();
     qRegisterMetaType<QVector<TimeLogHistory::Fields> >();
-    qRegisterMetaType<QSharedPointer<TimeLogCategory> >();
+    qRegisterMetaType<QSharedPointer<TimeLogCategoryTreeNode> >();
 
     qSetMessagePattern("[%{time}] <%{category}> %{type} (%{file}:%{line}, %{function}) %{message}");
 }
@@ -393,7 +393,8 @@ void tst_DB_Benchmark::renameCategory()
 
     QBENCHMARK_ONCE {
         int index = std::ceil((origData.size() - 1) / 2.0);
-        history->editCategory(origData.at(index).category, "CategoryNew");
+        history->editCategory(origData.at(index).category, TimeLogCategory(QUuid::createUuid(),
+                                                                           TimeLogCategoryData("CategoryNew")));
         QVERIFY(outdateSpy.wait(maxTimeout));
     }
 

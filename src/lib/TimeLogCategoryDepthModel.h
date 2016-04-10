@@ -5,7 +5,7 @@
 #include <QSharedPointer>
 #include <QRegularExpression>
 
-class TimeLogCategory;
+class TimeLogCategoryTreeNode;
 class TimeTracker;
 class TimeLogHistory;
 
@@ -45,16 +45,16 @@ signals:
     void categoryChanged();
 
 private slots:
-    void updateCategories(const QSharedPointer<TimeLogCategory> &categories);
+    void updateCategories(const QSharedPointer<TimeLogCategoryTreeNode> &categories);
 
 private:
     void setSubcategory(int level, const QString &subcategory);
     void setCategoryFields(int rowIndex, const QStringList &categoryFields);
 
     TimeTracker *m_timeTracker;
-    QSharedPointer<TimeLogCategory> m_root;
+    QSharedPointer<TimeLogCategoryTreeNode> m_root;
     QStringList m_categoryFields;
-    QList<TimeLogCategory*> m_categoryEntries;
+    QList<TimeLogCategoryTreeNode*> m_categoryEntries;
     QRegularExpression m_splitRegexp;
 };
 

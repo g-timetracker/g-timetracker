@@ -129,18 +129,40 @@ DataSyncerWorker::DataSyncerWorker(TimeLogHistory *db, QObject *parent) :
             this, SLOT(historyDataInserted(TimeLogEntry)));
     connect(m_db, SIGNAL(dataRemoved(TimeLogEntry)),
             this, SLOT(historyDataRemoved(TimeLogEntry)));
-    connect(m_db, SIGNAL(syncDataAvailable(QVector<TimeLogSyncData>,QDateTime)),
-            this, SLOT(syncDataAvailable(QVector<TimeLogSyncData>,QDateTime)));
+    connect(m_db, SIGNAL(categoriesChanged(QSharedPointer<TimeLogCategoryTreeNode>)),
+            this, SLOT(historyCategoriesChanged(QSharedPointer<TimeLogCategoryTreeNode>)));
+    connect(m_db, SIGNAL(syncDataAvailable(QVector<TimeLogSyncDataEntry>,
+                                           QVector<TimeLogSyncDataCategory>,QDateTime)),
+            this, SLOT(syncDataAvailable(QVector<TimeLogSyncDataEntry>,
+                                         QVector<TimeLogSyncDataCategory>,QDateTime)));
     connect(m_db, SIGNAL(syncDataAmountAvailable(qlonglong,QDateTime,QDateTime,QDateTime)),
             this, SLOT(syncDataAmountAvailable(qlonglong,QDateTime,QDateTime,QDateTime)));
-    connect(m_db, SIGNAL(syncStatsAvailable(QVector<TimeLogSyncData>,QVector<TimeLogSyncData>,
-                                            QVector<TimeLogSyncData>,QVector<TimeLogSyncData>,
-                                            QVector<TimeLogSyncData>,QVector<TimeLogSyncData>)),
-            this, SLOT(syncStatsAvailable(QVector<TimeLogSyncData>,QVector<TimeLogSyncData>,
-                                          QVector<TimeLogSyncData>,QVector<TimeLogSyncData>,
-                                          QVector<TimeLogSyncData>,QVector<TimeLogSyncData>)));
-    connect(m_db, SIGNAL(dataSynced(QVector<TimeLogSyncData>,QVector<TimeLogSyncData>)),
-            this, SLOT(syncDataSynced(QVector<TimeLogSyncData>,QVector<TimeLogSyncData>)));
+    connect(m_db, SIGNAL(syncEntryStatsAvailable(QVector<TimeLogSyncDataEntry>,
+                                                 QVector<TimeLogSyncDataEntry>,
+                                                 QVector<TimeLogSyncDataEntry>,
+                                                 QVector<TimeLogSyncDataEntry>,
+                                                 QVector<TimeLogSyncDataEntry>,
+                                                 QVector<TimeLogSyncDataEntry>)),
+            this, SLOT(syncEntryStatsAvailable(QVector<TimeLogSyncDataEntry>,
+                                               QVector<TimeLogSyncDataEntry>,
+                                               QVector<TimeLogSyncDataEntry>,
+                                               QVector<TimeLogSyncDataEntry>,
+                                               QVector<TimeLogSyncDataEntry>,
+                                               QVector<TimeLogSyncDataEntry>)));
+    connect(m_db, SIGNAL(syncCategoryStatsAvailable(QVector<TimeLogSyncDataCategory>,
+                                                    QVector<TimeLogSyncDataCategory>,
+                                                    QVector<TimeLogSyncDataCategory>,
+                                                    QVector<TimeLogSyncDataCategory>,
+                                                    QVector<TimeLogSyncDataCategory>,
+                                                    QVector<TimeLogSyncDataCategory>)),
+            this, SLOT(syncCategoryStatsAvailable(QVector<TimeLogSyncDataCategory>,
+                                                  QVector<TimeLogSyncDataCategory>,
+                                                  QVector<TimeLogSyncDataCategory>,
+                                                  QVector<TimeLogSyncDataCategory>,
+                                                  QVector<TimeLogSyncDataCategory>,
+                                                  QVector<TimeLogSyncDataCategory>)));
+    connect(m_db, SIGNAL(dataSynced(QVector<TimeLogSyncDataEntry>,QVector<TimeLogSyncDataEntry>)),
+            this, SLOT(syncDataSynced(QVector<TimeLogSyncDataEntry>,QVector<TimeLogSyncDataEntry>)));
 }
 
 void DataSyncerWorker::init(const QString &dataPath)
@@ -289,10 +311,7 @@ void DataSyncerWorker::historyDataUpdated(QVector<TimeLogEntry> data, QVector<Ti
 
     for (TimeLogHistory::Fields field: fields) {
         if (field & TimeLogHistory::AllFieldsMask) {
-            if (m_autoSync && m_syncCacheTimeout > 0) {
-                m_syncCacheTimer->start(m_syncCacheTimeout * 1000);
-            }
-            addCachedSyncChanges();
+            addCachedSyncChange();
             return;
         }
     }
@@ -306,11 +325,7 @@ void DataSyncerWorker::historyDataInserted(const TimeLogEntry &data)
         return;
     }
 
-    if (m_autoSync && m_syncCacheTimeout > 0) {
-        m_syncCacheTimer->start(m_syncCacheTimeout * 1000);
-    }
-
-    addCachedSyncChanges();
+    addCachedSyncChange();
 }
 
 void DataSyncerWorker::historyDataRemoved(const TimeLogEntry &data)
@@ -321,14 +336,23 @@ void DataSyncerWorker::historyDataRemoved(const TimeLogEntry &data)
         return;
     }
 
-    if (m_autoSync && m_syncCacheTimeout > 0) {
-        m_syncCacheTimer->start(m_syncCacheTimeout * 1000);
-    }
-
-    addCachedSyncChanges();
+    addCachedSyncChange();
 }
 
-void DataSyncerWorker::syncDataAvailable(QVector<TimeLogSyncData> data, QDateTime until)
+void DataSyncerWorker::historyCategoriesChanged(QSharedPointer<TimeLogCategoryTreeNode> categories)
+{
+    Q_UNUSED(categories)
+
+    if (m_sm->isRunning()) {
+        return;
+    }
+
+    addCachedSyncChange();
+}
+
+void DataSyncerWorker::syncDataAvailable(QVector<TimeLogSyncDataEntry> entryData,
+                                         QVector<TimeLogSyncDataCategory> categoryData,
+                                         QDateTime until)
 {
     Q_UNUSED(until)
 
@@ -336,8 +360,8 @@ void DataSyncerWorker::syncDataAvailable(QVector<TimeLogSyncData> data, QDateTim
         return;
     }
 
-    if (!data.isEmpty()) {
-        if (!exportFile(data)) {
+    if (!entryData.isEmpty() || !categoryData.isEmpty()) {
+        if (!exportFile(entryData, categoryData)) {
             return;
         }
     } else {
@@ -377,21 +401,46 @@ void DataSyncerWorker::syncDataAmountAvailable(qlonglong size, QDateTime maxMTim
     }
 }
 
-void DataSyncerWorker::syncStatsAvailable(QVector<TimeLogSyncData> removedOld, QVector<TimeLogSyncData> removedNew, QVector<TimeLogSyncData> insertedOld, QVector<TimeLogSyncData> insertedNew, QVector<TimeLogSyncData> updatedOld, QVector<TimeLogSyncData> updatedNew) const
+void DataSyncerWorker::syncEntryStatsAvailable(QVector<TimeLogSyncDataEntry> removedOld,
+                                               QVector<TimeLogSyncDataEntry> removedNew,
+                                               QVector<TimeLogSyncDataEntry> insertedOld,
+                                               QVector<TimeLogSyncDataEntry> insertedNew,
+                                               QVector<TimeLogSyncDataEntry> updatedOld,
+                                               QVector<TimeLogSyncDataEntry> updatedNew) const
 {
     qCDebug(SYNC_WORKER_CATEGORY) << (!m_packSM->isRunning() ? "Import details:" : "Pack details:");
     for (int i = 0; i < removedNew.size(); i++) {
-        qCDebug(SYNC_WORKER_CATEGORY) << formatSyncChange(removedOld.at(i), removedNew.at(i));
+        qCDebug(SYNC_WORKER_CATEGORY) << formatSyncEntryChange(removedOld.at(i), removedNew.at(i));
     }
     for (int i = 0; i < insertedNew.size(); i++) {
-        qCDebug(SYNC_WORKER_CATEGORY) << formatSyncChange(insertedOld.at(i), insertedNew.at(i));
+        qCDebug(SYNC_WORKER_CATEGORY) << formatSyncEntryChange(insertedOld.at(i), insertedNew.at(i));
     }
     for (int i = 0; i < updatedNew.size(); i++) {
-        qCDebug(SYNC_WORKER_CATEGORY) << formatSyncChange(updatedOld.at(i), updatedNew.at(i));
+        qCDebug(SYNC_WORKER_CATEGORY) << formatSyncEntryChange(updatedOld.at(i), updatedNew.at(i));
     }
 }
 
-void DataSyncerWorker::syncDataSynced(QVector<TimeLogSyncData> updatedData, QVector<TimeLogSyncData> removedData)
+void DataSyncerWorker::syncCategoryStatsAvailable(QVector<TimeLogSyncDataCategory> removedOld,
+                                                  QVector<TimeLogSyncDataCategory> removedNew,
+                                                  QVector<TimeLogSyncDataCategory> addedOld,
+                                                  QVector<TimeLogSyncDataCategory> addedNew,
+                                                  QVector<TimeLogSyncDataCategory> updatedOld,
+                                                  QVector<TimeLogSyncDataCategory> updatedNew) const
+{
+    qCDebug(SYNC_WORKER_CATEGORY) << (!m_packSM->isRunning() ? "Import details:" : "Pack details:");
+    for (int i = 0; i < removedNew.size(); i++) {
+        qCDebug(SYNC_WORKER_CATEGORY) << formatSyncCategoryChange(removedOld.at(i), removedNew.at(i));
+    }
+    for (int i = 0; i < addedNew.size(); i++) {
+        qCDebug(SYNC_WORKER_CATEGORY) << formatSyncCategoryChange(addedOld.at(i), addedNew.at(i));
+    }
+    for (int i = 0; i < updatedNew.size(); i++) {
+        qCDebug(SYNC_WORKER_CATEGORY) << formatSyncCategoryChange(updatedOld.at(i), updatedNew.at(i));
+    }
+}
+
+void DataSyncerWorker::syncDataSynced(QVector<TimeLogSyncDataEntry> updatedData,
+                                      QVector<TimeLogSyncDataEntry> removedData)
 {
     Q_UNUSED(updatedData)
     Q_UNUSED(removedData)
@@ -692,7 +741,8 @@ bool DataSyncerWorker::copyFile(const QString &source, const QString &destinatio
     return true;
 }
 
-bool DataSyncerWorker::exportFile(const QVector<TimeLogSyncData> &data)
+bool DataSyncerWorker::exportFile(const QVector<TimeLogSyncDataEntry> &entryData,
+                                  const QVector<TimeLogSyncDataCategory> &categoryData)
 {
     QDir exportDir;
     if (!AbstractDataInOut::prepareDir(m_internalSyncDir.filePath("export"), exportDir)) {
@@ -700,7 +750,9 @@ bool DataSyncerWorker::exportFile(const QVector<TimeLogSyncData> &data)
         return false;
     }
 
-    QString fileName = QString("%1-%2.sync").arg(data.last().mTime.toMSecsSinceEpoch(), mTimeLength, 10, QChar('0'))
+    QDateTime maxMTime(qMax(entryData.isEmpty() ? QDateTime() : entryData.last().sync.mTime,
+                            categoryData.isEmpty() ? QDateTime() : categoryData.last().sync.mTime));
+    QString fileName = QString("%1-%2.sync").arg(maxMTime.toMSecsSinceEpoch(), mTimeLength, 10, QChar('0'))
                                             .arg(QUuid::createUuid().toString());
     QString filePath = exportDir.filePath(fileName);
 
@@ -711,10 +763,16 @@ bool DataSyncerWorker::exportFile(const QVector<TimeLogSyncData> &data)
     dataStream.setVersion(syncFileStreamVersion);
     dataStream << syncFileFormatVersion;
 
-    for (int i = 0; i < data.size(); i++) {
-        qCInfo(SYNC_WORKER_CATEGORY) << QString("Exported item %1 of %2").arg(i+1).arg(data.size());
-        qCDebug(SYNC_WORKER_CATEGORY) << data.at(i).toString();
-        dataStream << data.at(i);
+    for (int i = 0; i < entryData.size(); i++) {
+        qCInfo(SYNC_WORKER_CATEGORY) << QString("Exported entry %1 of %2").arg(i+1).arg(entryData.size());
+        qCDebug(SYNC_WORKER_CATEGORY) << entryData.at(i).toString();
+        dataStream << entryData.at(i);
+    }
+
+    for (int i = 0; i < categoryData.size(); i++) {
+        qCInfo(SYNC_WORKER_CATEGORY) << QString("Exported category %1 of %2").arg(i+1).arg(categoryData.size());
+        qCDebug(SYNC_WORKER_CATEGORY) << categoryData.at(i).toString();
+        dataStream << categoryData.at(i);
     }
 
     QFile file(filePath);
@@ -767,20 +825,24 @@ void DataSyncerWorker::importCurrentItem()
 
 void DataSyncerWorker::importFile(const QString &path)
 {
-    QVector<TimeLogSyncData> updatedData, removedData;
+    QVector<TimeLogSyncDataEntry> updatedData, removedData;
+    QVector<TimeLogSyncDataCategory> categoryData;
 
-    if (!parseFile(path, updatedData, removedData)) {
+    if (!parseFile(path, updatedData, removedData, categoryData)) {
         return;
     }
 
-    if (!updatedData.isEmpty() || !removedData.isEmpty()) {
-        m_db->sync(updatedData, removedData);
+    if (!updatedData.isEmpty() || !removedData.isEmpty() || !categoryData.isEmpty()) {
+        m_db->sync(updatedData, removedData, categoryData);
     } else {
         syncDataSynced(updatedData, removedData);
     }
 }
 
-bool DataSyncerWorker::parseFile(const QString &path, QVector<TimeLogSyncData> &updatedData, QVector<TimeLogSyncData> &removedData) const
+bool DataSyncerWorker::parseFile(const QString &path,
+                                 QVector<TimeLogSyncDataEntry> &updatedData,
+                                 QVector<TimeLogSyncDataEntry> &removedData,
+                                 QVector<TimeLogSyncDataCategory> &categoryData) const
 {
     QFile file(path);
     if (!file.exists()) {
@@ -848,21 +910,58 @@ bool DataSyncerWorker::parseFile(const QString &path, QVector<TimeLogSyncData> &
     }
 
     while (!dataStream.atEnd()) {
-        TimeLogSyncData entry;
-        dataStream >> entry;
+        TimeLogSyncDataBase base;
+        dataStream >> base;
 
-        if (entry.isValid()) {
-            qCDebug(SYNC_WORKER_CATEGORY) << "Valid entry:" << entry;
-            updatedData.append(entry);
-        } else if (!entry.uuid.isNull() && entry.mTime.isValid()) {
-            qCDebug(SYNC_WORKER_CATEGORY) << "Valid removed entry:" << entry;
-            removedData.append(entry);
-        } else {
-            qCWarning(SYNC_WORKER_CATEGORY) << "Invalid entry:" << entry;
+        switch (base.type) {
+        case TimeLogSyncDataBase::Entry: {
+            TimeLogEntry entry;
+            dataStream >> entry;
+            TimeLogSyncDataEntry syncEntry(base, entry);
+
+            if (entry.isValid()) {
+                syncEntry.sync.isRemoved = false;
+                qCDebug(SYNC_WORKER_CATEGORY) << "Valid entry:" << syncEntry;
+                updatedData.append(syncEntry);
+            } else if (!entry.uuid.isNull() && base.mTime.isValid()) {
+                syncEntry.sync.isRemoved = true;
+                qCDebug(SYNC_WORKER_CATEGORY) << "Valid removed entry:" << syncEntry;
+                removedData.append(syncEntry);
+            } else {
+                qCWarning(SYNC_WORKER_CATEGORY) << "Invalid entry:" << syncEntry;
+                fail("Invalid sync entry");
+                return false;
+            }
+            break;
+        }
+        case TimeLogSyncDataBase::Category: {
+            TimeLogCategory category;
+            dataStream >> category;
+            TimeLogSyncDataCategory syncCategory(base, category);
+
+            if (category.isValid()) {
+                syncCategory.sync.isRemoved = false;
+                qCDebug(SYNC_WORKER_CATEGORY) << "Valid category:" << syncCategory;
+                categoryData.append(syncCategory);
+            } else if (!category.uuid.isNull() && base.mTime.isValid()) {
+                syncCategory.sync.isRemoved = true;
+                qCDebug(SYNC_WORKER_CATEGORY) << "Valid removed category:" << syncCategory;
+                categoryData.append(syncCategory);
+            } else {
+                qCWarning(SYNC_WORKER_CATEGORY) << "Invalid category:" << syncCategory;
+                fail("Invalid sync category");
+                return false;
+            }
+            break;
+        }
+        default:
+            qCWarning(SYNC_WORKER_CATEGORY) << "Invalid sync item type:" << base.type;
+            fail("Invalid sync item type");
+            return false;
         }
     }
 
-    if (updatedData.isEmpty() && removedData.isEmpty()) {
+    if (updatedData.isEmpty() && removedData.isEmpty() && categoryData.isEmpty()) {
         qCWarning(SYNC_WORKER_CATEGORY) << "No data in file" << path;
     }
 
@@ -921,12 +1020,30 @@ void DataSyncerWorker::exportPack()
         fail("Fail to create pack");
         return;
     }
-    connect(m_pack, SIGNAL(syncStatsAvailable(QVector<TimeLogSyncData>,QVector<TimeLogSyncData>,
-                                              QVector<TimeLogSyncData>,QVector<TimeLogSyncData>,
-                                              QVector<TimeLogSyncData>,QVector<TimeLogSyncData>)),
-            this, SLOT(syncStatsAvailable(QVector<TimeLogSyncData>,QVector<TimeLogSyncData>,
-                                          QVector<TimeLogSyncData>,QVector<TimeLogSyncData>,
-                                          QVector<TimeLogSyncData>,QVector<TimeLogSyncData>)));
+    connect(m_pack, SIGNAL(syncEntryStatsAvailable(QVector<TimeLogSyncDataEntry>,
+                                                   QVector<TimeLogSyncDataEntry>,
+                                                   QVector<TimeLogSyncDataEntry>,
+                                                   QVector<TimeLogSyncDataEntry>,
+                                                   QVector<TimeLogSyncDataEntry>,
+                                                   QVector<TimeLogSyncDataEntry>)),
+            this, SLOT(syncEntryStatsAvailable(QVector<TimeLogSyncDataEntry>,
+                                               QVector<TimeLogSyncDataEntry>,
+                                               QVector<TimeLogSyncDataEntry>,
+                                               QVector<TimeLogSyncDataEntry>,
+                                               QVector<TimeLogSyncDataEntry>,
+                                               QVector<TimeLogSyncDataEntry>)));
+    connect(m_pack, SIGNAL(syncCategoryStatsAvailable(QVector<TimeLogSyncDataCategory>,
+                                                      QVector<TimeLogSyncDataCategory>,
+                                                      QVector<TimeLogSyncDataCategory>,
+                                                      QVector<TimeLogSyncDataCategory>,
+                                                      QVector<TimeLogSyncDataCategory>,
+                                                      QVector<TimeLogSyncDataCategory>)),
+            this, SLOT(syncCategoryStatsAvailable(QVector<TimeLogSyncDataCategory>,
+                                                  QVector<TimeLogSyncDataCategory>,
+                                                  QVector<TimeLogSyncDataCategory>,
+                                                  QVector<TimeLogSyncDataCategory>,
+                                                  QVector<TimeLogSyncDataCategory>,
+                                                  QVector<TimeLogSyncDataCategory>)));
 
     m_dbSyncer = new DBSyncer(m_db, m_pack, this);
     connect(m_dbSyncer, SIGNAL(finished(QDateTime)),
@@ -937,15 +1054,34 @@ void DataSyncerWorker::exportPack()
     m_dbSyncer->start(true, maxPackPeriodStart());
 }
 
-QString DataSyncerWorker::formatSyncChange(const TimeLogSyncData &oldData, const TimeLogSyncData &newData) const
+QString DataSyncerWorker::formatSyncEntryChange(const TimeLogSyncDataEntry &oldData,
+                                                const TimeLogSyncDataEntry &newData) const
 {
     QStringList result;
 
-    if (newData.isValid()) {
-        if (!oldData.uuid.isNull()) {
+    if (newData.entry.isValid()) {
+        if (!oldData.entry.uuid.isNull()) {
             result << "[Updated]" << oldData.toString() << "->" << newData.toString();
         } else {
-            result << "[New item]" << newData.toString();
+            result << "[Added]" << newData.toString();
+        }
+    } else {
+        result << "[Removed]" << oldData.toString() << "->" << newData.toString();
+    }
+
+    return result.join(' ');
+}
+
+QString DataSyncerWorker::formatSyncCategoryChange(const TimeLogSyncDataCategory &oldData,
+                                                   const TimeLogSyncDataCategory &newData) const
+{
+    QStringList result;
+
+    if (newData.category.isValid()) {
+        if (!oldData.category.uuid.isNull()) {
+            result << "[Updated]" << oldData.toString() << "->" << newData.toString();
+        } else {
+            result << "[Added]" << newData.toString();
         }
     } else {
         result << "[Removed]" << oldData.toString() << "->" << newData.toString();
@@ -1019,6 +1155,15 @@ bool DataSyncerWorker::removeOldFiles(const QString &packName)
     }
 
     return true;
+}
+
+void DataSyncerWorker::addCachedSyncChange()
+{
+    if (m_autoSync && m_syncCacheTimeout > 0) {
+        m_syncCacheTimer->start(m_syncCacheTimeout * 1000);
+    }
+
+    addCachedSyncChanges(1);
 }
 
 void DataSyncerWorker::addCachedSyncChanges(int count)

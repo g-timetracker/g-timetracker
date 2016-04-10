@@ -14,49 +14,66 @@ Item {
         timeTracker: TimeTracker
     }
 
-    Dialog {
-        id: renameDialog
+    CategoryEditDialog {
+        id: editDialog
 
-        property string categoryName
-
-        function setData() {
-            textField.text = categoryName
+        function openDialog(name, data) {
+            setData(name, data)
+            TimeTracker.showDialogRequested(editDialog)
         }
 
-        function openDialog(category) {
-            renameDialog.categoryName = category
+        onDataAccepted: categoryModel.editItem(treeView.selection.currentIndex, newData)
+    }
+
+    CategoryNewDialog {
+        id: newDialog
+
+        function openDialog() {
             setData()
-            open()
+            TimeTracker.showDialogRequested(newDialog)
         }
 
-        standardButtons: StandardButton.Save | StandardButton.Cancel | StandardButton.Reset
-        title: "Rename category"
-
-        TextField {
-            id: textField
-
-            anchors.left: parent.left
-            anchors.right: parent.right
-        }
-
-        onAccepted: {
-            if (textField.text !== categoryName) {
-                TimeTracker.editCategory(categoryName, textField.text)
-            }
-        }
-
-        onReset: setData()
+        onDataAccepted: categoryModel.addItem(newData)
     }
 
     Action {
-        id: renameAction
+        id: newAction
 
-        text: "Rename"
-        tooltip: "Rename category"
+        text: "Create"
+        tooltip: "Create category"
+
+        onTriggered: newDialog.openDialog()
+    }
+
+    Action {
+        id: removeAction
+
+        text: "Remove"
+        tooltip: "Remove category"
+        enabled: treeView.isCurrentIndexValid
+                 && !categoryModel.data(treeView.selection.currentIndex,
+                                        TimeLogCategoryTreeModel.HasItemsRole)
+
+        onTriggered: {
+            if (Settings.isConfirmationsEnabled) {
+                removeConfirmationDialog.open()
+            } else {
+                categoryModel.removeItem(treeView.selection.currentIndex)
+            }
+        }
+    }
+
+    Action {
+        id: editAction
+
+        text: "Edit"
+        tooltip: "Edit category"
         enabled: treeView.isCurrentIndexValid
 
-        onTriggered: renameDialog.openDialog(categoryModel.data(treeView.selection.currentIndex,
-                                                                TimeLogCategoryTreeModel.FullNameRole))
+        onTriggered: editDialog.openDialog(categoryModel.data(treeView.selection.currentIndex,
+                                                              TimeLogCategoryTreeModel.FullNameRole),
+                                           categoryModel.data(treeView.selection.currentIndex,
+                                                              TimeLogCategoryTreeModel.DataRole))
     }
 
     Action {
@@ -81,11 +98,25 @@ Item {
                                                                        TimeLogCategoryTreeModel.FullNameRole))
     }
 
+    MessageDialog {
+        id: removeConfirmationDialog
+
+        title: "Remove confirmation"
+        text: "Are you sure want to delete this category?"
+        icon: StandardIcon.Question
+        standardButtons: StandardButton.Yes | StandardButton.No
+
+        onYes: categoryModel.removeItem(treeView.selection.currentIndex)
+    }
+
     Menu {
         id: itemMenu
 
         MenuItem {
-            action: renameAction
+            action: removeAction
+        }
+        MenuItem {
+            action: editAction
         }
         MenuItem {
             action: showEntriesAction
@@ -120,6 +151,14 @@ Item {
                 role: "fullName"
             }
 
+            TableViewColumn {
+                role: "comment"
+            }
+
+            TableViewColumn {
+                role: "hasItems"
+            }
+
             MouseArea {
                 id: mouseArea
 
@@ -137,8 +176,8 @@ Item {
             }
 
             Keys.onPressed: {
-                if (event.key === Qt.Key_F2 && renameAction.enabled) {
-                    renameAction.trigger()
+                if (event.key === Qt.Key_F2 && editAction.enabled) {
+                    editAction.trigger()
                 }
             }
 
@@ -153,16 +192,30 @@ Item {
 
             PushButton {
                 anchors.verticalCenter: parent.verticalCenter
-                text: renameAction.text
-                onClicked: renameAction.trigger()
+                text: newAction.text
+                onClicked: newAction.trigger()
             }
             PushButton {
                 anchors.verticalCenter: parent.verticalCenter
+                enabled: removeAction.enabled
+                text: removeAction.text
+                onClicked: removeAction.trigger()
+            }
+            PushButton {
+                anchors.verticalCenter: parent.verticalCenter
+                enabled: editAction.enabled
+                text: editAction.text
+                onClicked: editAction.trigger()
+            }
+            PushButton {
+                anchors.verticalCenter: parent.verticalCenter
+                enabled: showEntriesAction.enabled
                 text: showEntriesAction.text
                 onClicked: showEntriesAction.trigger()
             }
             PushButton {
                 anchors.verticalCenter: parent.verticalCenter
+                enabled: showStatsAction.enabled
                 text: showStatsAction.text
                 onClicked: showStatsAction.trigger()
             }

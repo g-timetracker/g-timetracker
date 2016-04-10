@@ -3,6 +3,7 @@
 
 #include "AbstractDataInOut.h"
 #include "TimeLogEntry.h"
+#include "TimeLogCategory.h"
 
 class DataExporter : public AbstractDataInOut
 {
@@ -16,10 +17,12 @@ protected slots:
 
 private slots:
     void historyRequestCompleted(QVector<TimeLogEntry> data, qlonglong id);
+    void storedCategoriesAvailable(QVector<TimeLogCategory> data);
 
 private:
     void exportCurrentDate(qlonglong id);
-    bool exportDay(QVector<TimeLogEntry> data);
+    bool exportDay(const QVector<TimeLogEntry> &data);
+    bool exportCategories(const QVector<TimeLogCategory> &data);
 
     QDir m_dir;
     QDate m_currentDate;

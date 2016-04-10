@@ -19,15 +19,19 @@ SOURCES += \
     TimeLogSearchModel.cpp \
     DataExporter.cpp \
     AbstractDataInOut.cpp \
-    TimeLogSyncData.cpp \
     DataSyncerWorker.cpp \
     DataSyncer.cpp \
     TimeLogStats.cpp \
     TimeTracker.cpp \
-    TimeLogCategory.cpp \
     TimeLogCategoryTreeModel.cpp \
     TimeLogCategoryDepthModel.cpp \
-    DBSyncer.cpp
+    DBSyncer.cpp \
+    TimeLogCategoryData.cpp \
+    TimeLogSyncDataBase.cpp \
+    TimeLogSyncDataCategory.cpp \
+    TimeLogCategory.cpp \
+    TimeLogCategoryTreeNode.cpp \
+    TimeLogSyncDataEntry.cpp
 
 HEADERS += \
     TimeLogEntry.h \
@@ -41,12 +45,16 @@ HEADERS += \
     TimeLogSearchModel.h \
     DataExporter.h \
     AbstractDataInOut.h \
-    TimeLogSyncData.h \
     DataSyncerWorker.h \
     DataSyncer.h \
     TimeLogStats.h \
     TimeTracker.h \
-    TimeLogCategory.h \
     TimeLogCategoryTreeModel.h \
     TimeLogCategoryDepthModel.h \
-    DBSyncer.h
+    DBSyncer.h \
+    TimeLogCategoryData.h \
+    TimeLogSyncDataBase.h \
+    TimeLogSyncDataCategory.h \
+    TimeLogCategory.h \
+    TimeLogCategoryTreeNode.h \
+    TimeLogSyncDataEntry.h

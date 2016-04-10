@@ -72,12 +72,7 @@ Column {
         text: TimeTracker.durationText(d.durationTime)
     }
 
-    LabelControl {
-        text: commentArea.placeholderText
-        visible: commentArea.text
-    }
-
-    TextArea {
+    TextAreaControl {
         id: commentArea
 
         property alias origComment: delegateEditor.comment

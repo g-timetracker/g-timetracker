@@ -1,5 +1,5 @@
 #include "TimeLogCategoryTreeModel.h"
-#include "TimeLogCategory.h"
+#include "TimeLogCategoryTreeNode.h"
 #include "TimeTracker.h"
 
 TimeLogCategoryTreeModel::TimeLogCategoryTreeModel(QObject *parent) :
@@ -15,12 +15,12 @@ QModelIndex TimeLogCategoryTreeModel::index(int row, int column, const QModelInd
         return QModelIndex();
     }
 
-    TimeLogCategory *parentCategory;
+    TimeLogCategoryTreeNode *parentCategory;
 
     if (!parent.isValid()) {
         parentCategory = m_root.data();
     } else {
-        parentCategory = static_cast<TimeLogCategory*>(parent.internalPointer());
+        parentCategory = static_cast<TimeLogCategoryTreeNode*>(parent.internalPointer());
     }
 
     if (parentCategory && row < parentCategory->children().size()) {
@@ -37,8 +37,8 @@ QModelIndex TimeLogCategoryTreeModel::parent(const QModelIndex &child) const
         return QModelIndex();
     }
 
-    TimeLogCategory *childCategory = static_cast<TimeLogCategory*>(child.internalPointer());
-    TimeLogCategory *parentCategory = static_cast<TimeLogCategory*>(childCategory->parent());
+    TimeLogCategoryTreeNode *childCategory = static_cast<TimeLogCategoryTreeNode*>(child.internalPointer());
+    TimeLogCategoryTreeNode *parentCategory = static_cast<TimeLogCategoryTreeNode*>(childCategory->parent());
 
     if (parentCategory == m_root) {
         return QModelIndex();
@@ -61,11 +61,11 @@ int TimeLogCategoryTreeModel::rowCount(const QModelIndex &parent) const
         return 0;
     }
 
-    TimeLogCategory *parentCategory;
+    TimeLogCategoryTreeNode *parentCategory;
     if (!parent.isValid()) {
         parentCategory = m_root.data();
     } else {
-        parentCategory = static_cast<TimeLogCategory*>(parent.internalPointer());
+        parentCategory = static_cast<TimeLogCategoryTreeNode*>(parent.internalPointer());
     }
 
     return parentCategory ? parentCategory->children().size() : 0;
@@ -77,14 +77,20 @@ QVariant TimeLogCategoryTreeModel::data(const QModelIndex &index, int role) cons
         return QVariant();
     }
 
-    TimeLogCategory *category = static_cast<TimeLogCategory*>(index.internalPointer());
+    TimeLogCategoryTreeNode *node = static_cast<TimeLogCategoryTreeNode*>(index.internalPointer());
 
     switch (role) {
     case Qt::DisplayRole:
     case NameRole:
-        return QVariant::fromValue(category->name);
+        return QVariant::fromValue(node->name);
     case FullNameRole:
-        return QVariant::fromValue(category->fullName());
+        return QVariant::fromValue(node->fullName());
+    case DataRole:
+        return QVariant::fromValue(node->category.data);
+    case CommentRole:
+        return QVariant::fromValue(node->category.data.value("comment"));
+    case HasItemsRole:
+        return QVariant::fromValue(node->hasItems);
     default:
         return QVariant();
     }
@@ -108,6 +114,9 @@ QHash<int, QByteArray> TimeLogCategoryTreeModel::roleNames() const
     QHash<int, QByteArray> roles = SUPER::roleNames();
     roles[NameRole] = "name";
     roles[FullNameRole] = "fullName";
+    roles[DataRole] = "data";
+    roles[CommentRole] = "comment";
+    roles[HasItemsRole] = "hasItems";
 
     return roles;
 }
@@ -121,6 +130,49 @@ Qt::ItemFlags TimeLogCategoryTreeModel::flags(const QModelIndex &index) const
     return SUPER::flags(index) | Qt::ItemIsEditable;
 }
 
+void TimeLogCategoryTreeModel::removeItem(const QModelIndex &index)
+{
+    if (!m_timeTracker) {
+        return;
+    }
+
+    if (!index.isValid()) {
+        return;
+    }
+
+    TimeLogCategoryTreeNode *node = static_cast<TimeLogCategoryTreeNode*>(index.internalPointer());
+
+    m_timeTracker->removeCategory(node->category.name);
+}
+
+void TimeLogCategoryTreeModel::addItem(TimeLogCategoryData data)
+{
+    if (!m_timeTracker) {
+        return;
+    }
+
+    m_timeTracker->addCategory(TimeLogCategory(QUuid::createUuid(), data));
+}
+
+void TimeLogCategoryTreeModel::editItem(const QModelIndex &index, TimeLogCategoryData data)
+{
+    if (!m_timeTracker) {
+        return;
+    }
+
+    if (!index.isValid()) {
+        return;
+    }
+
+    TimeLogCategoryTreeNode *node = static_cast<TimeLogCategoryTreeNode*>(index.internalPointer());
+    TimeLogCategory category(node->category.uuid, data);
+    if (category.uuid.isNull()) {
+        category.uuid = QUuid::createUuid();
+    }
+
+    m_timeTracker->editCategory(node->category.name, category);
+}
+
 void TimeLogCategoryTreeModel::setTimeTracker(TimeTracker *timeTracker)
 {
     if (m_timeTracker == timeTracker) {
@@ -128,23 +180,24 @@ void TimeLogCategoryTreeModel::setTimeTracker(TimeTracker *timeTracker)
     }
 
     if (m_timeTracker) {
-        disconnect(m_timeTracker, SIGNAL(categoriesChanged(QSharedPointer<TimeLogCategory>)),
-                   this, SLOT(updateCategories(QSharedPointer<TimeLogCategory>)));
+        disconnect(m_timeTracker, SIGNAL(categoriesChanged(QSharedPointer<TimeLogCategoryTreeNode>)),
+                   this, SLOT(updateCategories(QSharedPointer<TimeLogCategoryTreeNode>)));
     }
 
     m_timeTracker = timeTracker;
 
     if (m_timeTracker) {
-        connect(m_timeTracker, SIGNAL(categoriesChanged(QSharedPointer<TimeLogCategory>)),
-                this, SLOT(updateCategories(QSharedPointer<TimeLogCategory>)));
+        connect(m_timeTracker, SIGNAL(categoriesChanged(QSharedPointer<TimeLogCategoryTreeNode>)),
+                this, SLOT(updateCategories(QSharedPointer<TimeLogCategoryTreeNode>)));
     }
 
-    updateCategories(m_timeTracker ? m_timeTracker->categories() : QSharedPointer<TimeLogCategory>());
+    updateCategories(m_timeTracker ? m_timeTracker->categories()
+                                   : QSharedPointer<TimeLogCategoryTreeNode>());
 
     emit timeTrackerChanged(m_timeTracker);
 }
 
-void TimeLogCategoryTreeModel::updateCategories(const QSharedPointer<TimeLogCategory> &categories)
+void TimeLogCategoryTreeModel::updateCategories(const QSharedPointer<TimeLogCategoryTreeNode> &categories)
 {
     beginResetModel();
 

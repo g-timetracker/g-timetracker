@@ -5,12 +5,13 @@
 #include <QSharedPointer>
 
 #include "TimeLogStats.h"
-#include "TimeLogSyncData.h"
+#include "TimeLogSyncDataEntry.h"
+#include "TimeLogSyncDataCategory.h"
 
 class QThread;
 
 class TimeLogHistoryWorker;
-class TimeLogCategory;
+class TimeLogCategoryTreeNode;
 
 class TimeLogHistory : public QObject
 {
@@ -34,7 +35,7 @@ public:
     bool init(const QString &dataPath, const QString &filePath = QString());
 
     qlonglong size() const;
-    QSharedPointer<TimeLogCategory> categories() const;
+    QSharedPointer<TimeLogCategoryTreeNode> categories() const;
     int undoCount() const;
 
 public slots:
@@ -42,9 +43,12 @@ public slots:
     void import(const QVector<TimeLogEntry> &data);
     void remove(const TimeLogEntry &data);
     void edit(const TimeLogEntry &data, TimeLogHistory::Fields fields);
-    void editCategory(QString oldName, QString newName);
-    void sync(const QVector<TimeLogSyncData> &updatedData,
-              const QVector<TimeLogSyncData> &removedData);
+    void addCategory(const TimeLogCategory &category);
+    void removeCategory(const QString &name);
+    void editCategory(const QString &oldName, const TimeLogCategory &category);
+    void sync(const QVector<TimeLogSyncDataEntry> &updatedData,
+              const QVector<TimeLogSyncDataEntry> &removedData,
+              const QVector<TimeLogSyncDataCategory> &categoryData);
     void updateHashes();
 
     void undo();
@@ -57,6 +61,8 @@ public slots:
                          const QDateTime &from = QDateTime::fromTime_t(0, Qt::UTC)) const;
     void getHistoryBefore(qlonglong id, const uint limit,
                           const QDateTime &until = QDateTime::currentDateTimeUtc()) const;
+
+    void getStoredCategories() const;
 
     void getStats(const QDateTime &begin = QDateTime::fromTime_t(0, Qt::UTC),
                   const QDateTime &end = QDateTime::currentDateTimeUtc(),
@@ -74,26 +80,38 @@ signals:
     void error(const QString &errorText) const;
     void dataOutdated() const;
     void historyRequestCompleted(QVector<TimeLogEntry> data, qlonglong id) const;
+    void storedCategoriesAvailable(QVector<TimeLogCategory> data) const;
     void dataUpdated(QVector<TimeLogEntry> data, QVector<TimeLogHistory::Fields>) const;
     void dataInserted(const TimeLogEntry &data) const;
     void dataImported(QVector<TimeLogEntry> data) const;
     void dataRemoved(const TimeLogEntry &data) const;
     void statsDataAvailable(QVector<TimeLogStats> data, QDateTime until) const;
-    void syncDataAvailable(QVector<TimeLogSyncData> data, QDateTime until) const;
+    void syncDataAvailable(QVector<TimeLogSyncDataEntry> entryData,
+                           QVector<TimeLogSyncDataCategory> categoryData, QDateTime until) const;
     void syncDataAmountAvailable(qlonglong size, QDateTime maxMTime, QDateTime mBegin, QDateTime mEnd) const;
-    void syncStatsAvailable(QVector<TimeLogSyncData> removedOld, QVector<TimeLogSyncData> removedNew,
-                            QVector<TimeLogSyncData> insertedOld, QVector<TimeLogSyncData> insertedNew,
-                            QVector<TimeLogSyncData> updatedOld, QVector<TimeLogSyncData> updatedNew) const;
+    void syncEntryStatsAvailable(QVector<TimeLogSyncDataEntry> removedOld,
+                                 QVector<TimeLogSyncDataEntry> removedNew,
+                                 QVector<TimeLogSyncDataEntry> insertedOld,
+                                 QVector<TimeLogSyncDataEntry> insertedNew,
+                                 QVector<TimeLogSyncDataEntry> updatedOld,
+                                 QVector<TimeLogSyncDataEntry> updatedNew) const;
+    void syncCategoryStatsAvailable(QVector<TimeLogSyncDataCategory> removedOld,
+                                    QVector<TimeLogSyncDataCategory> removedNew,
+                                    QVector<TimeLogSyncDataCategory> addedOld,
+                                    QVector<TimeLogSyncDataCategory> addedNew,
+                                    QVector<TimeLogSyncDataCategory> updatedOld,
+                                    QVector<TimeLogSyncDataCategory> updatedNew) const;
     void hashesAvailable(QMap<QDateTime, QByteArray> hashes) const;
-    void dataSynced(QVector<TimeLogSyncData> updatedData, QVector<TimeLogSyncData> removedData);
+    void dataSynced(QVector<TimeLogSyncDataEntry> updatedData,
+                    QVector<TimeLogSyncDataEntry> removedData);
     void hashesUpdated() const;
 
-    void categoriesChanged(const QSharedPointer<TimeLogCategory> &categories) const;
+    void categoriesChanged(const QSharedPointer<TimeLogCategoryTreeNode> &categories) const;
     void undoCountChanged(int undoCount) const;
 
 private slots:
     void workerSizeChanged(qlonglong size);
-    void workerCategoriesChanged(QSharedPointer<TimeLogCategory> categories);
+    void workerCategoriesChanged(QSharedPointer<TimeLogCategoryTreeNode> categories);
     void workerUndoCountChanged(int undoCount);
 
 private:
@@ -103,7 +121,7 @@ private:
     TimeLogHistoryWorker *m_worker;
 
     qlonglong m_size;
-    QSharedPointer<TimeLogCategory> m_categories;
+    QSharedPointer<TimeLogCategoryTreeNode> m_categories;
     int m_undoCount;
 };
 

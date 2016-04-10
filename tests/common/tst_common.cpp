@@ -2,6 +2,13 @@
 
 #include "tst_common.h"
 
+namespace {
+struct HashInput {
+    QByteArray uuid;
+    QDateTime mTime;
+};
+}
+
 QVector<TimeLogEntry> defaultDataset = QVector<TimeLogEntry>()
         << TimeLogEntry(QUuid::createUuid(), TimeLogData(QDateTime::fromString("2015-11-01T11:00:00+0200",
                                                                                Qt::ISODate),
@@ -29,6 +36,14 @@ QVector<QDateTime> defaultMTimeSet = QVector<QDateTime>()
         << QDateTime::fromString("2015-12-01T00:00:00Z", Qt::ISODate).addMSecs(1)
         << QDateTime::fromString("2015-12-01T00:00:00Z", Qt::ISODate).addMSecs(999)
         << QDateTime::fromString("2015-12-01T00:00:01Z", Qt::ISODate);
+
+QVector<TimeLogCategory> defaultCategorySet = QVector<TimeLogCategory>()
+        << TimeLogCategory(QUuid::createUuid(), TimeLogCategoryData("Category0"))
+        << TimeLogCategory(QUuid::createUuid(), TimeLogCategoryData("Category1"))
+        << TimeLogCategory(QUuid::createUuid(), TimeLogCategoryData("Category2"))
+        << TimeLogCategory(QUuid::createUuid(), TimeLogCategoryData("Category3"))
+        << TimeLogCategory(QUuid::createUuid(), TimeLogCategoryData("Category4"))
+        << TimeLogCategory(QUuid::createUuid(), TimeLogCategoryData("Category5"));
 
 const int minDuration = 1;
 const int maxDuration = 20000;
@@ -149,14 +164,17 @@ void checkEdit(QSignalSpy &updateSpy, QVector<TimeLogEntry> &origData, TimeLogHi
     }
 }
 
-void extractSyncData(TimeLogHistory *history, QVector<TimeLogSyncData> &syncData)
+void extractSyncData(TimeLogHistory *history,
+                     QVector<TimeLogSyncDataEntry> &entryData,
+                     QVector<TimeLogSyncDataCategory> &categoryData)
 {
-    QSignalSpy historySyncDataSpy(history, SIGNAL(syncDataAvailable(QVector<TimeLogSyncData>,QDateTime)));
+    QSignalSpy historySyncDataSpy(history, SIGNAL(syncDataAvailable(QVector<TimeLogSyncDataEntry>,QVector<TimeLogSyncDataCategory>,QDateTime)));
     QSignalSpy historyErrorSpy(history, SIGNAL(error(QString)));
     history->getSyncData();
     QVERIFY(historySyncDataSpy.wait());
     QVERIFY(historyErrorSpy.isEmpty());
-    syncData = historySyncDataSpy.constFirst().at(0).value<QVector<TimeLogSyncData> >();
+    entryData = historySyncDataSpy.constFirst().at(0).value<QVector<TimeLogSyncDataEntry> >();
+    categoryData = historySyncDataSpy.constFirst().at(1).value<QVector<TimeLogSyncDataCategory> >();
 }
 
 void extractHashes(TimeLogHistory *history, QMap<QDateTime, QByteArray> &hashes, bool noUpdate)
@@ -183,11 +201,32 @@ void checkDB(TimeLogHistory *history, const QVector<TimeLogEntry> &data)
     QVERIFY(compareData(historyData, data));
 }
 
-void checkDB(TimeLogHistory *history, const QVector<TimeLogSyncData> &data)
+void checkDB(TimeLogHistory *history, const QVector<TimeLogCategory> &data)
 {
-    QVector<TimeLogSyncData> syncData;
-    checkFunction(extractSyncData, history, syncData);
-    QVERIFY(compareData(syncData, data));
+    QSignalSpy historyCategoriesSpy(history, SIGNAL(storedCategoriesAvailable(QVector<TimeLogCategory>)));
+    QSignalSpy historyErrorSpy(history, SIGNAL(error(QString)));
+    history->getStoredCategories();
+    QVERIFY(historyCategoriesSpy.wait());
+    QVERIFY(historyErrorSpy.isEmpty());
+    QVector<TimeLogCategory> categoryData = historyCategoriesSpy.constFirst().at(0).value<QVector<TimeLogCategory> >();
+
+    QVector<TimeLogCategory> origData(data);
+    std::sort(origData.begin(), origData.end(), [](const TimeLogCategoryData &d1, const TimeLogCategoryData &d2) {
+        return d1.name < d2.name;
+    });
+
+    QVERIFY(compareData(categoryData, origData));
+}
+
+void checkDB(TimeLogHistory *history,
+             const QVector<TimeLogSyncDataEntry> &entryData,
+             const QVector<TimeLogSyncDataCategory> &categoryData)
+{
+    QVector<TimeLogSyncDataEntry> syncEntryData;
+    QVector<TimeLogSyncDataCategory> syncCategoryData;
+    checkFunction(extractSyncData, history, syncEntryData, syncCategoryData);
+    QVERIFY(compareData(syncEntryData, entryData));
+    QVERIFY(compareData(syncCategoryData, categoryData));
 }
 
 void verifyHashes(const QMap<QDateTime, QByteArray> &hashes)
@@ -227,18 +266,24 @@ void checkHashes(TimeLogHistory *history, const QMap<QDateTime, QByteArray> &ori
 
 void checkHashes(TimeLogHistory *history, bool noUpdate)
 {
-    QVector<TimeLogSyncData> data;
-    checkFunction(extractSyncData, history, data);
+    QVector<TimeLogSyncDataEntry> entryData;
+    QVector<TimeLogSyncDataCategory> categoryData;
+    checkFunction(extractSyncData, history, entryData, categoryData);
 
     QMap<QDateTime,QByteArray> hashes;
     checkFunction(extractHashes, history, hashes, noUpdate);
     checkFunction(verifyHashes, hashes);
-    checkFunction(compareHashes, hashes, calcHashes(data));
+    checkFunction(compareHashes, hashes, calcHashes(entryData, categoryData));
 }
 
-const QVector<TimeLogEntry> &defaultData()
+const QVector<TimeLogEntry> &defaultEntries()
 {
     return defaultDataset;
+}
+
+const QVector<TimeLogCategory> &defaultCategories()
+{
+    return defaultCategorySet;
 }
 
 const QVector<QDateTime> &defaultMTimes()
@@ -314,16 +359,27 @@ QVector<TimeLogEntry> genData(int count)
     return result;
 }
 
-QVector<TimeLogSyncData> genSyncData(const QVector<TimeLogEntry> &data, const QVector<QDateTime> &mTimes)
+template <typename In, typename Out>
+QVector<Out> genSyncData(const QVector<In> &data, const QVector<QDateTime> &mTimes)
 {
-    QVector<TimeLogSyncData> syncData;
+    QVector<Out> syncData;
     syncData.reserve(data.size());
 
     for (int i = 0; i < data.size(); i++) {
-        syncData.append(TimeLogSyncData(data.at(i), mTimes.at(i)));
+        syncData.append(Out(data.at(i), mTimes.at(i)));
     }
 
     return syncData;
+}
+
+QVector<TimeLogSyncDataEntry> genSyncData(const QVector<TimeLogEntry> &data, const QVector<QDateTime> &mTimes)
+{
+    return genSyncData<TimeLogEntry, TimeLogSyncDataEntry>(data, mTimes);
+}
+
+QVector<TimeLogSyncDataCategory> genSyncData(const QVector<TimeLogCategory> &data, const QVector<QDateTime> &mTimes)
+{
+    return genSyncData<TimeLogCategory, TimeLogSyncDataCategory>(data, mTimes);
 }
 
 void updateDataSet(QVector<TimeLogEntry> &data, const TimeLogEntry &entry)
@@ -339,26 +395,56 @@ void updateDataSet(QVector<TimeLogEntry> &data, const TimeLogEntry &entry)
     }
 }
 
-void updateDataSet(QVector<TimeLogSyncData> &data, const TimeLogSyncData &entry)
+void updateDataSet(QVector<TimeLogCategory> &data, const TimeLogCategory &category)
 {
-    data.erase(std::remove_if(data.begin(), data.end(), [&entry](const TimeLogSyncData &e) {
-        return e.uuid == entry.uuid;
+    data.erase(std::remove_if(data.begin(), data.end(), [&category](const TimeLogCategory &c) {
+        return c.uuid == category.uuid;
     }), data.end());
-    auto it = std::lower_bound(data.begin(), data.end(), entry, [](const TimeLogSyncData &e1, const TimeLogSyncData &e2) {
-        if (e1.mTime < e2.mTime) {
+    if (category.isValid()) {
+        data.append(category);
+    }
+}
+
+void updateDataSet(QVector<TimeLogSyncDataEntry> &data, const TimeLogSyncDataEntry &entry)
+{
+    data.erase(std::remove_if(data.begin(), data.end(), [&entry](const TimeLogSyncDataEntry &e) {
+        return e.entry.uuid == entry.entry.uuid;
+    }), data.end());
+    auto it = std::lower_bound(data.begin(), data.end(), entry, [](const TimeLogSyncDataEntry &e1, const TimeLogSyncDataEntry &e2) {
+        if (e1.sync.mTime < e2.sync.mTime) {
             return true;
-        } else if (e1.mTime > e2.mTime) {
+        } else if (e1.sync.mTime > e2.sync.mTime) {
             return false;
-        } else if (e1.isValid() && e2.isValid()) {
-            return e1.startTime < e2.startTime;
+        } else if (e1.entry.isValid() && e2.entry.isValid()) {
+            return e1.entry.startTime < e2.entry.startTime;
         } else {
-            return e1.isValid() > e2.isValid();
+            return e1.entry.isValid() > e2.entry.isValid();
         }
     });
     data.insert(it, entry);
 }
 
-QMap<QDateTime, QByteArray> calcHashes(const QVector<TimeLogSyncData> &data)
+void updateDataSet(QVector<TimeLogSyncDataCategory> &data, const TimeLogSyncDataCategory &category)
+{
+    data.erase(std::remove_if(data.begin(), data.end(), [&category](const TimeLogSyncDataCategory &c) {
+        return c.category.uuid == category.category.uuid;
+    }), data.end());
+    auto it = std::lower_bound(data.begin(), data.end(), category, [](const TimeLogSyncDataCategory &c1, const TimeLogSyncDataCategory &c2) {
+        if (c1.sync.mTime < c2.sync.mTime) {
+            return true;
+        } else if (c1.sync.mTime > c2.sync.mTime) {
+            return false;
+        } else if (c1.category.isValid() && c2.category.isValid()) {
+            return c1.category.uuid < c2.category.uuid;
+        } else {
+            return c1.category.isValid() > c2.category.isValid();
+        }
+    });
+    data.insert(it, category);
+}
+
+QMap<QDateTime, QByteArray> calcHashes(const QVector<TimeLogSyncDataEntry> &entryData,
+                                       const QVector<TimeLogSyncDataCategory> &categoryData)
 {
     QMap<QDateTime, QByteArray> result;
 
@@ -366,12 +452,28 @@ QMap<QDateTime, QByteArray> calcHashes(const QVector<TimeLogSyncData> &data)
     QByteArray hashData;
     QDataStream dataStream(&hashData, QIODevice::WriteOnly);
 
-    QVector<TimeLogSyncData> sortedData(data);
-    std::sort(sortedData.begin(), sortedData.end(), [](const TimeLogSyncData &d1, const TimeLogSyncData &d2) {
-        if (d1.mTime == d2.mTime) {
-            return d1.uuid.toRfc4122() < d2.uuid.toRfc4122();
+    QVector<HashInput> sortedData;
+    sortedData.reserve(entryData.size() + categoryData.size());
+    for (const TimeLogSyncDataEntry &item: entryData) {
+        HashInput input;
+        input.uuid = item.entry.uuid.toRfc4122();
+        input.mTime = item.sync.mTime;
+
+        sortedData.append(input);
+    }
+    for (const TimeLogSyncDataCategory &item: categoryData) {
+        HashInput input;
+        input.uuid = item.category.uuid.toRfc4122();
+        input.mTime = item.sync.mTime;
+
+        sortedData.append(input);
+    }
+
+    std::sort(sortedData.begin(), sortedData.end(), [](const HashInput &i1, const HashInput &i2) {
+        if (i1.mTime == i2.mTime) {
+            return i1.uuid < i2.uuid;
         } else {
-            return d1.mTime < d2.mTime;
+            return i1.mTime < i2.mTime;
         }
     });
 
@@ -379,18 +481,18 @@ QMap<QDateTime, QByteArray> calcHashes(const QVector<TimeLogSyncData> &data)
         periodStart = monthStart(sortedData.constFirst().mTime);
     }
 
-    for (const TimeLogSyncData &entry: sortedData) {
-        if (monthStart(entry.mTime) != periodStart) {
+    for (const HashInput &input: sortedData) {
+        if (monthStart(input.mTime) != periodStart) {
             if (!hashData.isEmpty()) {
                 result.insert(periodStart, QCryptographicHash::hash(hashData, QCryptographicHash::Md5));
             }
 
             dataStream.device()->seek(0);
             hashData.clear();
-            periodStart = monthStart(entry.mTime);
+            periodStart = monthStart(input.mTime);
         }
 
-        dataStream << entry.mTime.toMSecsSinceEpoch() << entry.uuid.toRfc4122();
+        dataStream << input.mTime.toMSecsSinceEpoch() << input.uuid;
     }
 
     if (!hashData.isEmpty()) {
@@ -406,31 +508,40 @@ QDateTime monthStart(const QDateTime &time)
     return QDateTime(QDate(date.year(), date.month(), 1), QTime(), Qt::UTC);
 }
 
-void importSyncData(TimeLogHistory *history, const QVector<TimeLogSyncData> &data, int portionSize)
+void importSyncData(TimeLogHistory *history,
+                    const QVector<TimeLogSyncDataEntry> &entryData,
+                    const QVector<TimeLogSyncDataCategory> &categoryData,
+                    int portionSize)
 {
     QSignalSpy historyErrorSpy(history, SIGNAL(error(QString)));
     QSignalSpy historyOutdateSpy(history, SIGNAL(dataOutdated()));
-    QSignalSpy historySyncSpy(history, SIGNAL(dataSynced(QVector<TimeLogSyncData>,QVector<TimeLogSyncData>)));
+    QSignalSpy historySyncSpy(history, SIGNAL(dataSynced(QVector<TimeLogSyncDataEntry>,QVector<TimeLogSyncDataEntry>)));
 
     int importedSize = 0;
-    while (importedSize < data.size()) {
-        int importSize = qMin(portionSize, data.size() - importedSize);
-        QVector<TimeLogSyncData> updatedData, removedData;
-        for (int i = 0; i < importSize; i++) {
-            const TimeLogSyncData &entry = data.at(i + importedSize);
-            if (entry.isValid()) {
-                updatedData.append(entry);
+    int totalSize = entryData.size() + categoryData.size();
+    while (importedSize < totalSize) {
+        int currentPortionSize = qMin(portionSize, totalSize - importedSize);
+        QVector<TimeLogSyncDataEntry> updatedPortion, removedPortion;
+        QVector<TimeLogSyncDataCategory> categoryPortion;
+        for (int i = 0; i < currentPortionSize; i++) {
+            if (importedSize + i < entryData.size()) {
+                const TimeLogSyncDataEntry &entry = entryData.at(i + importedSize);
+                if (entry.entry.isValid()) {
+                    updatedPortion.append(entry);
+                } else {
+                    removedPortion.append(entry);
+                }
             } else {
-                removedData.append(entry);
+                categoryPortion.append(categoryData.at(importedSize + i - entryData.size()));
             }
         }
         historySyncSpy.clear();
-        history->sync(updatedData, removedData);
+        history->sync(updatedPortion, removedPortion, categoryPortion);
         QVERIFY(historySyncSpy.wait());
         QVERIFY(historyErrorSpy.isEmpty());
         QVERIFY(historyOutdateSpy.isEmpty());
 
-        importedSize += importSize;
+        importedSize += currentPortionSize;
     }
 }
 
@@ -486,11 +597,30 @@ bool compareData(const TimeLogEntry &t1, const TimeLogEntry &t2)
     return true;
 }
 
-bool compareData(const TimeLogSyncData &t1, const TimeLogSyncData &t2)
+bool compareData(const TimeLogCategory &c1, const TimeLogCategory &c2)
 {
-    if (t1.mTime != t2.mTime
-        || !compareData(static_cast<TimeLogEntry>(t1), static_cast<TimeLogEntry>(t2))) {
+    if (c1.uuid != c2.uuid || c1.name != c2.name || c1.data != c2.data) {
+        qCritical() << "Data does not match" << endl << c1 << endl << c2 << endl;
+        return false;
+    }
+
+    return true;
+}
+
+bool compareData(const TimeLogSyncDataEntry &t1, const TimeLogSyncDataEntry &t2)
+{
+    if (t1.sync.mTime != t2.sync.mTime || !compareData(t1.entry, t2.entry)) {
         qCritical() << "Data does not match" << endl << t1 << endl << t2 << endl;
+        return false;
+    }
+
+    return true;
+}
+
+bool compareData(const TimeLogSyncDataCategory &c1, const TimeLogSyncDataCategory &c2)
+{
+    if (c1.sync.mTime != c2.sync.mTime || !compareData(c1.category, c2.category)) {
+        qCritical() << "Data does not match" << endl << c1 << endl << c2 << endl;
         return false;
     }
 
@@ -519,7 +649,9 @@ bool compareData(const QVector<T> &d1, const QVector<T> &d2)
 }
 
 template bool compareData(const QVector<TimeLogEntry> &d1, const QVector<TimeLogEntry> &d2);
-template bool compareData(const QVector<TimeLogSyncData> &d1, const QVector<TimeLogSyncData> &d2);
+template bool compareData(const QVector<TimeLogCategory> &d1, const QVector<TimeLogCategory> &d2);
+template bool compareData(const QVector<TimeLogSyncDataEntry> &d1, const QVector<TimeLogSyncDataEntry> &d2);
+template bool compareData(const QVector<TimeLogSyncDataCategory> &d1, const QVector<TimeLogSyncDataCategory> &d2);
 
 void compareHashes(const QMap<QDateTime, QByteArray> &h1, const QMap<QDateTime, QByteArray> &h2)
 {

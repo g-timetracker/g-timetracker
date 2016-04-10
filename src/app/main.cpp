@@ -14,7 +14,7 @@
 #include "TimeLogCategoryTreeModel.h"
 #include "TimeLogCategoryDepthModel.h"
 #include "TimeTracker.h"
-#include "TimeLogCategory.h"
+#include "TimeLogCategoryTreeNode.h"
 #include "DataImporter.h"
 #include "DataExporter.h"
 #include "DataSyncer.h"
@@ -65,12 +65,16 @@ int main(int argc, char *argv[])
     qRegisterMetaType<TimeLogEntry>();
     qRegisterMetaType<QVector<TimeLogEntry> >();
     qRegisterMetaType<QVector<TimeLogStats> >();
-    qRegisterMetaType<QVector<TimeLogSyncData> >();
+    qRegisterMetaType<QVector<TimeLogSyncDataEntry> >();
+    qRegisterMetaType<QVector<TimeLogSyncDataCategory> >();
     qRegisterMetaType<QSet<QString> >();
     qRegisterMetaType<TimeLogHistory::Fields>();
     qRegisterMetaType<QVector<TimeLogHistory::Fields> >();
-    qRegisterMetaType<QSharedPointer<TimeLogCategory> >();
+    qRegisterMetaType<QSharedPointer<TimeLogCategoryTreeNode> >();
     qRegisterMetaType<QMap<QDateTime,QByteArray> >();
+    qRegisterMetaType<TimeLogCategoryData>();
+    qRegisterMetaType<TimeLogCategory>();
+    qRegisterMetaType<QVector<TimeLogCategory> >();
 
     if (parser.isSet(importOption)) {
         TimeLogHistory history;

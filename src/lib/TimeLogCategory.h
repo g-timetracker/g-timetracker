@@ -1,35 +1,30 @@
 #ifndef TIMELOGCATEGORY_H
 #define TIMELOGCATEGORY_H
 
-#include <QObject>
-#include <QMap>
-#include <QSharedPointer>
+#include <QUuid>
 
-class TimeLogCategory;
+#include "TimeLogCategoryData.h"
 
-class TimeLogCategory
+struct TimeLogCategory : public TimeLogCategoryData
 {
-    Q_GADGET
-    Q_PROPERTY(QString name MEMBER name)
-    Q_PROPERTY(QString fullName READ fullName)
+    typedef TimeLogCategoryData SUPER;
 public:
-    explicit TimeLogCategory(const QString &category, TimeLogCategory *parent = 0);
-    ~TimeLogCategory();
+    explicit TimeLogCategory(const QUuid &uuid = QUuid(),
+                             const TimeLogCategoryData &data = TimeLogCategoryData());
 
-    QString fullName() const;
-    int depth() const;
-    const QMap<QString, TimeLogCategory*> &children() const;
+    bool isValid() const;
 
-    TimeLogCategory *parent() const;
-    void setParent(TimeLogCategory *parent);
+    QString toString() const;
 
-    QString name;
-
-private:
-    TimeLogCategory *m_parent;
-    QMap<QString, TimeLogCategory*> m_children;
+    QUuid uuid;
 };
 
-Q_DECLARE_METATYPE(QSharedPointer<TimeLogCategory>)
+QDataStream &operator<<(QDataStream &stream, const TimeLogCategory &data);
+QDataStream &operator>>(QDataStream &stream, TimeLogCategory &data);
+
+QDebug &operator<<(QDebug &stream, const TimeLogCategory &data);
+
+Q_DECLARE_TYPEINFO(TimeLogCategory, Q_MOVABLE_TYPE);
+Q_DECLARE_METATYPE(TimeLogCategory)
 
 #endif // TIMELOGCATEGORY_H

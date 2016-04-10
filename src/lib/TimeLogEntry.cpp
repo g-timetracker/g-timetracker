@@ -1,3 +1,5 @@
+#include <QDebug>
+
 #include "TimeLogEntry.h"
 
 TimeLogEntry::TimeLogEntry(const QUuid &uuid, const TimeLogData &data) :
@@ -24,4 +26,14 @@ QString TimeLogEntry::toString() const
 QDebug &operator<<(QDebug &stream, const TimeLogEntry &data)
 {
     return stream << data.toString();
+}
+
+QDataStream &operator<<(QDataStream &stream, const TimeLogEntry &data)
+{
+    return stream << data.uuid << data.startTime << data.category << data.comment;
+}
+
+QDataStream &operator>>(QDataStream &stream, TimeLogEntry &data)
+{
+    return stream >> data.uuid >> data.startTime >> data.category >> data.comment;
 }

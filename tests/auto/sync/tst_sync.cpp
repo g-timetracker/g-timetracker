@@ -4,7 +4,7 @@
 
 #include "tst_common.h"
 #include "DataSyncer.h"
-#include "TimeLogCategory.h"
+#include "TimeLogCategoryTreeNode.h"
 
 QLoggingCategory::CategoryFilter oldCategoryFilter;
 
@@ -47,14 +47,19 @@ private slots:
 
     void import();
     void import_data();
-    void insert();
-    void insert_data();
-    void remove();
-    void remove_data();
-    void edit();
-    void edit_data();
-    void renameCategory();
-    void renameCategory_data();
+    void entryInsert();
+    void entryInsert_data();
+    void entryRemove();
+    void entryRemove_data();
+    void entryEdit();
+    void entryEdit_data();
+
+    void categoryAdd();
+    void categoryAdd_data();
+    void categoryRemove();
+    void categoryRemove_data();
+    void categoryEdit();
+    void categoryEdit_data();
 
     void bothRemove();
     void bothRemove_data();
@@ -171,9 +176,11 @@ void tst_Sync::initTestCase()
     qRegisterMetaType<QVector<TimeLogEntry> >();
     qRegisterMetaType<TimeLogHistory::Fields>();
     qRegisterMetaType<QVector<TimeLogHistory::Fields> >();
-    qRegisterMetaType<QVector<TimeLogSyncData> >();
-    qRegisterMetaType<QSharedPointer<TimeLogCategory> >();
+    qRegisterMetaType<QVector<TimeLogSyncDataEntry> >();
+    qRegisterMetaType<QVector<TimeLogSyncDataCategory> >();
+    qRegisterMetaType<QSharedPointer<TimeLogCategoryTreeNode> >();
     qRegisterMetaType<QMap<QDateTime,QByteArray> >();
+    qRegisterMetaType<TimeLogCategory>();
 
     oldCategoryFilter = QLoggingCategory::installFilter(Q_NULLPTR);
     QLoggingCategory::installFilter(syncerCategoryFilter);
@@ -184,7 +191,7 @@ void tst_Sync::import()
 {
     QFETCH(int, entriesCount);
 
-    QVector<TimeLogEntry> origData(defaultData().mid(0, entriesCount));
+    QVector<TimeLogEntry> origData(defaultEntries().mid(0, entriesCount));
 
     QSignalSpy syncSpy1(syncer1, SIGNAL(synced()));
     QSignalSpy syncSpy2(syncer2, SIGNAL(synced()));
@@ -233,9 +240,10 @@ void tst_Sync::import()
 
     checkFunction(checkDB, history1, origData);
 
-    QVector<TimeLogSyncData> origSyncData;
-    checkFunction(extractSyncData, history1, origSyncData);
-    checkFunction(checkDB, history2, origSyncData);
+    QVector<TimeLogSyncDataEntry> origSyncEntries;
+    QVector<TimeLogSyncDataCategory> origSyncCategories;
+    checkFunction(extractSyncData, history1, origSyncEntries, origSyncCategories);
+    checkFunction(checkDB, history2, origSyncEntries, origSyncCategories);
 }
 
 void tst_Sync::import_data()
@@ -248,11 +256,11 @@ void tst_Sync::import_data()
     QTest::newRow("6 entries") << 6;
 }
 
-void tst_Sync::insert()
+void tst_Sync::entryInsert()
 {
     QFETCH(int, initialEntries);
 
-    QVector<TimeLogEntry> origData(defaultData().mid(0, initialEntries));
+    QVector<TimeLogEntry> origData(defaultEntries().mid(0, initialEntries));
 
     QSignalSpy syncSpy1(syncer1, SIGNAL(synced()));
     QSignalSpy syncSpy2(syncer2, SIGNAL(synced()));
@@ -313,12 +321,13 @@ void tst_Sync::insert()
     checkFunction(checkDB, history1, origData);
     checkFunction(checkDB, history2, origData);
 
-    QVector<TimeLogSyncData> origSyncData;
-    checkFunction(extractSyncData, history1, origSyncData);
-    checkFunction(checkDB, history2, origSyncData);
+    QVector<TimeLogSyncDataEntry> origSyncEntries;
+    QVector<TimeLogSyncDataCategory> origSyncCategories;
+    checkFunction(extractSyncData, history1, origSyncEntries, origSyncCategories);
+    checkFunction(checkDB, history2, origSyncEntries, origSyncCategories);
 }
 
-void tst_Sync::insert_data()
+void tst_Sync::entryInsert_data()
 {
     QTest::addColumn<int>("initialEntries");
     QTest::addColumn<int>("index");
@@ -343,11 +352,11 @@ void tst_Sync::insert_data()
     QTest::newRow("6 entries") << 6 << 4 << entry;
 }
 
-void tst_Sync::remove()
+void tst_Sync::entryRemove()
 {
     QFETCH(int, initialEntries);
 
-    QVector<TimeLogEntry> origData(defaultData().mid(0, initialEntries));
+    QVector<TimeLogEntry> origData(defaultEntries().mid(0, initialEntries));
 
     QSignalSpy syncSpy1(syncer1, SIGNAL(synced()));
     QSignalSpy syncSpy2(syncer2, SIGNAL(synced()));
@@ -419,12 +428,13 @@ void tst_Sync::remove()
     checkFunction(checkDB, history1, origData);
     checkFunction(checkDB, history2, origData);
 
-    QVector<TimeLogSyncData> origSyncData;
-    checkFunction(extractSyncData, history1, origSyncData);
-    checkFunction(checkDB, history2, origSyncData);
+    QVector<TimeLogSyncDataEntry> origSyncEntries;
+    QVector<TimeLogSyncDataCategory> origSyncCategories;
+    checkFunction(extractSyncData, history1, origSyncEntries, origSyncCategories);
+    checkFunction(checkDB, history2, origSyncEntries, origSyncCategories);
 }
 
-void tst_Sync::remove_data()
+void tst_Sync::entryRemove_data()
 {
     QTest::addColumn<int>("initialEntries");
     QTest::addColumn<int>("index");
@@ -435,9 +445,9 @@ void tst_Sync::remove_data()
     QTest::newRow("6 entries") << 6 << 3;
 }
 
-void tst_Sync::edit()
+void tst_Sync::entryEdit()
 {
-    QVector<TimeLogEntry> origData(defaultData());
+    QVector<TimeLogEntry> origData(defaultEntries());
 
     QSignalSpy syncSpy1(syncer1, SIGNAL(synced()));
     QSignalSpy syncSpy2(syncer2, SIGNAL(synced()));
@@ -520,62 +530,69 @@ void tst_Sync::edit()
     checkFunction(checkDB, history1, origData);
     checkFunction(checkDB, history2, origData);
 
-    QVector<TimeLogSyncData> origSyncData;
-    checkFunction(extractSyncData, history1, origSyncData);
-    checkFunction(checkDB, history2, origSyncData);
+    QVector<TimeLogSyncDataEntry> origSyncEntries;
+    QVector<TimeLogSyncDataCategory> origSyncCategories;
+    checkFunction(extractSyncData, history1, origSyncEntries, origSyncCategories);
+    checkFunction(checkDB, history2, origSyncEntries, origSyncCategories);
 }
 
-void tst_Sync::edit_data()
+void tst_Sync::entryEdit_data()
 {
     QTest::addColumn<int>("index");
     QTest::addColumn<TimeLogEntry>("newData");
 
     int index = 4;
-    TimeLogEntry entry = defaultData().at(index);
+    TimeLogEntry entry = defaultEntries().at(index);
     entry.category = "CategoryNew";
     QTest::newRow("category") << index << entry;
 
     index = 1;
-    entry = defaultData().at(index);
+    entry = defaultEntries().at(index);
     entry.comment = "Test comment";
     QTest::newRow("comment") << index << entry;
 
     index = 2;
-    entry = defaultData().at(index);
+    entry = defaultEntries().at(index);
     entry.startTime = entry.startTime.addSecs(-100);
     QTest::newRow("start") << index << entry;
 
     index = 3;
-    entry = defaultData().at(index);
+    entry = defaultEntries().at(index);
     entry.category = "CategoryNew";
     entry.comment = "Test comment";
     QTest::newRow("category & comment") << index << entry;
 
     index = 1;
-    entry = defaultData().at(index);
+    entry = defaultEntries().at(index);
     entry.startTime = entry.startTime.addSecs(1000);
     entry.category = "CategoryNew";
     QTest::newRow("start & category") << index << entry;
 
     index = 2;
-    entry = defaultData().at(index);
+    entry = defaultEntries().at(index);
     entry.startTime = entry.startTime.addSecs(-100);
     entry.comment = "Test comment";
     QTest::newRow("start & comment") << index << entry;
 
     index = 1;
-    entry = defaultData().at(index);
+    entry = defaultEntries().at(index);
     entry.startTime = entry.startTime.addSecs(1000);
     entry.category = "CategoryNew";
     entry.comment = "Test comment";
     QTest::newRow("all") << index << entry;
 }
 
-void tst_Sync::renameCategory()
+void tst_Sync::categoryAdd()
 {
     QFETCH(int, initialEntries);
+    QFETCH(int, initialCategories);
 
-    QVector<TimeLogEntry> origData(defaultData().mid(0, initialEntries));
+    QVector<TimeLogEntry> origData(defaultEntries().mid(0, initialEntries));
+    QVector<TimeLogCategory> origCategories(defaultCategories().mid(0, initialCategories));
+
+    QFETCH(QString, categoryName);
+    QFETCH(QVariantMap, categoryData);
+    TimeLogCategory category(QUuid::createUuid(), TimeLogCategoryData(categoryName, categoryData));
 
     QSignalSpy syncSpy1(syncer1, SIGNAL(synced()));
     QSignalSpy syncSpy2(syncer2, SIGNAL(synced()));
@@ -589,18 +606,10 @@ void tst_Sync::renameCategory()
     QSignalSpy historyOutdateSpy1(history1, SIGNAL(dataOutdated()));
     QSignalSpy historyOutdateSpy2(history2, SIGNAL(dataOutdated()));
 
-    QSignalSpy historyUpdateSpy(history2, SIGNAL(dataUpdated(QVector<TimeLogEntry>,QVector<TimeLogHistory::Fields>)));
+    QSignalSpy categoriesSpy(history2, SIGNAL(categoriesChanged(QSharedPointer<TimeLogCategoryTreeNode>)));
 
-    QFETCH(QString, categoryOld);
-    QFETCH(QString, categoryNew);
-    QFETCH(QVector<int>, indexes);
-    foreach (int index, indexes) {
-        origData[index].category = categoryOld;
-    }
-
-    QSignalSpy importSpy(history1, SIGNAL(dataImported(QVector<TimeLogEntry>)));
-    history1->import(origData);
-    QVERIFY(importSpy.wait());
+    checkFunction(importSyncData, history1, genSyncData(origData, defaultMTimes()),
+                  genSyncData(origCategories, defaultMTimes()), 1);
 
     syncer1->sync();
     QVERIFY(syncSpy1.wait());
@@ -608,16 +617,27 @@ void tst_Sync::renameCategory()
     syncer2->sync();
     QVERIFY(syncSpy2. wait());
 
-    history1->editCategory(categoryOld, categoryNew);
-    QVERIFY(historyOutdateSpy1.wait());
-    QVERIFY(historyErrorSpy1.isEmpty());
+    if (categoryName.isEmpty()) {
+        QTest::ignoreMessage(QtCriticalMsg, QRegularExpression(QString("Empty category name")));
+    } else if (categoryName != "CategoryNew" && initialEntries <= initialCategories) {
+        QTest::ignoreMessage(QtCriticalMsg,
+                             QRegularExpression(QString("Category '%1' already exists").arg(categoryName)));
+    }
+    history1->addCategory(category);
+    if (categoryName.isEmpty()
+        || (categoryName != "CategoryNew" && initialEntries <= initialCategories)) {
+        QVERIFY(historyErrorSpy1.wait());
+        QVERIFY(historyOutdateSpy1.isEmpty());
+    } else {
+        QVERIFY(historyErrorSpy1.isEmpty());
+        QVERIFY(historyOutdateSpy1.isEmpty());
 
-    foreach (int index, indexes) {
-        origData[index].category = categoryNew;
+        origCategories.append(category);
     }
 
     // Sync 1 [out]
     historyOutdateSpy1.clear();
+    historyErrorSpy1.clear();
     syncer1->sync();
     QVERIFY(syncSpy1.wait());
     QVERIFY(syncErrorSpy1.isEmpty());
@@ -625,52 +645,413 @@ void tst_Sync::renameCategory()
     QVERIFY(historyOutdateSpy1.isEmpty());
 
     // Sync 2 [in]
-    historyUpdateSpy.clear();
+    categoriesSpy.clear();
     syncer2->sync();
     QVERIFY(syncSpy2.wait());
     QVERIFY(historyOutdateSpy2.isEmpty());
     QVERIFY(syncErrorSpy2.isEmpty());
     QVERIFY(historyErrorSpy2.isEmpty());
 
-    while (historyUpdateSpy.size() < indexes.size()) {
-        QVERIFY(historyUpdateSpy.wait());
-    }
-
-    for (int i = 0; i < indexes.size(); i++) {
-        QVector<TimeLogEntry> updateData = historyUpdateSpy.at(i).at(0).value<QVector<TimeLogEntry> >();
-        QVector<TimeLogHistory::Fields> updateFields = historyUpdateSpy.at(i).at(1).value<QVector<TimeLogHistory::Fields> >();
-        QCOMPARE(updateData.size(), 1);
-        QCOMPARE(updateData.constFirst().category, origData.at(indexes.at(i)).category);
-        QCOMPARE(updateFields.constFirst(), TimeLogHistory::Category);
+    if (categoryName.isEmpty()
+        || (categoryName != "CategoryNew"
+            && (categoryData.isEmpty()
+                || initialEntries <= initialCategories))) {
+        // Adding category with data, that is already available as entry-only should emit a signal
+        QVERIFY(categoriesSpy.isEmpty());
+    } else {
+        QVERIFY(!categoriesSpy.isEmpty() || categoriesSpy.wait());
     }
 
     checkFunction(checkDB, history1, origData);
-    checkFunction(checkDB, history2, origData);
+    checkFunction(checkDB, history1, origCategories);
 
-    QVector<TimeLogSyncData> origSyncData;
-    checkFunction(extractSyncData, history1, origSyncData);
-    checkFunction(checkDB, history2, origSyncData);
+    checkFunction(checkDB, history2, origData);
+    checkFunction(checkDB, history2, origCategories);
+
+    QVector<TimeLogSyncDataEntry> origSyncEntries;
+    QVector<TimeLogSyncDataCategory> origSyncCategories;
+    checkFunction(extractSyncData, history1, origSyncEntries, origSyncCategories);
+    checkFunction(checkDB, history2, origSyncEntries, origSyncCategories);
 }
 
-void tst_Sync::renameCategory_data()
+void tst_Sync::categoryAdd_data()
 {
     QTest::addColumn<int>("initialEntries");
-    QTest::addColumn<QString>("categoryOld");
-    QTest::addColumn<QString>("categoryNew");
-    QTest::addColumn<QVector<int> >("indexes");
+    QTest::addColumn<int>("initialCategories");
+    QTest::addColumn<QString>("categoryName");
+    QTest::addColumn<QVariantMap>("categoryData");
 
-    QTest::newRow("6 entries, 2 items") << 6 << "CategoryOld" << "CategoryNew" << (QVector<int>() << 1 << 3);
-    QTest::newRow("1 entry") << 1 << "CategoryOld" << "CategoryNew" << (QVector<int>() << 0);
-    QTest::newRow("2 entries, first") << 2 << "CategoryOld" << "CategoryNew" << (QVector<int>() << 0);
-    QTest::newRow("2 entries, last") << 2 << "CategoryOld" << "CategoryNew" << (QVector<int>() << 1);
-    QTest::newRow("all items") << 6 << "CategoryOld" << "CategoryNew" << (QVector<int>() << 0 << 1 << 2 << 3 << 4 << 5);
+    QVariantMap data;
+
+    auto addTest = [](const QString &info, int initialEntries, int initialCategories,
+            const QString &name, const QVariantMap data)
+    {
+        QTest::newRow(info.toLocal8Bit()) << initialEntries << initialCategories << name << data;
+    };
+
+    auto addTestSet = [&addTest, &data](const QString &prefix)
+    {
+        addTest(QString("%1, empty category").arg(prefix), 6, 6, "", data);
+        addTest(QString("%1, empty category, entry-only").arg(prefix), 6, 0, "", data);
+        addTest(QString("%1, different category").arg(prefix), 6, 6, "CategoryNew", data);
+        addTest(QString("%1, different category, entry-only").arg(prefix), 6, 0, "CategoryNew", data);
+        addTest(QString("%1, different category, no entries").arg(prefix), 0, 6, "CategoryNew", data);
+        addTest(QString("%1, same category").arg(prefix), 6, 6, "Category4", data);
+        addTest(QString("%1, same category, entry-only").arg(prefix), 6, 0, "Category4", data);
+        addTest(QString("%1, same category, no entries").arg(prefix), 0, 6, "Category4", data);
+        addTest(QString("%1, 1 entry").arg(prefix), 1, 1, "CategoryNew", data);
+        addTest(QString("%1, 1 entry, entry-only").arg(prefix), 1, 0, "CategoryNew", data);
+        addTest(QString("%1, 2 entries, first").arg(prefix), 2, 2, "CategoryNew", data);
+        addTest(QString("%1, 2 entries, first, entry-only").arg(prefix), 2, 0, "CategoryNew", data);
+        addTest(QString("%1, 2 entries, last").arg(prefix), 2, 2, "CategoryNew", data);
+        addTest(QString("%1, 2 entries, last, entry-only").arg(prefix), 2, 0, "CategoryNew", data);
+        addTest(QString("%1, all entries").arg(prefix), 6, 6, "CategoryNew", data);
+        addTest(QString("%1, all entries, entry-only").arg(prefix), 6, 0, "CategoryNew", data);
+    };
+
+    data.clear();
+    addTestSet("empty data");
+
+    data.clear();
+    data.insert("comment", QString("Test comment"));
+    addTestSet("comment");
+}
+
+void tst_Sync::categoryRemove()
+{
+    QFETCH(int, initialEntries);
+    QFETCH(int, initialCategories);
+
+    QVector<TimeLogEntry> origData(defaultEntries().mid(0, initialEntries));
+    QVector<TimeLogCategory> origCategories(defaultCategories().mid(0, initialCategories));
+
+    QFETCH(int, index);
+    QString categoryName(index == -1 ? "" : defaultCategories().at(index).name);
+
+    QSignalSpy syncSpy1(syncer1, SIGNAL(synced()));
+    QSignalSpy syncSpy2(syncer2, SIGNAL(synced()));
+
+    QSignalSpy syncErrorSpy1(syncer1, SIGNAL(error(QString)));
+    QSignalSpy syncErrorSpy2(syncer2, SIGNAL(error(QString)));
+
+    QSignalSpy historyErrorSpy1(history1, SIGNAL(error(QString)));
+    QSignalSpy historyErrorSpy2(history2, SIGNAL(error(QString)));
+
+    QSignalSpy historyOutdateSpy1(history1, SIGNAL(dataOutdated()));
+    QSignalSpy historyOutdateSpy2(history2, SIGNAL(dataOutdated()));
+
+    QSignalSpy categoriesSpy(history2, SIGNAL(categoriesChanged(QSharedPointer<TimeLogCategoryTreeNode>)));
+
+    checkFunction(importSyncData, history1, genSyncData(origData, defaultMTimes()),
+                  genSyncData(origCategories, defaultMTimes()), 1);
+
+    syncer1->sync();
+    QVERIFY(syncSpy1.wait());
+
+    syncer2->sync();
+    QVERIFY(syncSpy2. wait());
+
+    if (categoryName.isEmpty()) {
+        QTest::ignoreMessage(QtCriticalMsg, QRegularExpression(QString("Empty category name")));
+    } else if (qMax(initialCategories, initialEntries) <= index) {
+        QTest::ignoreMessage(QtCriticalMsg,
+                             QRegularExpression(QString("No such category: %1").arg(categoryName)));
+    }
+    history1->removeCategory(categoryName);
+    if (categoryName.isEmpty() || qMax(initialCategories, initialEntries) <= index) {
+        QVERIFY(historyErrorSpy1.wait());
+        QVERIFY(historyOutdateSpy1.isEmpty());
+    } else {
+        QVERIFY(historyErrorSpy1.isEmpty());
+        QVERIFY(historyOutdateSpy1.isEmpty());
+
+        if (index < initialCategories && index >= 0) {
+            origCategories.remove(index);
+        }
+    }
+
+    // Sync 1 [out]
+    historyOutdateSpy1.clear();
+    historyErrorSpy1.clear();
+    syncer1->sync();
+    QVERIFY(syncSpy1.wait());
+    QVERIFY(syncErrorSpy1.isEmpty());
+    QVERIFY(historyErrorSpy1.isEmpty());
+    QVERIFY(historyOutdateSpy1.isEmpty());
+
+    // Sync 2 [in]
+    categoriesSpy.clear();
+    syncer2->sync();
+    QVERIFY(syncSpy2.wait());
+    QVERIFY(historyOutdateSpy2.isEmpty());
+    QVERIFY(syncErrorSpy2.isEmpty());
+    QVERIFY(historyErrorSpy2.isEmpty());
+
+    if (categoryName.isEmpty() || initialEntries >= index || initialCategories <= index) {
+        QVERIFY(categoriesSpy.isEmpty());
+    } else {    // Only deleting category without entries should emit signal
+        QVERIFY(!categoriesSpy.isEmpty() || categoriesSpy.wait());
+    }
+
+    checkFunction(checkDB, history1, origData);
+    checkFunction(checkDB, history1, origCategories);
+
+    checkFunction(checkDB, history2, origData);
+    checkFunction(checkDB, history2, origCategories);
+
+    QVector<TimeLogSyncDataEntry> origSyncEntries;
+    QVector<TimeLogSyncDataCategory> origSyncCategories;
+    checkFunction(extractSyncData, history1, origSyncEntries, origSyncCategories);
+    checkFunction(checkDB, history2, origSyncEntries, origSyncCategories);
+}
+
+void tst_Sync::categoryRemove_data()
+{
+    QTest::addColumn<int>("initialEntries");
+    QTest::addColumn<int>("initialCategories");
+    QTest::addColumn<int>("index");
+
+    auto addTest = [](const QString &info, int initialEntries, int initialCategories, int index)
+    {
+        QTest::newRow(info.toLocal8Bit()) << initialEntries << initialCategories << index;
+    };
+
+    auto addTestSet = [&addTest]()
+    {
+        addTest(QString("empty category"), 6, 6, -1);
+        addTest(QString("empty category, entry-only"), 6, 0, -1);
+        addTest(QString("category"), 6, 6, 3);
+        addTest(QString("category, entry-only"), 6, 0, 3);
+        addTest(QString("category, no entries"), 0, 6, 3);
+        addTest(QString("non-existing category"), 3, 3, 3);
+        addTest(QString("non-existing, entry-only"), 3, 0, 3);
+        addTest(QString("non-existing, no entries"), 0, 3, 3);
+        addTest(QString("1 entry"), 1, 1, 0);
+        addTest(QString("1 entry, entry-only"), 1, 0, 0);
+        addTest(QString("2 entries, first"), 2, 2, 0);
+        addTest(QString("2 entries, first, entry-only"), 2, 0, 0);
+        addTest(QString("2 entries, last"), 2, 2, 1);
+        addTest(QString("2 entries, last, entry-only"), 2, 0, 1);
+    };
+
+    addTestSet();
+}
+
+void tst_Sync::categoryEdit()
+{
+    QFETCH(int, initialEntries);
+    QFETCH(int, initialCategories);
+
+    QVector<TimeLogEntry> origData(defaultEntries().mid(0, initialEntries));
+    QVector<TimeLogCategory> origCategories(defaultCategories().mid(0, initialCategories));
+
+    QFETCH(QString, categoryNameOld);
+    QFETCH(QString, categoryNameNew);
+    QFETCH(QVariantMap, categoryDataOld);
+    QFETCH(QVariantMap, categoryDataNew);
+    QFETCH(QVector<int>, indices);
+    if (!categoryNameNew.isEmpty()) {
+        for (int index: indices) {
+            if (index < origData.size()) {
+                origData[index].category = categoryNameOld;
+            }
+        }
+        int index = indices.constFirst();
+        if (index < origCategories.size()) {
+            origCategories[index].name = categoryNameOld;
+            origCategories[index].data = categoryDataOld;
+        }
+    }
+    TimeLogCategory category(defaultCategories().at(indices.constFirst()));
+    category.name = categoryNameNew;
+    category.data = categoryDataNew;
+
+    QSignalSpy syncSpy1(syncer1, SIGNAL(synced()));
+    QSignalSpy syncSpy2(syncer2, SIGNAL(synced()));
+
+    QSignalSpy syncErrorSpy1(syncer1, SIGNAL(error(QString)));
+    QSignalSpy syncErrorSpy2(syncer2, SIGNAL(error(QString)));
+
+    QSignalSpy historyErrorSpy1(history1, SIGNAL(error(QString)));
+    QSignalSpy historyErrorSpy2(history2, SIGNAL(error(QString)));
+
+    QSignalSpy historyOutdateSpy1(history1, SIGNAL(dataOutdated()));
+    QSignalSpy historyOutdateSpy2(history2, SIGNAL(dataOutdated()));
+
+    QSignalSpy historyCategoriesSpy(history2, SIGNAL(categoriesChanged(QSharedPointer<TimeLogCategoryTreeNode>)));
+    QSignalSpy historyUpdateSpy(history2, SIGNAL(dataUpdated(QVector<TimeLogEntry>,QVector<TimeLogHistory::Fields>)));
+
+    checkFunction(importSyncData, history1, genSyncData(origData, defaultMTimes()),
+                  genSyncData(origCategories, defaultMTimes()), 1);
+
+    syncer1->sync();
+    QVERIFY(syncSpy1.wait());
+
+    syncer2->sync();
+    QVERIFY(syncSpy2. wait());
+
+    if (categoryNameNew.isEmpty()) {
+        QTest::ignoreMessage(QtCriticalMsg, QRegularExpression(QString("Empty category name")));
+    }
+    history1->editCategory(categoryNameOld, category);
+    QVector<int> updateIndices;
+    if (categoryNameNew.isEmpty()) {
+        QVERIFY(historyErrorSpy1.wait());
+        QVERIFY(historyOutdateSpy1.isEmpty());
+    } else {
+        QVERIFY(historyErrorSpy1.isEmpty());
+        QVERIFY(historyOutdateSpy1.isEmpty());
+
+        for (int index: indices) {
+            if (categoryNameNew != categoryNameOld && index < initialEntries) {
+                updateIndices.append(index);
+            }
+        }
+
+        if (!categoryNameNew.isEmpty()) {
+            bool isMerged = false;
+            if (categoryNameNew != categoryNameOld
+                && std::find_if(origCategories.begin(), origCategories.end(),
+                                [categoryNameNew](const TimeLogCategoryData &d) {
+                                    return d.name == categoryNameNew;
+                                }) != origCategories.end()) {
+                origCategories.erase(std::remove_if(origCategories.begin(), origCategories.end(),
+                                                    [&categoryNameOld](const TimeLogCategoryData &d) {
+                    return d.name == categoryNameOld;
+                }), origCategories.end());
+
+                isMerged = true;
+            }
+            for (int index: indices) {
+                if (index < origData.size()) {
+                    origData[index].category = categoryNameNew;
+                }
+            }
+            if (!isMerged) {
+                int index = indices.constFirst();
+                if (index < origCategories.size()) {
+                    origCategories[index] = category;
+                } else {
+                    origCategories.append(category);
+                }
+            }
+        }
+    }
+
+    // Sync 1 [out]
+    historyOutdateSpy1.clear();
+    historyErrorSpy1.clear();
+    syncer1->sync();
+    QVERIFY(syncSpy1.wait());
+    QVERIFY(syncErrorSpy1.isEmpty());
+    QVERIFY(historyErrorSpy1.isEmpty());
+    QVERIFY(historyOutdateSpy1.isEmpty());
+
+    // Sync 2 [in]
+    historyCategoriesSpy.clear();
+    historyUpdateSpy.clear();
+    syncer2->sync();
+    QVERIFY(syncSpy2.wait());
+    QVERIFY(historyOutdateSpy2.isEmpty());
+    QVERIFY(syncErrorSpy2.isEmpty());
+    QVERIFY(historyErrorSpy2.isEmpty());
+    if (categoryNameNew.isEmpty()
+        || (categoryNameNew == categoryNameOld
+            && (categoryDataNew.isEmpty() || categoryDataNew == categoryDataOld)
+            && initialEntries > initialCategories)) {
+        // Clear data on entry-only category shouldn't emit a signal
+        QVERIFY(historyCategoriesSpy.isEmpty());
+    } else {
+        QVERIFY(!historyCategoriesSpy.isEmpty() || historyCategoriesSpy.wait());
+    }
+    while (historyUpdateSpy.size() < updateIndices.size()) {
+        QVERIFY(historyUpdateSpy.wait());
+    }
+    QCOMPARE(historyUpdateSpy.size(), updateIndices.size());
+
+    checkFunction(checkDB, history1, origData);
+    checkFunction(checkDB, history1, origCategories);
+
+    checkFunction(checkDB, history2, origData);
+    checkFunction(checkDB, history2, origCategories);
+
+    QVector<TimeLogSyncDataEntry> origSyncEntries;
+    QVector<TimeLogSyncDataCategory> origSyncCategories;
+    checkFunction(extractSyncData, history1, origSyncEntries, origSyncCategories);
+    checkFunction(checkDB, history2, origSyncEntries, origSyncCategories);
+}
+
+void tst_Sync::categoryEdit_data()
+{
+    QTest::addColumn<int>("initialEntries");
+    QTest::addColumn<int>("initialCategories");
+    QTest::addColumn<QString>("categoryNameOld");
+    QTest::addColumn<QString>("categoryNameNew");
+    QTest::addColumn<QVariantMap>("categoryDataOld");
+    QTest::addColumn<QVariantMap>("categoryDataNew");
+    QTest::addColumn<QVector<int> >("indices");
+
+    QVariantMap oldData;
+    QVariantMap newData;
+
+    auto addTest = [](const QString &info, int initialEntries, int initialCategories,
+            const QString &oldName, const QString &newName, const QVariantMap oldData,
+            const QVariantMap newData, const QVector<int> &indices)
+    {
+        QTest::newRow(info.toLocal8Bit()) << initialEntries << initialCategories << oldName
+                                          << newName << oldData << newData << indices;
+    };
+
+    auto addTestSet = [&addTest, &oldData, &newData](const QString &prefix)
+    {
+        addTest(QString("%1, empty category").arg(prefix), 6, 6, "CategoryOld", "", oldData, newData, QVector<int>() << 1 << 3);
+        addTest(QString("%1, empty category, entry-only").arg(prefix), 6, 0, "CategoryOld", "", oldData, newData, QVector<int>() << 1 << 3);
+        addTest(QString("%1, different category").arg(prefix), 6, 6, "CategoryOld", "CategoryNew", oldData, newData, QVector<int>() << 1 << 3);
+        addTest(QString("%1, different category, entry-only").arg(prefix), 6, 0, "CategoryOld", "CategoryNew", oldData, newData, QVector<int>() << 1 << 3);
+        addTest(QString("%1, different category, no entries").arg(prefix), 0, 6, "CategoryOld", "CategoryNew", oldData, newData, QVector<int>() << 1 << 3);
+        addTest(QString("%1, same category").arg(prefix), 6, 6, "CategoryOld", "CategoryOld", oldData, newData, QVector<int>() << 1 << 3);
+        addTest(QString("%1, same category, entry-only").arg(prefix), 6, 0, "CategoryOld", "CategoryOld", oldData, newData, QVector<int>() << 1 << 3);
+        addTest(QString("%1, same category, no entries").arg(prefix), 0, 6, "CategoryOld", "CategoryOld", oldData, newData, QVector<int>() << 1 << 3);
+        addTest(QString("%1, merge categories").arg(prefix), 6, 6, "CategoryOld", "Category4", oldData, newData, QVector<int>() << 1 << 3);
+        addTest(QString("%1, merge categories, from entry-only").arg(prefix), 6, 1, "CategoryOld", "Category0", oldData, newData, QVector<int>() << 1 << 3);
+        addTest(QString("%1, merge categories, to entry-only").arg(prefix), 6, 2, "CategoryOld", "Category2", oldData, newData, QVector<int>() << 1 << 2);
+        addTest(QString("%1, merge categories, no entries").arg(prefix), 0, 6, "CategoryOld", "Category4", oldData, newData, QVector<int>() << 1 << 3);
+        addTest(QString("%1, 1 entry").arg(prefix), 1, 1, "CategoryOld", "CategoryNew", oldData, newData, QVector<int>() << 0);
+        addTest(QString("%1, 1 entry, entry-only").arg(prefix), 1, 0, "CategoryOld", "CategoryNew", oldData, newData, QVector<int>() << 0);
+        addTest(QString("%1, 2 entries, first").arg(prefix), 2, 2, "CategoryOld", "CategoryNew", oldData, newData, QVector<int>() << 0);
+        addTest(QString("%1, 2 entries, first, entry-only").arg(prefix), 2, 0, "CategoryOld", "CategoryNew", oldData, newData, QVector<int>() << 0);
+        addTest(QString("%1, 2 entries, last").arg(prefix), 2, 2, "CategoryOld", "CategoryNew", oldData, newData, QVector<int>() << 1);
+        addTest(QString("%1, 2 entries, last, entry-only").arg(prefix), 2, 0, "CategoryOld", "CategoryNew", oldData, newData, QVector<int>() << 1);
+        addTest(QString("%1, all entries").arg(prefix), 6, 6, "CategoryOld", "CategoryNew", oldData, newData, QVector<int>() << 0 << 1 << 2 << 3 << 4 << 5);
+        addTest(QString("%1, all entries, entry-only").arg(prefix), 6, 0, "CategoryOld", "CategoryNew", oldData, newData, QVector<int>() << 0 << 1 << 2 << 3 << 4 << 5);
+    };
+
+    oldData.clear();
+    newData.clear();
+    addTestSet("empty data");
+
+    oldData.clear();
+    newData.clear();
+    oldData.insert("comment", QString("Test comment"));
+    addTestSet("clear comment");
+
+    oldData.clear();
+    newData.clear();
+    newData.insert("comment", QString("Test comment"));
+    addTestSet("add comment");
+
+    oldData.clear();
+    newData.clear();
+    oldData.insert("comment", QString("Test comment"));
+    newData.insert("comment", QString("New comment"));
+    addTestSet("edit comment");
 }
 
 void tst_Sync::bothRemove()
 {
     QFETCH(int, initialEntries);
 
-    QVector<TimeLogEntry> origData(defaultData().mid(0, initialEntries));
+    QVector<TimeLogEntry> origData(defaultEntries().mid(0, initialEntries));
 
     QSignalSpy syncSpy1(syncer1, SIGNAL(synced()));
     QSignalSpy syncSpy2(syncer2, SIGNAL(synced()));
@@ -753,9 +1134,10 @@ void tst_Sync::bothRemove()
     checkFunction(checkDB, history1, origData);
     checkFunction(checkDB, history2, origData);
 
-    QVector<TimeLogSyncData> origSyncData;
-    checkFunction(extractSyncData, history1, origSyncData);
-    checkFunction(checkDB, history2, origSyncData);
+    QVector<TimeLogSyncDataEntry> origSyncEntries;
+    QVector<TimeLogSyncDataCategory> origSyncCategories;
+    checkFunction(extractSyncData, history1, origSyncEntries, origSyncCategories);
+    checkFunction(checkDB, history2, origSyncEntries, origSyncCategories);
 }
 
 void tst_Sync::bothRemove_data()
@@ -771,7 +1153,7 @@ void tst_Sync::bothRemove_data()
 
 void tst_Sync::bothEdit()
 {
-    QVector<TimeLogEntry> origData(defaultData());
+    QVector<TimeLogEntry> origData(defaultEntries());
 
     QSignalSpy syncSpy1(syncer1, SIGNAL(synced()));
     QSignalSpy syncSpy2(syncer2, SIGNAL(synced()));
@@ -877,9 +1259,10 @@ void tst_Sync::bothEdit()
     checkFunction(checkDB, history1, origData);
     checkFunction(checkDB, history2, origData);
 
-    QVector<TimeLogSyncData> origSyncData;
-    checkFunction(extractSyncData, history1, origSyncData);
-    checkFunction(checkDB, history2, origSyncData);
+    QVector<TimeLogSyncDataEntry> origSyncEntries;
+    QVector<TimeLogSyncDataCategory> origSyncCategories;
+    checkFunction(extractSyncData, history1, origSyncEntries, origSyncCategories);
+    checkFunction(checkDB, history2, origSyncEntries, origSyncCategories);
 }
 
 void tst_Sync::bothEdit_data()
@@ -893,59 +1276,59 @@ void tst_Sync::bothEdit_data()
     TimeLogEntry entry2;
 
     index = 4;
-    entry1 = defaultData().at(index);
+    entry1 = defaultEntries().at(index);
     entry1.category = "CategoryOld";
-    entry2 = defaultData().at(index);
+    entry2 = defaultEntries().at(index);
     entry2.category = "CategoryNew";
     QTest::newRow("category") << index << entry1 << entry2;
 
     index = 1;
-    entry1 = defaultData().at(index);
+    entry1 = defaultEntries().at(index);
     entry1.comment = "Test comment old";
-    entry2 = defaultData().at(index);
+    entry2 = defaultEntries().at(index);
     entry2.comment = "Test comment new";
     QTest::newRow("comment") << index << entry1 << entry2;
 
     index = 2;
-    entry1 = defaultData().at(index);
+    entry1 = defaultEntries().at(index);
     entry1.startTime = entry1.startTime.addSecs(-100);
-    entry2 = defaultData().at(index);
+    entry2 = defaultEntries().at(index);
     entry2.startTime = entry2.startTime.addSecs(-50);
     QTest::newRow("start") << index << entry1 << entry2;
 
     index = 3;
-    entry1 = defaultData().at(index);
+    entry1 = defaultEntries().at(index);
     entry1.category = "CategoryOld";
     entry1.comment = "Test comment old";
-    entry2 = defaultData().at(index);
+    entry2 = defaultEntries().at(index);
     entry2.category = "CategoryNew";
     entry2.comment = "Test comment new";
     QTest::newRow("category & comment") << index << entry1 << entry2;
 
     index = 1;
-    entry1 = defaultData().at(index);
+    entry1 = defaultEntries().at(index);
     entry1.startTime = entry1.startTime.addSecs(1000);
     entry1.category = "CategoryOld";
-    entry2 = defaultData().at(index);
+    entry2 = defaultEntries().at(index);
     entry2.startTime = entry2.startTime.addSecs(500);
     entry2.category = "CategoryNew";
     QTest::newRow("start & category") << index << entry1 << entry2;
 
     index = 2;
-    entry1 = defaultData().at(index);
+    entry1 = defaultEntries().at(index);
     entry1.startTime = entry1.startTime.addSecs(-100);
     entry1.comment = "Test comment iold";
-    entry2 = defaultData().at(index);
+    entry2 = defaultEntries().at(index);
     entry2.startTime = entry2.startTime.addSecs(-50);
     entry2.comment = "Test comment new";
     QTest::newRow("start & comment") << index << entry1 << entry2;
 
     index = 1;
-    entry1 = defaultData().at(index);
+    entry1 = defaultEntries().at(index);
     entry1.startTime = entry1.startTime.addSecs(1000);
     entry1.category = "CategoryOld";
     entry1.comment = "Test comment old";
-    entry2 = defaultData().at(index);
+    entry2 = defaultEntries().at(index);
     entry2.startTime = entry2.startTime.addSecs(500);
     entry2.category = "CategoryNew";
     entry2.comment = "Test comment new";
@@ -954,7 +1337,7 @@ void tst_Sync::bothEdit_data()
 
 void tst_Sync::editRemove()
 {
-    QVector<TimeLogEntry> origData(defaultData());
+    QVector<TimeLogEntry> origData(defaultEntries());
 
     QSignalSpy syncSpy1(syncer1, SIGNAL(synced()));
     QSignalSpy syncSpy2(syncer2, SIGNAL(synced()));
@@ -1044,9 +1427,10 @@ void tst_Sync::editRemove()
     checkFunction(checkDB, history1, origData);
     checkFunction(checkDB, history2, origData);
 
-    QVector<TimeLogSyncData> origSyncData;
-    checkFunction(extractSyncData, history1, origSyncData);
-    checkFunction(checkDB, history2, origSyncData);
+    QVector<TimeLogSyncDataEntry> origSyncEntries;
+    QVector<TimeLogSyncDataCategory> origSyncCategories;
+    checkFunction(extractSyncData, history1, origSyncEntries, origSyncCategories);
+    checkFunction(checkDB, history2, origSyncEntries, origSyncCategories);
 }
 
 void tst_Sync::editRemove_data()
@@ -1055,40 +1439,40 @@ void tst_Sync::editRemove_data()
     QTest::addColumn<TimeLogEntry>("newData");
 
     int index = 4;
-    TimeLogEntry entry = defaultData().at(index);
+    TimeLogEntry entry = defaultEntries().at(index);
     entry.category = "CategoryNew";
     QTest::newRow("category") << index << entry;
 
     index = 1;
-    entry = defaultData().at(index);
+    entry = defaultEntries().at(index);
     entry.comment = "Test comment";
     QTest::newRow("comment") << index << entry;
 
     index = 2;
-    entry = defaultData().at(index);
+    entry = defaultEntries().at(index);
     entry.startTime = entry.startTime.addSecs(-100);
     QTest::newRow("start") << index << entry;
 
     index = 3;
-    entry = defaultData().at(index);
+    entry = defaultEntries().at(index);
     entry.category = "CategoryNew";
     entry.comment = "Test comment";
     QTest::newRow("category & comment") << index << entry;
 
     index = 1;
-    entry = defaultData().at(index);
+    entry = defaultEntries().at(index);
     entry.startTime = entry.startTime.addSecs(1000);
     entry.category = "CategoryNew";
     QTest::newRow("start & category") << index << entry;
 
     index = 2;
-    entry = defaultData().at(index);
+    entry = defaultEntries().at(index);
     entry.startTime = entry.startTime.addSecs(-100);
     entry.comment = "Test comment";
     QTest::newRow("start & comment") << index << entry;
 
     index = 1;
-    entry = defaultData().at(index);
+    entry = defaultEntries().at(index);
     entry.startTime = entry.startTime.addSecs(1000);
     entry.category = "CategoryNew";
     entry.comment = "Test comment";
@@ -1097,7 +1481,7 @@ void tst_Sync::editRemove_data()
 
 void tst_Sync::removeEdit()
 {
-    QVector<TimeLogEntry> origData(defaultData());
+    QVector<TimeLogEntry> origData(defaultEntries());
 
     QSignalSpy syncSpy1(syncer1, SIGNAL(synced()));
     QSignalSpy syncSpy2(syncer2, SIGNAL(synced()));
@@ -1192,9 +1576,10 @@ void tst_Sync::removeEdit()
     checkFunction(checkDB, history1, origData);
     checkFunction(checkDB, history2, origData);
 
-    QVector<TimeLogSyncData> origSyncData;
-    checkFunction(extractSyncData, history1, origSyncData);
-    checkFunction(checkDB, history2, origSyncData);
+    QVector<TimeLogSyncDataEntry> origSyncEntries;
+    QVector<TimeLogSyncDataCategory> origSyncCategories;
+    checkFunction(extractSyncData, history1, origSyncEntries, origSyncCategories);
+    checkFunction(checkDB, history2, origSyncEntries, origSyncCategories);
 }
 
 void tst_Sync::removeEdit_data()
@@ -1203,40 +1588,40 @@ void tst_Sync::removeEdit_data()
     QTest::addColumn<TimeLogEntry>("newData");
 
     int index = 4;
-    TimeLogEntry entry = defaultData().at(index);
+    TimeLogEntry entry = defaultEntries().at(index);
     entry.category = "CategoryNew";
     QTest::newRow("category") << index << entry;
 
     index = 1;
-    entry = defaultData().at(index);
+    entry = defaultEntries().at(index);
     entry.comment = "Test comment";
     QTest::newRow("comment") << index << entry;
 
     index = 2;
-    entry = defaultData().at(index);
+    entry = defaultEntries().at(index);
     entry.startTime = entry.startTime.addSecs(-100);
     QTest::newRow("start") << index << entry;
 
     index = 3;
-    entry = defaultData().at(index);
+    entry = defaultEntries().at(index);
     entry.category = "CategoryNew";
     entry.comment = "Test comment";
     QTest::newRow("category & comment") << index << entry;
 
     index = 1;
-    entry = defaultData().at(index);
+    entry = defaultEntries().at(index);
     entry.startTime = entry.startTime.addSecs(1000);
     entry.category = "CategoryNew";
     QTest::newRow("start & category") << index << entry;
 
     index = 2;
-    entry = defaultData().at(index);
+    entry = defaultEntries().at(index);
     entry.startTime = entry.startTime.addSecs(-100);
     entry.comment = "Test comment";
     QTest::newRow("start & comment") << index << entry;
 
     index = 1;
-    entry = defaultData().at(index);
+    entry = defaultEntries().at(index);
     entry.startTime = entry.startTime.addSecs(1000);
     entry.category = "CategoryNew";
     entry.comment = "Test comment";
@@ -1245,7 +1630,7 @@ void tst_Sync::removeEdit_data()
 
 void tst_Sync::removeOldEdit()
 {
-    QVector<TimeLogEntry> origData(defaultData());
+    QVector<TimeLogEntry> origData(defaultEntries());
 
     QSignalSpy syncSpy1(syncer1, SIGNAL(synced()));
     QSignalSpy syncSpy2(syncer2, SIGNAL(synced()));
@@ -1366,10 +1751,11 @@ void tst_Sync::removeOldEdit()
     checkFunction(checkDB, history2, origData);
     checkFunction(checkDB, history3, origData);
 
-    QVector<TimeLogSyncData> origSyncData;
-    checkFunction(extractSyncData, history1, origSyncData);
-    checkFunction(checkDB, history2, origSyncData);
-    checkFunction(checkDB, history3, origSyncData);
+    QVector<TimeLogSyncDataEntry> origSyncEntries;
+    QVector<TimeLogSyncDataCategory> origSyncCategories;
+    checkFunction(extractSyncData, history1, origSyncEntries, origSyncCategories);
+    checkFunction(checkDB, history2, origSyncEntries, origSyncCategories);
+    checkFunction(checkDB, history3, origSyncEntries, origSyncCategories);
 }
 
 void tst_Sync::removeOldEdit_data()
@@ -1378,40 +1764,40 @@ void tst_Sync::removeOldEdit_data()
     QTest::addColumn<TimeLogEntry>("newData");
 
     int index = 4;
-    TimeLogEntry entry = defaultData().at(index);
+    TimeLogEntry entry = defaultEntries().at(index);
     entry.category = "CategoryNew";
     QTest::newRow("category") << index << entry;
 
     index = 1;
-    entry = defaultData().at(index);
+    entry = defaultEntries().at(index);
     entry.comment = "Test comment";
     QTest::newRow("comment") << index << entry;
 
     index = 2;
-    entry = defaultData().at(index);
+    entry = defaultEntries().at(index);
     entry.startTime = entry.startTime.addSecs(-100);
     QTest::newRow("start") << index << entry;
 
     index = 3;
-    entry = defaultData().at(index);
+    entry = defaultEntries().at(index);
     entry.category = "CategoryNew";
     entry.comment = "Test comment";
     QTest::newRow("category & comment") << index << entry;
 
     index = 1;
-    entry = defaultData().at(index);
+    entry = defaultEntries().at(index);
     entry.startTime = entry.startTime.addSecs(1000);
     entry.category = "CategoryNew";
     QTest::newRow("start & category") << index << entry;
 
     index = 2;
-    entry = defaultData().at(index);
+    entry = defaultEntries().at(index);
     entry.startTime = entry.startTime.addSecs(-100);
     entry.comment = "Test comment";
     QTest::newRow("start & comment") << index << entry;
 
     index = 1;
-    entry = defaultData().at(index);
+    entry = defaultEntries().at(index);
     entry.startTime = entry.startTime.addSecs(1000);
     entry.category = "CategoryNew";
     entry.comment = "Test comment";
@@ -1422,7 +1808,7 @@ void tst_Sync::removeOldInsert()
 {
     QFETCH(int, initialEntries);
 
-    QVector<TimeLogEntry> origData(defaultData().mid(0, initialEntries));
+    QVector<TimeLogEntry> origData(defaultEntries().mid(0, initialEntries));
 
     QSignalSpy syncSpy1(syncer1, SIGNAL(synced()));
     QSignalSpy syncSpy2(syncer2, SIGNAL(synced()));
@@ -1518,10 +1904,11 @@ void tst_Sync::removeOldInsert()
     checkFunction(checkDB, history2, origData);
     checkFunction(checkDB, history3, origData);
 
-    QVector<TimeLogSyncData> origSyncData;
-    checkFunction(extractSyncData, history1, origSyncData);
-    checkFunction(checkDB, history2, origSyncData);
-    checkFunction(checkDB, history3, origSyncData);
+    QVector<TimeLogSyncDataEntry> origSyncEntries;
+    QVector<TimeLogSyncDataCategory> origSyncCategories;
+    checkFunction(extractSyncData, history1, origSyncEntries, origSyncCategories);
+    checkFunction(checkDB, history2, origSyncEntries, origSyncCategories);
+    checkFunction(checkDB, history3, origSyncEntries, origSyncCategories);
 }
 
 void tst_Sync::removeOldInsert_data()
@@ -1552,7 +1939,7 @@ void tst_Sync::removeOldRemove()
 {
     QFETCH(int, initialEntries);
 
-    QVector<TimeLogEntry> origData(defaultData().mid(0, initialEntries));
+    QVector<TimeLogEntry> origData(defaultEntries().mid(0, initialEntries));
 
     QSignalSpy syncSpy1(syncer1, SIGNAL(synced()));
     QSignalSpy syncSpy2(syncer2, SIGNAL(synced()));
@@ -1656,10 +2043,11 @@ void tst_Sync::removeOldRemove()
     checkFunction(checkDB, history2, origData);
     checkFunction(checkDB, history3, origData);
 
-    QVector<TimeLogSyncData> origSyncData;
-    checkFunction(extractSyncData, history1, origSyncData);
-    checkFunction(checkDB, history2, origSyncData);
-    checkFunction(checkDB, history3, origSyncData);
+    QVector<TimeLogSyncDataEntry> origSyncEntries;
+    QVector<TimeLogSyncDataCategory> origSyncCategories;
+    checkFunction(extractSyncData, history1, origSyncEntries, origSyncCategories);
+    checkFunction(checkDB, history2, origSyncEntries, origSyncCategories);
+    checkFunction(checkDB, history3, origSyncEntries, origSyncCategories);
 }
 
 void tst_Sync::removeOldRemove_data()
@@ -1675,7 +2063,7 @@ void tst_Sync::removeOldRemove_data()
 
 void tst_Sync::editOldEdit()
 {
-    QVector<TimeLogEntry> origData(defaultData());
+    QVector<TimeLogEntry> origData(defaultEntries());
 
     QSignalSpy syncSpy1(syncer1, SIGNAL(synced()));
     QSignalSpy syncSpy2(syncer2, SIGNAL(synced()));
@@ -1809,10 +2197,11 @@ void tst_Sync::editOldEdit()
     checkFunction(checkDB, history2, origData);
     checkFunction(checkDB, history3, origData);
 
-    QVector<TimeLogSyncData> origSyncData;
-    checkFunction(extractSyncData, history1, origSyncData);
-    checkFunction(checkDB, history2, origSyncData);
-    checkFunction(checkDB, history3, origSyncData);
+    QVector<TimeLogSyncDataEntry> origSyncEntries;
+    QVector<TimeLogSyncDataCategory> origSyncCategories;
+    checkFunction(extractSyncData, history1, origSyncEntries, origSyncCategories);
+    checkFunction(checkDB, history2, origSyncEntries, origSyncCategories);
+    checkFunction(checkDB, history3, origSyncEntries, origSyncCategories);
 }
 
 void tst_Sync::editOldEdit_data()
@@ -1826,59 +2215,59 @@ void tst_Sync::editOldEdit_data()
     TimeLogEntry entry2;
 
     index = 4;
-    entry1 = defaultData().at(index);
+    entry1 = defaultEntries().at(index);
     entry1.category = "CategoryOld";
-    entry2 = defaultData().at(index);
+    entry2 = defaultEntries().at(index);
     entry2.category = "CategoryNew";
     QTest::newRow("category") << index << entry1 << entry2;
 
     index = 1;
-    entry1 = defaultData().at(index);
+    entry1 = defaultEntries().at(index);
     entry1.comment = "Test comment old";
-    entry2 = defaultData().at(index);
+    entry2 = defaultEntries().at(index);
     entry2.comment = "Test comment new";
     QTest::newRow("comment") << index << entry1 << entry2;
 
     index = 2;
-    entry1 = defaultData().at(index);
+    entry1 = defaultEntries().at(index);
     entry1.startTime = entry1.startTime.addSecs(-100);
-    entry2 = defaultData().at(index);
+    entry2 = defaultEntries().at(index);
     entry2.startTime = entry2.startTime.addSecs(-50);
     QTest::newRow("start") << index << entry1 << entry2;
 
     index = 3;
-    entry1 = defaultData().at(index);
+    entry1 = defaultEntries().at(index);
     entry1.category = "CategoryOld";
     entry1.comment = "Test comment old";
-    entry2 = defaultData().at(index);
+    entry2 = defaultEntries().at(index);
     entry2.category = "CategoryNew";
     entry2.comment = "Test comment new";
     QTest::newRow("category & comment") << index << entry1 << entry2;
 
     index = 1;
-    entry1 = defaultData().at(index);
+    entry1 = defaultEntries().at(index);
     entry1.startTime = entry1.startTime.addSecs(1000);
     entry1.category = "CategoryOld";
-    entry2 = defaultData().at(index);
+    entry2 = defaultEntries().at(index);
     entry2.startTime = entry2.startTime.addSecs(500);
     entry2.category = "CategoryNew";
     QTest::newRow("start & category") << index << entry1 << entry2;
 
     index = 2;
-    entry1 = defaultData().at(index);
+    entry1 = defaultEntries().at(index);
     entry1.startTime = entry1.startTime.addSecs(-100);
     entry1.comment = "Test comment iold";
-    entry2 = defaultData().at(index);
+    entry2 = defaultEntries().at(index);
     entry2.startTime = entry2.startTime.addSecs(-50);
     entry2.comment = "Test comment new";
     QTest::newRow("start & comment") << index << entry1 << entry2;
 
     index = 1;
-    entry1 = defaultData().at(index);
+    entry1 = defaultEntries().at(index);
     entry1.startTime = entry1.startTime.addSecs(1000);
     entry1.category = "CategoryOld";
     entry1.comment = "Test comment old";
-    entry2 = defaultData().at(index);
+    entry2 = defaultEntries().at(index);
     entry2.startTime = entry2.startTime.addSecs(500);
     entry2.category = "CategoryNew";
     entry2.comment = "Test comment new";
@@ -1887,7 +2276,7 @@ void tst_Sync::editOldEdit_data()
 
 void tst_Sync::editOldRemove()
 {
-    QVector<TimeLogEntry> origData(defaultData());
+    QVector<TimeLogEntry> origData(defaultEntries());
 
     QSignalSpy syncSpy1(syncer1, SIGNAL(synced()));
     QSignalSpy syncSpy2(syncer2, SIGNAL(synced()));
@@ -2010,10 +2399,11 @@ void tst_Sync::editOldRemove()
     checkFunction(checkDB, history2, origData);
     checkFunction(checkDB, history3, origData);
 
-    QVector<TimeLogSyncData> origSyncData;
-    checkFunction(extractSyncData, history1, origSyncData);
-    checkFunction(checkDB, history2, origSyncData);
-    checkFunction(checkDB, history3, origSyncData);
+    QVector<TimeLogSyncDataEntry> origSyncEntries;
+    QVector<TimeLogSyncDataCategory> origSyncCategories;
+    checkFunction(extractSyncData, history1, origSyncEntries, origSyncCategories);
+    checkFunction(checkDB, history2, origSyncEntries, origSyncCategories);
+    checkFunction(checkDB, history3, origSyncEntries, origSyncCategories);
 }
 
 void tst_Sync::editOldRemove_data()
@@ -2022,40 +2412,40 @@ void tst_Sync::editOldRemove_data()
     QTest::addColumn<TimeLogEntry>("newData");
 
     int index = 4;
-    TimeLogEntry entry = defaultData().at(index);
+    TimeLogEntry entry = defaultEntries().at(index);
     entry.category = "CategoryNew";
     QTest::newRow("category") << index << entry;
 
     index = 1;
-    entry = defaultData().at(index);
+    entry = defaultEntries().at(index);
     entry.comment = "Test comment";
     QTest::newRow("comment") << index << entry;
 
     index = 2;
-    entry = defaultData().at(index);
+    entry = defaultEntries().at(index);
     entry.startTime = entry.startTime.addSecs(-100);
     QTest::newRow("start") << index << entry;
 
     index = 3;
-    entry = defaultData().at(index);
+    entry = defaultEntries().at(index);
     entry.category = "CategoryNew";
     entry.comment = "Test comment";
     QTest::newRow("category & comment") << index << entry;
 
     index = 1;
-    entry = defaultData().at(index);
+    entry = defaultEntries().at(index);
     entry.startTime = entry.startTime.addSecs(1000);
     entry.category = "CategoryNew";
     QTest::newRow("start & category") << index << entry;
 
     index = 2;
-    entry = defaultData().at(index);
+    entry = defaultEntries().at(index);
     entry.startTime = entry.startTime.addSecs(-100);
     entry.comment = "Test comment";
     QTest::newRow("start & comment") << index << entry;
 
     index = 1;
-    entry = defaultData().at(index);
+    entry = defaultEntries().at(index);
     entry.startTime = entry.startTime.addSecs(1000);
     entry.category = "CategoryNew";
     entry.comment = "Test comment";

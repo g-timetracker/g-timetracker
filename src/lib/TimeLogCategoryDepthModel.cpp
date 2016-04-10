@@ -1,5 +1,5 @@
 #include "TimeLogCategoryDepthModel.h"
-#include "TimeLogCategory.h"
+#include "TimeLogCategoryTreeNode.h"
 #include "TimeTracker.h"
 
 #include <QLoggingCategory>
@@ -23,7 +23,7 @@ int TimeLogCategoryDepthModel::rowCount(const QModelIndex &parent) const
         return 0;
     }
 
-    const TimeLogCategory *current;
+    const TimeLogCategoryTreeNode *current;
     if (m_categoryFields.isEmpty() ) {
         current = m_root.data();
     } else {
@@ -66,7 +66,7 @@ QVariant TimeLogCategoryDepthModel::data(const QModelIndex &index, int role) con
             return QVariant::fromValue(QString(""));
         }
     case CurrentIndexRole: {
-        TimeLogCategory *category;
+        TimeLogCategoryTreeNode *category;
         if (index.row() == 0) {
             category = m_root.data();
         } else if (m_categoryEntries.size() >= index.row()) {
@@ -168,18 +168,19 @@ void TimeLogCategoryDepthModel::setTimeTracker(TimeTracker *timeTracker)
     }
 
     if (m_timeTracker) {
-        disconnect(m_timeTracker, SIGNAL(categoriesChanged(QSharedPointer<TimeLogCategory>)),
-                   this, SLOT(updateCategories(QSharedPointer<TimeLogCategory>)));
+        disconnect(m_timeTracker, SIGNAL(categoriesChanged(QSharedPointer<TimeLogCategoryTreeNode>)),
+                   this, SLOT(updateCategories(QSharedPointer<TimeLogCategoryTreeNode>)));
     }
 
     m_timeTracker = timeTracker;
 
     if (m_timeTracker) {
-        connect(m_timeTracker, SIGNAL(categoriesChanged(QSharedPointer<TimeLogCategory>)),
-                this, SLOT(updateCategories(QSharedPointer<TimeLogCategory>)));
+        connect(m_timeTracker, SIGNAL(categoriesChanged(QSharedPointer<TimeLogCategoryTreeNode>)),
+                this, SLOT(updateCategories(QSharedPointer<TimeLogCategoryTreeNode>)));
     }
 
-    updateCategories(m_timeTracker ? m_timeTracker->categories() : QSharedPointer<TimeLogCategory>());
+    updateCategories(m_timeTracker ? m_timeTracker->categories()
+                                   : QSharedPointer<TimeLogCategoryTreeNode>());
 
     emit timeTrackerChanged(m_timeTracker);
 }
@@ -209,7 +210,7 @@ void TimeLogCategoryDepthModel::setCategory(const QString &category)
     setCategoryFields(startIndex, categoryFields.mid(startIndex));
 }
 
-void TimeLogCategoryDepthModel::updateCategories(const QSharedPointer<TimeLogCategory> &categories)
+void TimeLogCategoryDepthModel::updateCategories(const QSharedPointer<TimeLogCategoryTreeNode> &categories)
 {
     beginResetModel();
 
@@ -248,18 +249,18 @@ void TimeLogCategoryDepthModel::setCategoryFields(int startLevel, const QStringL
     int newSize = startLevel + categoryFields.size();
     int startRow = qMin(startLevel, oldSize);
 
-    TimeLogCategory *parentCategory;
+    TimeLogCategoryTreeNode *parentCategory;
     if (startRow == 0) {
         parentCategory = m_root.data();
     } else {
         parentCategory = m_categoryEntries.size() >= startRow ? m_categoryEntries.at(startRow - 1) : nullptr;
     }
-    TimeLogCategory *category = parentCategory;
+    TimeLogCategoryTreeNode *category = parentCategory;
     for (int i = 0; i < categoryFields.size() && category && category->depth() < newSize; i++) {
         category = category->children().value(categoryFields.at(i));
     }
 
-    TimeLogCategory *current;
+    TimeLogCategoryTreeNode *current;
     if (m_categoryFields.isEmpty() ) {
         current = m_root.data();
     } else {

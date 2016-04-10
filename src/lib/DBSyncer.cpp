@@ -36,15 +36,17 @@ DBSyncer::DBSyncer(TimeLogHistory *source, TimeLogHistory *destination, QObject 
     connect(this, SIGNAL(error(QString)), m_sm, SLOT(stop()));
     connect(this, SIGNAL(synced()), SLOT(dbSynced()), Qt::QueuedConnection);
 
-    connect(m_source, SIGNAL(syncDataAvailable(QVector<TimeLogSyncData>,QDateTime)),
-            this, SLOT(sourceDataAvailable(QVector<TimeLogSyncData>,QDateTime)));
+    connect(m_source, SIGNAL(syncDataAvailable(QVector<TimeLogSyncDataEntry>,
+                                               QVector<TimeLogSyncDataCategory>,QDateTime)),
+            this, SLOT(sourceDataAvailable(QVector<TimeLogSyncDataEntry>,
+                                           QVector<TimeLogSyncDataCategory>,QDateTime)));
     connect(m_source, SIGNAL(hashesAvailable(QMap<QDateTime,QByteArray>)),
             this, SLOT(sourceHashesAvailable(QMap<QDateTime,QByteArray>)));
 
     connect(m_destination, SIGNAL(hashesAvailable(QMap<QDateTime,QByteArray>)),
             this, SLOT(destinationHashesAvailable(QMap<QDateTime,QByteArray>)));
-    connect(m_destination, SIGNAL(dataSynced(QVector<TimeLogSyncData>,QVector<TimeLogSyncData>)),
-            this, SLOT(destinationDataSynced(QVector<TimeLogSyncData>,QVector<TimeLogSyncData>)));
+    connect(m_destination, SIGNAL(dataSynced(QVector<TimeLogSyncDataEntry>,QVector<TimeLogSyncDataEntry>)),
+            this, SLOT(destinationDataSynced(QVector<TimeLogSyncDataEntry>,QVector<TimeLogSyncDataEntry>)));
     connect(m_destination, SIGNAL(hashesUpdated()),
             this, SLOT(destinationHashesUpdated()));
 }
@@ -60,7 +62,9 @@ void DBSyncer::start(bool isRecalcHashes, const QDateTime &maxMonth)
     m_source->getHashes(m_maxMonth);
 }
 
-void DBSyncer::sourceDataAvailable(QVector<TimeLogSyncData> data, QDateTime until)
+void DBSyncer::sourceDataAvailable(QVector<TimeLogSyncDataEntry> entryData,
+                                   QVector<TimeLogSyncDataCategory> categoryData,
+                                   QDateTime until)
 {
     Q_UNUSED(until)
 
@@ -68,22 +72,25 @@ void DBSyncer::sourceDataAvailable(QVector<TimeLogSyncData> data, QDateTime unti
         return;
     }
 
-    QVector<TimeLogSyncData> updatedData;
-    QVector<TimeLogSyncData> removedData;
+    QVector<TimeLogSyncDataEntry> updatedData;
+    QVector<TimeLogSyncDataEntry> removedData;
 
-    for (const TimeLogSyncData &entry: data) {
-        if (entry.isValid()) {
+    for (const TimeLogSyncDataEntry &entry: entryData) {
+        if (entry.entry.isValid()) {
             updatedData.append(entry);
         } else {
             removedData.append(entry);
         }
     }
 
-    if (!data.isEmpty() && data.constLast().mTime > m_latestMTime) {
-        m_latestMTime = data.constLast().mTime;
+    if (!entryData.isEmpty() && entryData.constLast().sync.mTime > m_latestMTime) {
+        m_latestMTime = entryData.constLast().sync.mTime;
+    }
+    if (!categoryData.isEmpty() && categoryData.constLast().sync.mTime > m_latestMTime) {
+        m_latestMTime = categoryData.constLast().sync.mTime;
     }
 
-    m_destination->sync(updatedData, removedData);
+    m_destination->sync(updatedData, removedData, categoryData);
 }
 
 void DBSyncer::sourceHashesAvailable(QMap<QDateTime, QByteArray> hashes)
@@ -124,7 +131,8 @@ void DBSyncer::destinationHashesAvailable(QMap<QDateTime, QByteArray> hashes)
     }
 }
 
-void DBSyncer::destinationDataSynced(QVector<TimeLogSyncData> updatedData, QVector<TimeLogSyncData> removedData)
+void DBSyncer::destinationDataSynced(QVector<TimeLogSyncDataEntry> updatedData,
+                                     QVector<TimeLogSyncDataEntry> removedData)
 {
     Q_UNUSED(updatedData)
     Q_UNUSED(removedData)

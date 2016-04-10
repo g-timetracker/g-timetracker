@@ -3,15 +3,13 @@
 
 #include <QUuid>
 
-#include <QDebug>
-
 #include "TimeLogData.h"
 
 struct TimeLogEntry: public TimeLogData
 {
     typedef TimeLogData SUPER;
 public:
-    TimeLogEntry(const QUuid &uuid = QUuid(), const TimeLogData &data = TimeLogData());
+    explicit TimeLogEntry(const QUuid &uuid = QUuid(), const TimeLogData &data = TimeLogData());
 
     bool isValid() const;
 
@@ -21,6 +19,9 @@ public:
     int durationTime;
     QDateTime precedingStart;
 };
+
+QDataStream &operator<<(QDataStream &stream, const TimeLogEntry &data);
+QDataStream &operator>>(QDataStream &stream, TimeLogEntry &data);
 
 QDebug &operator<<(QDebug &stream, const TimeLogEntry &data);
 
