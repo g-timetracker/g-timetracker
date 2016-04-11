@@ -1,6 +1,6 @@
 import QtQuick 2.4
 import QtQuick.Layouts 1.1
-import QtQuick.Controls 1.4
+import Qt.labs.controls 1.0
 import QtQuick.Dialogs 1.2
 import QtQml.Models 2.2
 import TimeLog 1.0
@@ -12,16 +12,58 @@ Item {
     property alias model: delegateModel.model
     property bool reverse: false
 
-    property alias menu: d.itemMenu
-    readonly property alias editAction: itemEditAction
-    readonly property alias insertBeforeAction: itemInsertBeforeAction
-    readonly property alias insertAfterAction: itemInsertAfterAction
-    readonly property alias appendAction: itemAppendAction
-    readonly property alias removeAction: itemRemoveAction
+    property alias menuModel: itemMenu.contentData
+    property MenuItem editMenuItem: MenuItem {
+        text: "Edit"
+        onTriggered: timeLogView.itemEdit()
+    }
+    property MenuItem insertBeforeMenuItem: MenuItem {
+        text: "Insert before"
+        onTriggered: timeLogView.itemInsertBefore()
+    }
+    property MenuItem insertAfterMenuItem: MenuItem {
+        text: "Insert after"
+        onTriggered: timeLogView.itemInsertAfter()
+    }
+    property MenuItem removeMenuItem: MenuItem {
+        text: "Remove"
+        onTriggered: timeLogView.itemRemove()
+    }
 
     signal insert(var modelIndex, var newData)
     signal append(var newData)
     signal remove(var modelIndex)
+
+    function itemEdit() {
+        editDialog.setData(listView.itemUnderCursor())
+        TimeTracker.showDialogRequested(editDialog)
+    }
+
+    function itemInsertBefore() {
+        var index = listView.indexUnderCursor()
+        var item = listView.itemUnderCursor()
+        d.insert(index, item.precedingStart, item.startTime)
+    }
+
+    function itemInsertAfter() {
+        var index = listView.indexUnderCursor()
+        var item = listView.itemUnderCursor()
+        d.insert(timeLogView.reverse ? index - 1 : index + 1, item.startTime, item.succeedingStart)
+    }
+
+    function itemAppend() {
+        var timeAfter = delegateModel.items.count ? delegateModel.items.get(0).model.startTime
+                                                  : new Date(0)
+        d.insert(timeLogView.reverse ? -1 : delegateModel.items.count - 1, timeAfter, new Date())
+    }
+
+    function itemRemove() {
+        if (Settings.isConfirmationsEnabled) {
+            removeConfirmationDialog.open()
+        } else {
+            d.deleteItemUnderCursor()
+        }
+    }
 
     function pointedItem() {
         return listView.itemUnderCursor()
@@ -29,21 +71,6 @@ Item {
 
     QtObject {
         id: d
-
-        property Menu itemMenu: Menu {
-            MenuItem {
-                action: itemEditAction
-            }
-            MenuItem {
-                action: itemInsertBeforeAction
-            }
-            MenuItem {
-                action: itemInsertAfterAction
-            }
-            MenuItem {
-                action: itemRemoveAction
-            }
-        }
 
         function insert(indexBefore, timeAfter, timeBefore) {
             if (Util.calcDuration(timeAfter, timeBefore) > 1) {
@@ -57,6 +84,23 @@ Item {
         function deleteItemUnderCursor() {
             timeLogView.remove(delegateModel.modelIndex(listView.indexUnderCursor()))
         }
+    }
+
+    Menu {
+        id: itemMenu
+
+        function popup() {
+            x = mouseArea.mouseX
+            y = mouseArea.mouseY
+            open()
+        }
+
+         contentData: [
+             editMenuItem,
+             insertBeforeMenuItem,
+             insertAfterMenuItem,
+             removeMenuItem
+        ]
     }
 
     DelegateModel {
@@ -93,72 +137,6 @@ Item {
         }
 
         onError: TimeTracker.error(errorText)
-    }
-
-    Action {
-        id: itemEditAction
-
-        text: "Edit"
-        tooltip: "Edit item"
-
-        onTriggered: {
-            editDialog.setData(listView.itemUnderCursor())
-            TimeTracker.showDialogRequested(editDialog)
-        }
-    }
-
-    Action {
-        id: itemInsertBeforeAction
-
-        text: "Insert before"
-        tooltip: "Insert item before this item"
-
-        onTriggered: {
-            var index = listView.indexUnderCursor()
-            var item = listView.itemUnderCursor()
-            d.insert(index, item.precedingStart, item.startTime)
-        }
-    }
-
-    Action {
-        id: itemInsertAfterAction
-
-        text: "Insert after"
-        tooltip: "Insert item after this item"
-
-        onTriggered: {
-            var index = listView.indexUnderCursor()
-            var item = listView.itemUnderCursor()
-            d.insert(timeLogView.reverse ? index - 1 : index + 1, item.startTime, item.succeedingStart)
-        }
-    }
-
-    Action {
-        id: itemAppendAction
-
-        text: "Add item"
-        tooltip: "Adds item into model"
-
-        onTriggered: {
-            var timeAfter = delegateModel.items.count ? delegateModel.items.get(0).model.startTime
-                                                      : new Date(0)
-            d.insert(timeLogView.reverse ? -1 : delegateModel.items.count - 1, timeAfter, new Date())
-        }
-    }
-
-    Action {
-        id: itemRemoveAction
-
-        text: "Remove"
-        tooltip: "Remove item"
-
-        onTriggered: {
-            if (Settings.isConfirmationsEnabled) {
-                removeConfirmationDialog.open()
-            } else {
-                d.deleteItemUnderCursor()
-            }
-        }
     }
 
     MessageDialog {
@@ -202,21 +180,21 @@ Item {
                 onDoubleClicked: {
                     if (listView.itemAt(mouse.x + listView.contentX,
                                         mouse.y + listView.contentY)) {
-                        itemEditAction.trigger()
+                        timeLogView.itemEdit()
                     }
                 }
 
                 onPressAndHold:{
                     if (mouse.button === Qt.LeftButton && listView.itemAt(mouse.x + listView.contentX,
                                                                           mouse.y + listView.contentY)) {
-                        d.itemMenu.popup()
+                        itemMenu.popup()
                     }
                 }
 
                 onClicked: {
                     if (mouse.button === Qt.RightButton && listView.itemAt(mouse.x + listView.contentX,
                                                                            mouse.y + listView.contentY)) {
-                        d.itemMenu.popup()
+                        itemMenu.popup()
                     }
                 }
             }

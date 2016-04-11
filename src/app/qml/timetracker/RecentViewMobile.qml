@@ -30,6 +30,6 @@ Item {
         anchors.margins: height / 2
         iconSource: "images/ic_add_white_24dp.png"
 
-        onClicked: timeLogView.appendAction.trigger()
+        onClicked: timeLogView.itemAppend()
     }
 }

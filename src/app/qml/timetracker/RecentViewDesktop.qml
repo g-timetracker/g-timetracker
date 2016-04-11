@@ -36,8 +36,8 @@ Item {
 
             PushButton {
                 anchors.centerIn: parent
-                text: timeLogView.appendAction.text
-                onClicked: timeLogView.appendAction.trigger()
+                text: "Add"
+                onClicked: timeLogView.itemAppend()
             }
         }
     }

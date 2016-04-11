@@ -1,6 +1,6 @@
 import QtQuick 2.4
 import QtQuick.Layouts 1.1
-import QtQuick.Controls 1.4
+import Qt.labs.controls 1.0
 import TimeLog 1.0
 
 Item {
@@ -16,20 +16,6 @@ Item {
         category: timeLogFilter.category
     }
 
-    Action {
-        id: showHistoryAction
-
-        text: "Show history"
-        tooltip: "Show history with this item"
-
-        onTriggered: {
-            var item = timeLogView.pointedItem()
-            var beginDate = new Date(Math.max(item.startTime.valueOf() - 6 * 60 * 60 * 1000, 0))
-            var endDate = new Date(Math.min(item.succeedingStart.valueOf() - 1000 + 6 * 60 * 60 * 1000, Date.now()))
-            TimeTracker.showHistoryRequested(beginDate, endDate)
-        }
-    }
-
     ColumnLayout {
         anchors.fill: parent
 
@@ -43,17 +29,23 @@ Item {
         TimeLogView {
             id: timeLogView
 
+            property MenuItem showHistoryMenuItem: MenuItem {
+                text: "Show history"
+                onTriggered: {
+                    var item = timeLogView.pointedItem()
+                    var beginDate = new Date(Math.max(item.startTime.valueOf() - 6 * 60 * 60 * 1000, 0))
+                    var endDate = new Date(Math.min(item.succeedingStart.valueOf() - 1000 + 6 * 60 * 60 * 1000, Date.now()))
+                    TimeTracker.showHistoryRequested(beginDate, endDate)
+                }
+            }
+
             Layout.fillHeight: true
             Layout.fillWidth: true
             model: timeLogModel
-            menu: Menu {
-                MenuItem {
-                    action: showHistoryAction
-                }
-                MenuItem {
-                    action: timeLogView.editAction
-                }
-            }
+            menuModel: [
+                showHistoryMenuItem,
+                timeLogView.editMenuItem
+            ]
         }
     }
 }

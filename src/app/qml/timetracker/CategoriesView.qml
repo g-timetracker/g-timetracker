@@ -1,5 +1,6 @@
 import QtQuick 2.0
-import QtQuick.Controls 1.4
+import QtQuick.Controls 1.4 as QQC1
+import Qt.labs.controls 1.0
 import QtQuick.Layouts 1.1
 import QtQuick.Dialogs 1.2
 import QtQml.Models 2.2
@@ -7,6 +8,46 @@ import TimeLog 1.0
 
 Item {
     property string title: "Categories"
+
+    QtObject {
+        id: d
+
+        property bool isRemoveEnabled: treeView.isCurrentIndexValid
+                                       && !categoryModel.data(treeView.selection.currentIndex,
+                                                              TimeLogCategoryTreeModel.HasItemsRole)
+        property bool isEditEnabled: treeView.isCurrentIndexValid
+        property bool isShowEntriesEnabled: treeView.isCurrentIndexValid
+        property bool isShowStatsEnabled: treeView.isCurrentIndexValid
+
+        function create() {
+            newDialog.openDialog()
+        }
+
+        function remove() {
+            if (Settings.isConfirmationsEnabled) {
+                removeConfirmationDialog.open()
+            } else {
+                categoryModel.removeItem(treeView.selection.currentIndex)
+            }
+        }
+
+        function edit() {
+            editDialog.openDialog(categoryModel.data(treeView.selection.currentIndex,
+                                                     TimeLogCategoryTreeModel.FullNameRole),
+                                  categoryModel.data(treeView.selection.currentIndex,
+                                                     TimeLogCategoryTreeModel.DataRole))
+        }
+
+        function showEntries() {
+            TimeTracker.showSearchRequested(categoryModel.data(treeView.selection.currentIndex,
+                                                               TimeLogCategoryTreeModel.FullNameRole))
+        }
+
+        function showStats() {
+            TimeTracker.showStatsRequested(categoryModel.data(treeView.selection.currentIndex,
+                                                              TimeLogCategoryTreeModel.FullNameRole))
+        }
+    }
 
     TimeLogCategoryTreeModel {
         id: categoryModel
@@ -36,68 +77,6 @@ Item {
         onDataAccepted: categoryModel.addItem(newData)
     }
 
-    Action {
-        id: newAction
-
-        text: "Create"
-        tooltip: "Create category"
-
-        onTriggered: newDialog.openDialog()
-    }
-
-    Action {
-        id: removeAction
-
-        text: "Remove"
-        tooltip: "Remove category"
-        enabled: treeView.isCurrentIndexValid
-                 && !categoryModel.data(treeView.selection.currentIndex,
-                                        TimeLogCategoryTreeModel.HasItemsRole)
-
-        onTriggered: {
-            if (Settings.isConfirmationsEnabled) {
-                removeConfirmationDialog.open()
-            } else {
-                categoryModel.removeItem(treeView.selection.currentIndex)
-            }
-        }
-    }
-
-    Action {
-        id: editAction
-
-        text: "Edit"
-        tooltip: "Edit category"
-        enabled: treeView.isCurrentIndexValid
-
-        onTriggered: editDialog.openDialog(categoryModel.data(treeView.selection.currentIndex,
-                                                              TimeLogCategoryTreeModel.FullNameRole),
-                                           categoryModel.data(treeView.selection.currentIndex,
-                                                              TimeLogCategoryTreeModel.DataRole))
-    }
-
-    Action {
-        id: showEntriesAction
-
-        text: "Show entries"
-        tooltip: "Show entries for this category"
-        enabled: treeView.isCurrentIndexValid
-
-        onTriggered: TimeTracker.showSearchRequested(categoryModel.data(treeView.selection.currentIndex,
-                                                                        TimeLogCategoryTreeModel.FullNameRole))
-    }
-
-    Action {
-        id: showStatsAction
-
-        text: "Show statistics"
-        tooltip: "Show statistics for this category"
-        enabled: treeView.isCurrentIndexValid
-
-        onTriggered: TimeTracker.showStatsRequested(categoryModel.data(treeView.selection.currentIndex,
-                                                                       TimeLogCategoryTreeModel.FullNameRole))
-    }
-
     MessageDialog {
         id: removeConfirmationDialog
 
@@ -112,24 +91,38 @@ Item {
     Menu {
         id: itemMenu
 
+        function popup() {
+            x = mouseArea.mouseX
+            y = mouseArea.mouseY
+            open()
+        }
+
         MenuItem {
-            action: removeAction
+            text: "Remove"
+            enabled: d.isRemoveEnabled
+            onTriggered: d.remove()
         }
         MenuItem {
-            action: editAction
+            text: "Edit"
+            enabled: d.isEditEnabled
+            onTriggered: d.edit()
         }
         MenuItem {
-            action: showEntriesAction
+            text: "Show entries"
+            enabled: d.isShowEntriesEnabled
+            onTriggered: d.showEntries()
         }
         MenuItem {
-            action: showStatsAction
+            text: "Show statistics"
+            enabled: d.isShowStatsEnabled
+            onTriggered: d.showStats()
         }
     }
 
     ColumnLayout {
         anchors.fill: parent
 
-        TreeView {
+        QQC1.TreeView {
             id: treeView
 
             property bool isCurrentIndexValid: selection.currentIndex.valid
@@ -138,24 +131,24 @@ Item {
             Layout.fillHeight: true
             model: categoryModel
             headerVisible: true
-            selectionMode: SelectionMode.SingleSelection
+            selectionMode: QQC1.SelectionMode.SingleSelection
             selection: ItemSelectionModel {
                 model: categoryModel
             }
 
-            TableViewColumn {
+            QQC1.TableViewColumn {
                 role: "name"
             }
 
-            TableViewColumn {
+            QQC1.TableViewColumn {
                 role: "fullName"
             }
 
-            TableViewColumn {
+            QQC1.TableViewColumn {
                 role: "comment"
             }
 
-            TableViewColumn {
+            QQC1.TableViewColumn {
                 role: "hasItems"
             }
 
@@ -176,13 +169,13 @@ Item {
             }
 
             Keys.onPressed: {
-                if (event.key === Qt.Key_F2 && editAction.enabled) {
-                    editAction.trigger()
+                if (event.key === Qt.Key_F2 && d.isEditEnabled) {
+                    d.edit()
                 }
             }
 
             onPressAndHold: itemMenu.popup()
-            onDoubleClicked: showEntriesAction.trigger()
+            onDoubleClicked: d.showEntries()
         }
 
         Row {
@@ -192,32 +185,32 @@ Item {
 
             PushButton {
                 anchors.verticalCenter: parent.verticalCenter
-                text: newAction.text
-                onClicked: newAction.trigger()
+                text: "Create"
+                onClicked: d.create()
             }
             PushButton {
                 anchors.verticalCenter: parent.verticalCenter
-                enabled: removeAction.enabled
-                text: removeAction.text
-                onClicked: removeAction.trigger()
+                enabled: d.isRemoveEnabled
+                text: "Remove"
+                onClicked: d.remove()
             }
             PushButton {
                 anchors.verticalCenter: parent.verticalCenter
-                enabled: editAction.enabled
-                text: editAction.text
-                onClicked: editAction.trigger()
+                enabled: d.isEditEnabled
+                text: "Edit"
+                onClicked: d.edit()
             }
             PushButton {
                 anchors.verticalCenter: parent.verticalCenter
-                enabled: showEntriesAction.enabled
-                text: showEntriesAction.text
-                onClicked: showEntriesAction.trigger()
+                enabled: d.isShowEntriesEnabled
+                text: "Show entries"
+                onClicked: d.showEntries()
             }
             PushButton {
                 anchors.verticalCenter: parent.verticalCenter
-                enabled: showStatsAction.enabled
-                text: showStatsAction.text
-                onClicked: showStatsAction.trigger()
+                enabled: d.isShowStatsEnabled
+                text: "Show statistics"
+                onClicked: d.showStats()
             }
         }
     }
