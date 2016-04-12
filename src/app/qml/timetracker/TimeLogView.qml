@@ -14,19 +14,19 @@ Item {
 
     property alias menuModel: itemMenu.contentData
     property MenuItem editMenuItem: MenuItem {
-        text: "Edit"
+        text: qsTr("Edit")
         onTriggered: timeLogView.itemEdit()
     }
     property MenuItem insertBeforeMenuItem: MenuItem {
-        text: "Insert before"
+        text: qsTr("Insert before")
         onTriggered: timeLogView.itemInsertBefore()
     }
     property MenuItem insertAfterMenuItem: MenuItem {
-        text: "Insert after"
+        text: qsTr("Insert after")
         onTriggered: timeLogView.itemInsertAfter()
     }
     property MenuItem removeMenuItem: MenuItem {
-        text: "Remove"
+        text: qsTr("Remove")
         onTriggered: timeLogView.itemRemove()
     }
 
@@ -77,7 +77,7 @@ Item {
                 newDialog.setData(indexBefore, timeAfter, timeBefore)
                 TimeTracker.showDialogRequested(newDialog)
             } else {
-                TimeTracker.error("Cannot insert between %1 and %2".arg(timeAfter).arg(timeBefore))
+                TimeTracker.error(qsTr("Cannot insert between %1 and %2").arg(timeAfter).arg(timeBefore))
             }
         }
 
@@ -142,8 +142,8 @@ Item {
     MessageDialog {
         id: removeConfirmationDialog
 
-        title: "Remove confirmation"
-        text: "Are you sure want to delete this item?"
+        title: qsTranslate("main window", "Remove confirmation")
+        text: qsTr("Delete this entry?")
         icon: StandardIcon.Question
         standardButtons: StandardButton.Yes | StandardButton.No
 

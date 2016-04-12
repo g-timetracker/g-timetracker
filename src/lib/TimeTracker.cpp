@@ -71,7 +71,7 @@ void TimeTracker::setDataPath(const QUrl &dataPathUrl)
 
     TimeLogHistory *history = new TimeLogHistory(this);
     if (!history->init(dataPathUrl.path())) {
-        emit error("Fail to initialize db");
+        emit error(tr("Fail to initialize DB"));
         delete history;
         return;
     }

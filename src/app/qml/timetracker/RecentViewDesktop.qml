@@ -3,7 +3,7 @@ import QtQuick.Layouts 1.1
 import TimeLog 1.0
 
 Item {
-    property string title: "Recent"
+    property string title: qsTranslate("main window", "Recent")
 
     ReverseProxyModel {
         id: timeLogModel
@@ -36,7 +36,7 @@ Item {
 
             PushButton {
                 anchors.centerIn: parent
-                text: "Add"
+                text: qsTranslate("TimeLogView", "Add")
                 onClicked: timeLogView.itemAppend()
             }
         }

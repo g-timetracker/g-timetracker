@@ -7,7 +7,7 @@ import QtQml.Models 2.2
 import TimeLog 1.0
 
 Item {
-    property string title: "Categories"
+    property string title: qsTranslate("main window", "Categories")
 
     QtObject {
         id: d
@@ -80,8 +80,8 @@ Item {
     MessageDialog {
         id: removeConfirmationDialog
 
-        title: "Remove confirmation"
-        text: "Are you sure want to delete this category?"
+        title: qsTranslate("main window", "Remove confirmation")
+        text: qsTr("Delete this category?")
         icon: StandardIcon.Question
         standardButtons: StandardButton.Yes | StandardButton.No
 
@@ -98,22 +98,22 @@ Item {
         }
 
         MenuItem {
-            text: "Remove"
+            text: qsTr("Remove")
             enabled: d.isRemoveEnabled
             onTriggered: d.remove()
         }
         MenuItem {
-            text: "Edit"
+            text: qsTr("Edit")
             enabled: d.isEditEnabled
             onTriggered: d.edit()
         }
         MenuItem {
-            text: "Show entries"
+            text: qsTr("Show entries")
             enabled: d.isShowEntriesEnabled
             onTriggered: d.showEntries()
         }
         MenuItem {
-            text: "Show statistics"
+            text: qsTr("Show statistics")
             enabled: d.isShowStatsEnabled
             onTriggered: d.showStats()
         }
@@ -185,31 +185,31 @@ Item {
 
             PushButton {
                 anchors.verticalCenter: parent.verticalCenter
-                text: "Create"
+                text: qsTr("Create")
                 onClicked: d.create()
             }
             PushButton {
                 anchors.verticalCenter: parent.verticalCenter
                 enabled: d.isRemoveEnabled
-                text: "Remove"
+                text: qsTr("Remove")
                 onClicked: d.remove()
             }
             PushButton {
                 anchors.verticalCenter: parent.verticalCenter
                 enabled: d.isEditEnabled
-                text: "Edit"
+                text: qsTr("Edit")
                 onClicked: d.edit()
             }
             PushButton {
                 anchors.verticalCenter: parent.verticalCenter
                 enabled: d.isShowEntriesEnabled
-                text: "Show entries"
+                text: qsTr("Show entries")
                 onClicked: d.showEntries()
             }
             PushButton {
                 anchors.verticalCenter: parent.verticalCenter
                 enabled: d.isShowStatsEnabled
-                text: "Show statistics"
+                text: qsTr("Show statistics")
                 onClicked: d.showStats()
             }
         }

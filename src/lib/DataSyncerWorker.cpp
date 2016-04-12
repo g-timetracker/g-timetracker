@@ -181,7 +181,7 @@ void DataSyncerWorker::pack(const QDateTime &start)
         qCWarning(SYNC_WORKER_CATEGORY) << "Sync already in progress";
         return;
     } else if (m_externalSyncPath.isEmpty()) {
-        fail("Empty sync path");
+        fail(tr("Set sync directory"));
         return;
     }
 
@@ -283,7 +283,7 @@ void DataSyncerWorker::sync(const QDateTime &start)
         qCDebug(SYNC_WORKER_CATEGORY) << "Sync already in progress";
         return;
     } else if (m_externalSyncPath.isEmpty()) {
-        fail("Empty sync path");
+        fail(tr("Set sync directory"));
         return;
     }
 
@@ -489,7 +489,7 @@ void DataSyncerWorker::packExported(QDateTime latestMTime)
     if (latestMTime.isNull()) {
         qCInfo(SYNC_WORKER_CATEGORY) << "No new data, leaving old pack" << m_packName;
         if (!packDir.remove("pack.pack")) {
-            fail(QString("Fail to remove file %1").arg(packDir.filePath("pack.pack")));
+            fail(tr("Fail to remove file %1").arg(packDir.filePath("pack.pack")));
             return;
         }
     } else {
@@ -530,7 +530,7 @@ void DataSyncerWorker::startImport()
 void DataSyncerWorker::startExport()
 {
     if (!AbstractDataInOut::prepareDir(m_internalSyncPath, m_internalSyncDir)) {
-        fail(QString("Fail to prepare directory %1").arg(m_internalSyncPath));
+        fail(tr("Fail to prepare directory %1").arg(m_internalSyncPath));
         return;
     }
 
@@ -630,7 +630,8 @@ void DataSyncerWorker::updateTimestamp()
 #else
         if (_utime(m_internalSyncPath.toLocal8Bit().constData(), NULL) != 0) {
 #endif
-            fail(QString("utimes failed, errno: %1").arg(QString().setNum(errno)));
+            qCCritical(SYNC_WORKER_CATEGORY) << QString("utimes failed, errno: %1").arg(QString().setNum(errno));
+            fail(tr("Fail to update directory timestamp"));
             return;
         }
     }
@@ -704,7 +705,7 @@ bool DataSyncerWorker::copyFiles(const QString &from, const QString &to, const Q
     QDir sourceDir(from);
     QDir destinationDir;
     if (!AbstractDataInOut::prepareDir(to, destinationDir)) {
-        fail(QString("Fail to prepare directory %1").arg(to));
+        fail(tr("Fail to prepare directory %1").arg(to));
         return false;
     }
 
@@ -725,16 +726,22 @@ bool DataSyncerWorker::copyFile(const QString &source, const QString &destinatio
         qCInfo(SYNC_WORKER_CATEGORY) << QString("File %1 already exists, removing")
                                         .arg(destinationFile.fileName());
         if (!destinationFile.remove()) {
-            fail(AbstractDataInOut::formatFileError("Fail to remove file", destinationFile));
+            qCCritical(SYNC_WORKER_CATEGORY)
+                    << AbstractDataInOut::formatFileError("Fail to remove file", destinationFile);
+            fail(tr("Fail to remove file %1").arg(destinationFile.fileName()));
             return false;
         }
     }
     if (!(isRemoveSource ? sourceFile.rename(destinationFile.fileName())
                          : sourceFile.copy(destinationFile.fileName()))) {
-        fail(AbstractDataInOut::formatFileError(QString("Fail to %1 file to %2 from")
-                             .arg(isRemoveSource ? "move" : "copy")
-                             .arg(destinationFile.fileName()),
-                             sourceFile));
+        qCCritical(SYNC_WORKER_CATEGORY)
+                << AbstractDataInOut::formatFileError(QString("Fail to %1 file to %2 from")
+                                                      .arg(isRemoveSource ? "move" : "copy")
+                                                      .arg(destinationFile.fileName()),
+                                                      sourceFile);
+        fail((isRemoveSource ? tr("Fail to move file %1 to %2")
+                             : tr("Fail to copy file %1 to %2"))
+             .arg(sourceFile.fileName()).arg(destinationFile.fileName()));
         return false;
     }
 
@@ -746,7 +753,7 @@ bool DataSyncerWorker::exportFile(const QVector<TimeLogSyncDataEntry> &entryData
 {
     QDir exportDir;
     if (!AbstractDataInOut::prepareDir(m_internalSyncDir.filePath("export"), exportDir)) {
-        fail(QString("Fail to prepare directory %1").arg(m_internalSyncDir.filePath("export")));
+        fail(tr("Fail to prepare directory %1").arg(m_internalSyncDir.filePath("export")));
         return false;
     }
 
@@ -782,7 +789,8 @@ bool DataSyncerWorker::exportFile(const QVector<TimeLogSyncDataEntry> &entryData
     }
 
     if (!file.open(QIODevice::WriteOnly | QIODevice::Truncate)) {
-        fail(AbstractDataInOut::formatFileError("Fail to open file", file));
+        qCCritical(SYNC_WORKER_CATEGORY) << AbstractDataInOut::formatFileError("Fail to open file", file);
+        fail(tr("Fail to open file %1").arg(file.fileName()));
         return false;
     }
 
@@ -794,7 +802,8 @@ bool DataSyncerWorker::exportFile(const QVector<TimeLogSyncDataEntry> &entryData
     fileStream << qChecksum(fileData.constData(), fileData.size());
 
     if (fileStream.status() != QDataStream::Ok || file.error() != QFileDevice::NoError) {
-        fail(AbstractDataInOut::formatFileError("Error writing to file", file));
+        qCCritical(SYNC_WORKER_CATEGORY) << AbstractDataInOut::formatFileError("Error writing to file", file);
+        fail(tr("Fail to write to file %1").arg(file.fileName()));
         return false;
     }
 
@@ -846,51 +855,53 @@ bool DataSyncerWorker::parseFile(const QString &path,
 {
     QFile file(path);
     if (!file.exists()) {
-        fail(QString("File %1 does not exists").arg(path));
+        fail(tr("File %1 does not exists").arg(path));
         return false;
     }
 
     if (!file.open(QIODevice::ReadOnly)) {
-        fail(AbstractDataInOut::formatFileError("Fail to open file", file));
+        qCCritical(SYNC_WORKER_CATEGORY) << AbstractDataInOut::formatFileError("Fail to open file", file);
+        fail(tr("Fail to open file %1").arg(file.fileName()));
         return false;
     }
 
     QDataStream fileStream(&file);
 
     if (fileStream.atEnd()) {
-        fail(QString("Invalid file %1, no stream version").arg(path));
+        fail(tr("Invalid file %1, no stream version").arg(path));
         return false;
     }
     qint32 streamVersion;
     fileStream >> streamVersion;
     if (streamVersion > syncFileStreamVersion) {
-        fail(QString("Stream format version too new: %1 > %2")
+        fail(tr("Stream version too new: %1 > %2")
              .arg(streamVersion).arg(syncFileStreamVersion));
         return false;
     }
     fileStream.setVersion(streamVersion);
 
     if (fileStream.atEnd()) {
-        fail(QString("Invalid file %1, no data").arg(path));
+        fail(tr("Invalid file %1, no data").arg(path));
         return false;
     }
     QByteArray fileData;
     fileStream >> fileData;
     if (fileStream.status() != QDataStream::Ok || file.error() != QFileDevice::NoError) {
-        fail(AbstractDataInOut::formatFileError(QString("Error reading from file, stream status %1")
-                                                .arg(fileStream.status()),
-                                                file));
+        qCCritical(SYNC_WORKER_CATEGORY)
+                << AbstractDataInOut::formatFileError(QString("Error reading from file, stream status %1")
+                                                      .arg(fileStream.status()), file);
+        fail(tr("Fail to read from file %1").arg(file.fileName()));
         return false;
     }
 
     if (fileStream.atEnd()) {
-        fail(QString("Invalid file %1, no checksum").arg(path));
+        fail(tr("Invalid file %1, no checksum").arg(path));
         return false;
     }
     quint16 checksum;
     fileStream >> checksum;
     if (qChecksum(fileData.constData(), fileData.size()) != checksum) {
-        fail(QString("Broken file %1, checksums does not match").arg(path));
+        fail(tr("Invalid file %1, checksums does not match").arg(path));
         return false;
     }
 
@@ -898,13 +909,13 @@ bool DataSyncerWorker::parseFile(const QString &path,
     dataStream.setVersion(streamVersion);
 
     if (dataStream.atEnd()) {
-        fail(QString("Invalid data in file %1, no format version").arg(path));
+        fail(tr("Invalid data in file %1, no format version").arg(path));
         return false;
     }
     qint32 formatVersion;
     dataStream >> formatVersion;
     if (formatVersion != syncFileFormatVersion) {
-        fail(QString("Data format version %1 instead of %2")
+        fail(tr("Data format version %1 instead of %2")
              .arg(formatVersion).arg(syncFileFormatVersion));
         return false;
     }
@@ -929,7 +940,7 @@ bool DataSyncerWorker::parseFile(const QString &path,
                 removedData.append(syncEntry);
             } else {
                 qCWarning(SYNC_WORKER_CATEGORY) << "Invalid entry:" << syncEntry;
-                fail("Invalid sync entry");
+                fail(tr("Invalid sync entry"));
                 return false;
             }
             break;
@@ -949,14 +960,14 @@ bool DataSyncerWorker::parseFile(const QString &path,
                 categoryData.append(syncCategory);
             } else {
                 qCWarning(SYNC_WORKER_CATEGORY) << "Invalid category:" << syncCategory;
-                fail("Invalid sync category");
+                fail(tr("Invalid sync category"));
                 return false;
             }
             break;
         }
         default:
             qCWarning(SYNC_WORKER_CATEGORY) << "Invalid sync item type:" << base.type;
-            fail("Invalid sync item type");
+            fail(tr("Invalid sync item type"));
             return false;
         }
     }
@@ -972,7 +983,7 @@ void DataSyncerWorker::importPack(const QString &path)
 {
     m_pack = new TimeLogHistory(this);
     if (!m_pack->init(m_internalSyncPath, m_internalSyncDir.relativeFilePath(path))) {
-        fail("Fail to open pack");
+        fail(tr("Fail to open pack file %1").arg(path));
         return;
     }
 
@@ -1001,13 +1012,13 @@ void DataSyncerWorker::exportPack()
 {
     QDir packDir;
     if (!AbstractDataInOut::prepareDir(m_internalSyncDir.filePath("pack"), packDir)) {
-        fail(QString("Fail to prepare directory %1").arg(m_internalSyncDir.filePath("pack")));
+        fail(tr("Fail to prepare directory %1").arg(m_internalSyncDir.filePath("pack")));
         return;
     }
 
     if (!m_packName.isEmpty()) {
         if (!copyFile(m_internalSyncDir.filePath(m_packName), packDir.filePath("pack.pack"), true, false)) {
-            fail(QString("Fail to copy pack file to %1").arg(packDir.filePath("pack.pack")));
+            fail(tr("Fail to copy pack file to %1").arg(packDir.filePath("pack.pack")));
             return;
         }
         qCDebug(SYNC_WORKER_CATEGORY) << "Using existing pack file" << m_packName;
@@ -1017,7 +1028,7 @@ void DataSyncerWorker::exportPack()
 
     m_pack = new TimeLogHistory(this);
     if (!m_pack->init(m_internalSyncPath, m_internalSyncDir.relativeFilePath(packDir.filePath("pack.pack")))) {
-        fail("Fail to create pack");
+        fail(tr("Fail to create pack file"));
         return;
     }
     connect(m_pack, SIGNAL(syncEntryStatsAvailable(QVector<TimeLogSyncDataEntry>,
@@ -1146,7 +1157,7 @@ bool DataSyncerWorker::removeOldFiles(const QString &packName)
         }
 
         if (!syncDir.remove(fileName)) {
-            fail(QString("Fail to remove file %1").arg(filePath));
+            fail(tr("Fail to remove file %1").arg(filePath));
             return false;
         }
         m_wroteToExternalSync = true;

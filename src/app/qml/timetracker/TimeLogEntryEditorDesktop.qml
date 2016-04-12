@@ -3,6 +3,7 @@ import QtQuick.Layouts 1.1
 import QtQuick.Controls 1.3
 import TimeLog 1.0
 import "Util.js" as Util
+import "Texts.js" as Texts
 
 GridLayout {
     id: delegateEditor
@@ -35,7 +36,7 @@ GridLayout {
 
     LabelControl {
         Layout.alignment: Qt.AlignVCenter | Qt.AlignRight
-        text: "Start date:"
+        text: Texts.labelText(qsTranslate("entry editor", "Start date"))
     }
 
     DatePicker {
@@ -54,7 +55,7 @@ GridLayout {
 
     LabelControl {
         Layout.alignment: Qt.AlignVCenter | Qt.AlignRight
-        text: "Start time:"
+        text: Texts.labelText(qsTranslate("entry editor", "Start time"))
     }
 
     TimeEditor {
@@ -76,7 +77,7 @@ GridLayout {
 
     LabelControl {
         Layout.alignment: Qt.AlignVCenter | Qt.AlignRight
-        text: "Duration:"
+        text: Texts.labelText(qsTranslate("entry editor", "Duration"))
     }
 
     LabelControl {
@@ -89,7 +90,7 @@ GridLayout {
 
     LabelControl {
         Layout.alignment: Qt.AlignVCenter | Qt.AlignRight
-        text: "Comment (optional):"
+        text: Texts.labelText(qsTranslate("entry editor", "Comment (optional)"))
     }
 
     TextArea {
@@ -108,7 +109,7 @@ GridLayout {
             elide: Text.ElideRight
             wrapMode: Text.Wrap
             opacity: 0.5
-            text: "Optional comment"
+            text: Texts.labelText(qsTranslate("entry editor", "Comment (optional)"))
             visible: !commentArea.text && !commentArea.activeFocus
         }
     }

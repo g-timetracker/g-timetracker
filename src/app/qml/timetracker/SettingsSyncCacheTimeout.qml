@@ -8,7 +8,7 @@ import TimeLog 1.0
 Page {
     id: settingsDialog
 
-    property string title: "Sync cache timeout"
+    property string title: qsTranslate("settings", "Sync timeout")
 
     function close() {
         TimeTracker.backRequested()
@@ -74,8 +74,10 @@ Page {
                     width: parent.width
                     color: Material.hintTextColor
                     wrapMode: Text.Wrap
-                    text: "With this setting you can control, how much time (in seconds) application would wait after last record before sync.\n" +
-                          "You can set it to '0' to never sync by timeout."
+                    text: qsTranslate("settings", "With this setting you can control, how much time"
+                                      + " (in seconds) application would wait after last record"
+                                      + " before the sync.\n\n"
+                                      + "To disable sync by timeout, set it to \u20180\u2019.")
                 }
             }
         }

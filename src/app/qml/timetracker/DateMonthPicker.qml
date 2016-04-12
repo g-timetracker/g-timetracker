@@ -20,10 +20,10 @@ ItemPositioner {
             for (var count = 0; count < 12; count++) {
                 switch (count) {
                 case 0:
-                    result[count] = "current"
+                    result[count] = qsTr("current")
                     break
                 case 1:
-                    result[count] = "previous"
+                    result[count] = qsTr("previous")
                     break
                 default:
                     result[count] = months[(start - count + 12) % 12]

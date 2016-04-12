@@ -12,11 +12,11 @@ ItemPositioner {
         id: periodSelector
 
         model: [
-            "day",
-            "month",
-            "year",
-            "select...",
-            "all"
+            qsTr("day"),
+            qsTr("month"),
+            qsTr("year"),
+            qsTr("all"),
+            qsTr("select")
         ]
     }
 
@@ -86,32 +86,10 @@ ItemPositioner {
         }
     }
 
-    DateRangePicker {
-        id: dateRangePicker
-
-        property bool isCurrent: periodSelector.currentIndex == 3
-
-        visible: isCurrent
-
-        Binding {
-            target: datePeriodPicker
-            property: "beginDate"
-            value: dateRangePicker.beginDate
-            when: dateRangePicker.isCurrent
-        }
-
-        Binding {
-            target: datePeriodPicker
-            property: "endDate"
-            value: dateRangePicker.endDate
-            when: dateRangePicker.isCurrent
-        }
-    }
-
     Item {
         id: dateAllPicker
 
-        property bool isCurrent: periodSelector.currentIndex == 4
+        property bool isCurrent: periodSelector.currentIndex == 3
 
         visible: isCurrent
 
@@ -127,6 +105,28 @@ ItemPositioner {
             property: "endDate"
             value: new Date()
             when: dateAllPicker.isCurrent
+        }
+    }
+
+    DateRangePicker {
+        id: dateRangePicker
+
+        property bool isCurrent: periodSelector.currentIndex == 4
+
+        visible: isCurrent
+
+        Binding {
+            target: datePeriodPicker
+            property: "beginDate"
+            value: dateRangePicker.beginDate
+            when: dateRangePicker.isCurrent
+        }
+
+        Binding {
+            target: datePeriodPicker
+            property: "endDate"
+            value: dateRangePicker.endDate
+            when: dateRangePicker.isCurrent
         }
     }
 }

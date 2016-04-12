@@ -10,7 +10,7 @@ Page {
 
     property bool isModified: checkIsModified()
 
-    property string title: "Edit category"
+    property string title: qsTr("Edit category")
 
     property string categoryName
     property var categoryData
@@ -80,7 +80,7 @@ Page {
                 enabled: dialog.isModified && editor.acceptable
                 Material.theme: Material.Dark
                 font.pixelSize: 14
-                text: "Save"
+                text: qsTr("Save")
                 onClicked: dialog.accept()
             }
         }

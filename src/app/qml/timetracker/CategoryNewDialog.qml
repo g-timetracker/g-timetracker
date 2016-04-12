@@ -10,7 +10,7 @@ Page {
 
     property bool isModified: checkIsModified()
 
-    property string title: "New category"
+    property string title: qsTr("New category")
 
     function checkIsModified() {
         return (!!editor.categoryName || !!editor.categoryComment)
@@ -71,7 +71,7 @@ Page {
                 enabled: dialog.isModified && editor.acceptable
                 Material.theme: Material.Dark
                 font.pixelSize: 14
-                text: "Create"
+                text: qsTr("Create")
                 onClicked: dialog.accept()
             }
         }

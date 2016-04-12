@@ -10,7 +10,7 @@ Page {
 
     property bool isModified: checkIsModified()
 
-    property string title: "New entry"
+    property string title: qsTr("New entry")
 
     property alias startTimeAfter: delegateEditor.startTimeAfter
     property alias startTimeBefore: delegateEditor.startTimeBefore
@@ -76,7 +76,7 @@ Page {
                 enabled: newDialog.isModified && delegateEditor.acceptable
                 Material.theme: Material.Dark
                 font.pixelSize: 14
-                text: "Create"
+                text: qsTr("Create")
                 onClicked: newDialog.accept()
             }
         }

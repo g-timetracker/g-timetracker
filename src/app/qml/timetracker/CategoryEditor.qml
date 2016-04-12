@@ -25,21 +25,21 @@ Item {
             id: nameField
 
             width: parent.width
-            placeholderText: "Name*"
-            helperText: "use '>' to split the name into subcategories"
+            placeholderText: qsTr("Name*")
+            helperText: qsTr("to split the name into subcategories, use \u2018>\u2019")
         }
 
         TextAreaControl {
             id: commentArea
 
             width: parent.width
-            placeholderText: "Comment"
+            placeholderText: qsTr("Comment")
         }
 
         LabelControl {
             width: parent.width
             topPadding: 40
-            text: "*indicates required field"
+            text: qsTr("*indicates required field")
         }
     }
 }

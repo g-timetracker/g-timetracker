@@ -10,7 +10,7 @@ Page {
 
     property bool isModified: checkIsModified()
 
-    property string title: "Edit"
+    property string title: qsTr("Edit entry")
 
     property TimeLogDelegate delegateItem
 
@@ -88,7 +88,7 @@ Page {
                 enabled: editDialog.isModified && delegateEditor.acceptable
                 Material.theme: Material.Dark
                 font.pixelSize: 14
-                text: "Save"
+                text: qsTr("Save")
                 onClicked: editDialog.accept()
             }
         }

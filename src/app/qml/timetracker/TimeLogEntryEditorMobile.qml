@@ -2,6 +2,7 @@ import QtQuick 2.4
 import Qt.labs.controls 1.0
 import TimeLog 1.0
 import "Util.js" as Util
+import "Texts.js" as Texts
 
 Column {
     id: delegateEditor
@@ -31,7 +32,7 @@ Column {
     }
 
     LabelControl {
-        text: "Start date"
+        text: Texts.labelText(qsTranslate("entry editor", "Start date"))
     }
 
     DatePicker {
@@ -46,7 +47,7 @@ Column {
     }
 
     LabelControl {
-        text: "Start time"
+        text: Texts.labelText(qsTranslate("entry editor", "Start time"))
     }
 
     TimeEditor {
@@ -64,7 +65,7 @@ Column {
     }
 
     LabelControl {
-        text: "Duration"
+        text: Texts.labelText(qsTranslate("entry editor", "Duration"))
     }
 
     LabelControl {
@@ -78,7 +79,7 @@ Column {
         property alias origComment: delegateEditor.comment
 
         width: parent.width
-        placeholderText: "Comment (optional)"
+        placeholderText: Texts.labelText(qsTranslate("entry editor", "Comment"))
     }
 
     onStartTimeCurrentChanged: {

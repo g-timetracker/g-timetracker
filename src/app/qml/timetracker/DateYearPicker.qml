@@ -11,9 +11,9 @@ ItemPositioner {
         id: periodSelector
 
         model: [
-            "current",
-            "previous",
-            "select..."
+            qsTr("current"),
+            qsTr("previous"),
+            qsTr("select")
         ]
 
         onCurrentIndexChanged: {

@@ -9,7 +9,7 @@ import TimeLog 1.0
 Item {
     id: settingsDialog
 
-    property string title: "Settings"
+    property string title: qsTranslate("main window", "Settings")
 
     function close() {
         TimeTracker.backRequested()
@@ -32,7 +32,7 @@ Item {
             SettingsSwitchDelegate {
                 width: parent.width
                 isLastItem: Positioner.isLastItem
-                text: "Enable confirmations"
+                text: qsTranslate("settings", "Confirmations")
 
                 checked: Settings.isConfirmationsEnabled
                 onCheckedChanged: Settings.isConfirmationsEnabled = checked
@@ -46,13 +46,13 @@ Item {
                 font.pixelSize: 14
                 verticalAlignment: Text.AlignVCenter
                 color: Material.accentColor
-                text: "Sync"
+                text: qsTranslate("settings", "Sync")
             }
 
             SettingsAdvancedDelegate {
                 width: parent.width
                 isLastItem: Positioner.isLastItem
-                text: "Sync folder"
+                text: qsTranslate("settings", "Sync folder")
                 additionalText: Settings.syncPath // TODO: extract path
 
                 onClicked: syncPathDialog.open()
@@ -61,7 +61,7 @@ Item {
             SettingsSwitchDelegate {
                 width: parent.width
                 isLastItem: Positioner.isLastItem
-                text: "Auto sync"
+                text: qsTranslate("settings", "Auto sync")
 
                 checked: Settings.isAutoSync
                 onCheckedChanged: Settings.isAutoSync = checked
@@ -71,9 +71,11 @@ Item {
                 width: parent.width
                 enabled: Settings.isAutoSync
                 isLastItem: Positioner.isLastItem
-                text: "Sync cache size"
-                additionalText: Settings.syncCacheSize ? "%1 records".arg(Settings.syncCacheSize)
-                                                       : "Disabled"
+                text: qsTranslate("settings", "Sync cache size")
+                additionalText: Settings.syncCacheSize ? qsTranslate("settings", "%n record(s)",
+                                                                     "current sync cache size",
+                                                                     Settings.syncCacheSize)
+                                                       : qsTranslate("settings", "Disabled")
 
                 onClicked: TimeTracker.showDialogRequested(syncCacheSizeDialog)
             }
@@ -82,9 +84,11 @@ Item {
                 width: parent.width
                 enabled: Settings.isAutoSync
                 isLastItem: Positioner.isLastItem
-                text: "Sync cache timeout"
-                additionalText: Settings.syncCacheTimeout ? "%1 seconds".arg(Settings.syncCacheTimeout)
-                                                          : "Disabled"
+                text: qsTranslate("settings", "Sync timeout")
+                additionalText: Settings.syncCacheTimeout ? qsTranslate("settings", "%n second(s)",
+                                                                        "current sync cache timeout",
+                                                                        Settings.syncCacheTimeout)
+                                                          : qsTranslate("settings", "Disabled")
 
                 onClicked: TimeTracker.showDialogRequested(syncCacheTimeoutDialog)
             }
@@ -94,7 +98,7 @@ Item {
     FileDialog {
         id: syncPathDialog
 
-        title: "Select folder for sync"
+        title: qsTranslate("settings", "Select sync folder")
         selectFolder: true
         folder: Settings.syncPath
 

@@ -143,49 +143,49 @@ ApplicationWindow {
                     spacing: 10
 
                     PushButton {
-                        text: "Recent"
+                        text: qsTranslate("main window", "Recent")
                         onClicked: {
                             drawer.close()
                             mainWindow.showRecent()
                         }
                     }
                     PushButton {
-                        text: "Search"
+                        text: qsTranslate("main window", "Search")
                         onClicked: {
                             drawer.close()
                             mainWindow.showSearch()
                         }
                     }
                     PushButton {
-                        text: "Statistics"
+                        text: qsTranslate("main window", "Statistics")
                         onClicked: {
                             drawer.close()
                             mainWindow.showStats()
                         }
                     }
                     PushButton {
-                        text: "Categories"
+                        text: qsTranslate("main window", "Categories")
                         onClicked: {
                             drawer.close()
                             mainWindow.showCategories()
                         }
                     }
                     PushButton {
-                        text: "History"
+                        text: qsTranslate("main window", "History")
                         onClicked: {
                             drawer.close()
                             mainWindow.showHistory()
                         }
                     }
                     PushButton {
-                        text: "Sync"
+                        text: qsTranslate("main window", "Sync")
                         onClicked: {
                             drawer.close()
                             TimeTracker.syncer.sync(Settings.syncPath)
                         }
                     }
                     PushButton {
-                        text: "Undo"
+                        text: qsTranslate("main window", "Undo")
                         enabled: TimeTracker.undoCount
                         onClicked: {
                             drawer.close()
@@ -193,7 +193,7 @@ ApplicationWindow {
                         }
                     }
                     PushButton {
-                        text: "Settings"
+                        text: qsTranslate("main window", "Settings")
                         onClicked: {
                             drawer.close()
                             mainWindow.showSettings()
@@ -257,7 +257,7 @@ ApplicationWindow {
     Connections {
         target: TimeTracker.syncer
         onSynced: {
-            messageDialog.text = "Sync complete"
+            messageDialog.text = qsTranslate("main window", "Synced")
             messageDialog.open()
         }
     }
@@ -265,7 +265,7 @@ ApplicationWindow {
     MessageDialog {
         id: messageDialog
 
-        title: "Message"
+        title: qsTranslate("main window", "Message", "Message dialog title")
         icon: StandardIcon.Information
         standardButtons: StandardButton.Ok
     }
@@ -273,7 +273,7 @@ ApplicationWindow {
     MessageDialog {
         id: errorDialog
 
-        title: "Error"
+        title: qsTranslate("main window", "Error", "Error dialog title")
         icon: StandardIcon.Critical
         standardButtons: StandardButton.Ok
     }

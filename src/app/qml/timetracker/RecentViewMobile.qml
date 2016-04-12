@@ -2,7 +2,7 @@ import QtQuick 2.4
 import TimeLog 1.0
 
 Item {
-    property string title: "Recent"
+    property string title: qsTranslate("main window", "Recent")
 
     ReverseProxyModel {
         id: timeLogModel

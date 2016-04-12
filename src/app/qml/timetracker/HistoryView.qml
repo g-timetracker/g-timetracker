@@ -3,7 +3,7 @@ import QtQuick.Layouts 1.1
 import TimeLog 1.0
 
 Item {
-    property string title: "History"
+    property string title: qsTranslate("main window", "History")
     property alias beginDate: timeLogFilter.beginDate
     property alias endDate: timeLogFilter.endDate
 

@@ -10,7 +10,13 @@ SOURCES += \
 HEADERS += \
     FileLogger.h \
 
-RESOURCES += qml.qrc
+RESOURCES += qml.qrc \
+    translations.qrc
+
+lupdate_only {
+SOURCES += $$PWD/qml/timetracker/*.qml \
+           $$PWD/qml/timetracker/*.js
+}
 
 # Additional import path used to resolve QML modules in Qt Creator's code model
 QML_IMPORT_PATH =$$PWD/qml/

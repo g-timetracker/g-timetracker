@@ -8,7 +8,7 @@ import TimeLog 1.0
 Page {
     id: settingsDialog
 
-    property string title: "Sync cache size"
+    property string title: qsTranslate("settings", "Sync cache size")
 
     function close() {
         TimeTracker.backRequested()
@@ -73,8 +73,9 @@ Page {
                     width: parent.width
                     color: Material.hintTextColor
                     wrapMode: Text.Wrap
-                    text: "With this setting you can control, how many records application would keep before sync.\n" +
-                          "You can set it to '0' to make it sync after each record."
+                    text: qsTranslate("settings", "With this setting you can control, after which"
+                                      + " amount of records application start the synchronization.\n\n"
+                                      + "To make it sync after each record, set it to \u20180\u2019.")
                 }
             }
         }

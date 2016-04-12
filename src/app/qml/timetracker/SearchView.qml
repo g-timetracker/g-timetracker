@@ -4,7 +4,7 @@ import Qt.labs.controls 1.0
 import TimeLog 1.0
 
 Item {
-    property string title: "Search"
+    property string title: qsTranslate("main window", "Search")
     property alias category: timeLogFilter.category
 
     TimeLogSearchModel {
@@ -30,7 +30,7 @@ Item {
             id: timeLogView
 
             property MenuItem showHistoryMenuItem: MenuItem {
-                text: "Show history"
+                text: qsTr("Show in history")
                 onTriggered: {
                     var item = timeLogView.pointedItem()
                     var beginDate = new Date(Math.max(item.startTime.valueOf() - 6 * 60 * 60 * 1000, 0))

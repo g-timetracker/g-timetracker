@@ -24,7 +24,7 @@ Dialog {
 
     standardButtons: (delegateEditor.acceptable ? StandardButton.Ok : StandardButton.NoButton)
                      | StandardButton.Cancel | StandardButton.Reset
-    title: "Edit entry"
+    title: qsTr("Edit entry")
 
     TimeLogEntryEditor {
         id: delegateEditor

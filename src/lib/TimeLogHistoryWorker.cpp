@@ -163,7 +163,7 @@ void TimeLogHistoryWorker::addCategory(const TimeLogCategory &category)
 
     if (categoryName.isEmpty()) {
         qCCritical(HISTORY_WORKER_CATEGORY) << QString("Empty category name");
-        emit error("Empty category name");
+        emit error("Category name can not be empty");
         return;
     } else if (m_categories.contains(categoryName) && m_categories.value(categoryName).isValid()) {
         qCCritical(HISTORY_WORKER_CATEGORY) << QString("Category '%1' already exists").arg(categoryName);
@@ -188,11 +188,11 @@ void TimeLogHistoryWorker::removeCategory(const QString &name)
 
     if (name.isEmpty()) {
         qCCritical(HISTORY_WORKER_CATEGORY) << QString("Empty category name");
-        emit error("Empty category name");
+        emit error(tr("Category name can not be empty"));
         return;
     } else if (!m_categories.contains(name)) {
         qCCritical(HISTORY_WORKER_CATEGORY) << QString("No such category: %1").arg(name);
-        emit error(QString("No such category: %1").arg(name));
+        emit error(tr("No such category: %1").arg(name));
         return;
     }
 
@@ -215,11 +215,11 @@ void TimeLogHistoryWorker::editCategory(const QString &oldName, const TimeLogCat
 
     if (categoryName.isEmpty()) {
         qCCritical(HISTORY_WORKER_CATEGORY) << QString("Empty category name");
-        emit error("Empty category name");
+        emit error(tr("Category name can not be empty"));
         return;
     } else if (!m_categories.contains(oldName)) {
         qCCritical(HISTORY_WORKER_CATEGORY) << QString("No such category: %1").arg(oldName);
-        emit error(QString("No such category: %1").arg(oldName));
+        emit error(tr("No such category: %1").arg(oldName));
         return;
     }
 
@@ -414,7 +414,7 @@ void TimeLogHistoryWorker::getHistoryBetween(qlonglong id, const QDateTime &begi
     if (!query.prepare(queryString)) {
         qCCritical(HISTORY_WORKER_CATEGORY) << "Fail to prepare query:" << query.lastError().text()
                                             << query.lastQuery();
-        emit error(query.lastError().text());
+        emit error(tr("DB error: %1").arg(query.lastError().text()));
         emit historyRequestCompleted(QVector<TimeLogEntry>(), id);
         return;
     }
@@ -437,7 +437,7 @@ void TimeLogHistoryWorker::getHistoryAfter(qlonglong id, const uint limit, const
     if (!query.prepare(queryString)) {
         qCCritical(HISTORY_WORKER_CATEGORY) << "Fail to prepare query:" << query.lastError().text()
                                             << query.lastQuery();
-        emit error(query.lastError().text());
+        emit error(tr("DB error: %1").arg(query.lastError().text()));
         emit historyRequestCompleted(QVector<TimeLogEntry>(), id);
         return;
     }
@@ -457,7 +457,7 @@ void TimeLogHistoryWorker::getHistoryBefore(qlonglong id, const uint limit, cons
     if (!query.prepare(queryString)) {
         qCCritical(HISTORY_WORKER_CATEGORY) << "Fail to prepare query:" << query.lastError().text()
                                             << query.lastQuery();
-        emit error(query.lastError().text());
+        emit error(tr("DB error: %1").arg(query.lastError().text()));
         emit historyRequestCompleted(QVector<TimeLogEntry>(), id);
         return;
     }
@@ -533,7 +533,7 @@ void TimeLogHistoryWorker::getStats(const QDateTime &begin, const QDateTime &end
     if (!query.prepare(queryString)) {
         qCCritical(HISTORY_WORKER_CATEGORY) << "Fail to prepare query:" << query.lastError().text()
                                             << query.lastQuery();
-        emit error(query.lastError().text());
+        emit error(tr("DB error: %1").arg(query.lastError().text()));
         return;
     }
     query.bindValue(":sBegin", begin.toTime_t());
@@ -575,7 +575,7 @@ void TimeLogHistoryWorker::getSyncDataAmount(const QDateTime &mBegin, const QDat
     if (!query.prepare(queryString)) {
         qCCritical(HISTORY_WORKER_CATEGORY) << "Fail to prepare query:" << query.lastError().text()
                                             << query.lastQuery();
-        emit error(query.lastError().text());
+        emit error(tr("DB error: %1").arg(query.lastError().text()));
         return;
     }
     query.bindValue(":mBegin", mBegin.toMSecsSinceEpoch());
@@ -584,7 +584,7 @@ void TimeLogHistoryWorker::getSyncDataAmount(const QDateTime &mBegin, const QDat
     if (!query.exec()) {
         qCCritical(HISTORY_WORKER_CATEGORY) << "Fail to execute query:" << query.lastError().text()
                                             << query.executedQuery() << query.boundValues();
-        emit error(query.lastError().text());
+        emit error(tr("DB error: %1").arg(query.lastError().text()));
         return;
     }
 
@@ -1165,7 +1165,7 @@ bool TimeLogHistoryWorker::insertEntryData(const TimeLogSyncDataEntry &data)
             qCCritical(HISTORY_WORKER_CATEGORY) << "Fail to prepare query:"
                                                 << query->lastError().text()
                                                 << query->lastQuery();
-            emit error(query->lastError().text());
+            emit error(tr("DB error: %1").arg(query->lastError().text()));
             delete query;
             return false;
         }
@@ -1206,7 +1206,7 @@ bool TimeLogHistoryWorker::removeEntryData(const TimeLogSyncDataEntry &data)
             qCCritical(HISTORY_WORKER_CATEGORY) << "Fail to prepare query:"
                                                 << query->lastError().text()
                                                 << query->lastQuery();
-            emit error(query->lastError().text());
+            emit error(tr("DB error: %1").arg(query->lastError().text()));
             delete query;
             return false;
         }
@@ -1254,7 +1254,7 @@ bool TimeLogHistoryWorker::editEntryData(const TimeLogSyncDataEntry &data, TimeL
     if (!query.prepare(queryString)) {
         qCCritical(HISTORY_WORKER_CATEGORY) << "Fail to prepare query:" << query.lastError().text()
                                             << query.lastQuery();
-        emit error(query.lastError().text());
+        emit error(tr("DB error: %1").arg(query.lastError().text()));
         return false;
     }
     if (fields & TimeLogHistory::StartTime) {
@@ -1273,7 +1273,7 @@ bool TimeLogHistoryWorker::editEntryData(const TimeLogSyncDataEntry &data, TimeL
     if (!query.exec()) {
         qCCritical(HISTORY_WORKER_CATEGORY) << "Fail to execute query:" << query.lastError().text()
                                             << query.executedQuery() << query.boundValues();
-        emit error(query.lastError().text());
+        emit error(tr("DB error: %1").arg(query.lastError().text()));
         return false;
     }
 
@@ -1288,7 +1288,7 @@ bool TimeLogHistoryWorker::editEntriesCategory(const QString &oldName, const QSt
     if (!query.prepare(queryString)) {
         qCCritical(HISTORY_WORKER_CATEGORY) << "Fail to prepare query:" << query.lastError().text()
                                             << query.lastQuery();
-        emit error(query.lastError().text());
+        emit error(tr("DB error: %1").arg(query.lastError().text()));
         return false;
     }
     query.addBindValue(oldName);
@@ -1296,7 +1296,7 @@ bool TimeLogHistoryWorker::editEntriesCategory(const QString &oldName, const QSt
     if (!query.exec()) {
         qCCritical(HISTORY_WORKER_CATEGORY) << "Fail to execute query:" << query.lastError().text()
                                             << query.executedQuery() << query.boundValues();
-        emit error(query.lastError().text());
+        emit error(tr("DB error: %1").arg(query.lastError().text()));
         return false;
     }
 
@@ -1312,7 +1312,7 @@ bool TimeLogHistoryWorker::editEntriesCategory(const QString &oldName, const QSt
     if (!query.prepare(queryString)) {
         qCCritical(HISTORY_WORKER_CATEGORY) << "Fail to prepare query:" << query.lastError().text()
                                             << query.lastQuery();
-        emit error(query.lastError().text());
+        emit error(tr("DB error: %1").arg(query.lastError().text()));
         return false;
     }
     query.addBindValue(newName);
@@ -1322,7 +1322,7 @@ bool TimeLogHistoryWorker::editEntriesCategory(const QString &oldName, const QSt
     if (!query.exec()) {
         qCCritical(HISTORY_WORKER_CATEGORY) << "Fail to execute query:" << query.lastError().text()
                                             << query.executedQuery() << query.boundValues();
-        emit error(query.lastError().text());
+        emit error(tr("DB error: %1").arg(query.lastError().text()));
         return false;
     }
 
@@ -1340,7 +1340,7 @@ bool TimeLogHistoryWorker::addCategoryData(const TimeLogSyncDataCategory &data)
     if (!query.prepare(queryString)) {
         qCCritical(HISTORY_WORKER_CATEGORY) << "Fail to prepare query:" << query.lastError().text()
                                             << query.lastQuery();
-        emit error(query.lastError().text());
+        emit error(tr("DB error: %1").arg(query.lastError().text()));
         return false;
     }
     query.addBindValue(data.category.uuid.toRfc4122());
@@ -1352,7 +1352,7 @@ bool TimeLogHistoryWorker::addCategoryData(const TimeLogSyncDataCategory &data)
     if (!query.exec()) {
         qCCritical(HISTORY_WORKER_CATEGORY) << "Fail to execute query:" << query.lastError().text()
                                             << query.executedQuery() << query.boundValues();
-        emit error(query.lastError().text());
+        emit error(tr("DB error: %1").arg(query.lastError().text()));
         return false;
     }
 
@@ -1383,7 +1383,7 @@ bool TimeLogHistoryWorker::removeCategoryData(const TimeLogSyncDataCategory &dat
     if (!query.prepare(queryString)) {
         qCCritical(HISTORY_WORKER_CATEGORY) << "Fail to prepare query:" << query.lastError().text()
                                             << query.lastQuery();
-        emit error(query.lastError().text());
+        emit error(tr("DB error: %1").arg(query.lastError().text()));
         return false;
     }
     query.addBindValue(data.category.uuid.toRfc4122());
@@ -1393,7 +1393,7 @@ bool TimeLogHistoryWorker::removeCategoryData(const TimeLogSyncDataCategory &dat
     if (!query.exec()) {
         qCCritical(HISTORY_WORKER_CATEGORY) << "Fail to execute query:" << query.lastError().text()
                                             << query.executedQuery() << query.boundValues();
-        emit error(query.lastError().text());
+        emit error(tr("DB error: %1").arg(query.lastError().text()));
         return false;
     }
 
@@ -1431,7 +1431,7 @@ bool TimeLogHistoryWorker::editCategoryData(const QString &oldName, const TimeLo
     if (!query.prepare(queryString)) {
         qCCritical(HISTORY_WORKER_CATEGORY) << "Fail to prepare query:" << query.lastError().text()
                                             << query.lastQuery();
-        emit error(query.lastError().text());
+        emit error(tr("DB error: %1").arg(query.lastError().text()));
         return false;
     }
     query.addBindValue(data.category.name);
@@ -1443,7 +1443,7 @@ bool TimeLogHistoryWorker::editCategoryData(const QString &oldName, const TimeLo
     if (!query.exec()) {
         qCCritical(HISTORY_WORKER_CATEGORY) << "Fail to execute query:" << query.lastError().text()
                                             << query.executedQuery() << query.boundValues();
-        emit error(query.lastError().text());
+        emit error(tr("DB error: %1").arg(query.lastError().text()));
         return false;
     }
 
@@ -1535,7 +1535,7 @@ bool TimeLogHistoryWorker::writeHash(const QDateTime &start, const QByteArray &h
     if (!query.prepare(queryString)) {
         qCCritical(HISTORY_WORKER_CATEGORY) << "Fail to prepare query:" << query.lastError().text()
                                             << query.lastQuery();
-        emit error(query.lastError().text());
+        emit error(tr("DB error: %1").arg(query.lastError().text()));
         return false;
     }
     query.addBindValue(hash);
@@ -1544,7 +1544,7 @@ bool TimeLogHistoryWorker::writeHash(const QDateTime &start, const QByteArray &h
     if (!query.exec()) {
         qCCritical(HISTORY_WORKER_CATEGORY) << "Fail to execute query:" << query.lastError().text()
                                             << query.executedQuery() << query.boundValues();
-        emit error(query.lastError().text());
+        emit error(tr("DB error: %1").arg(query.lastError().text()));
         return false;
     }
 
@@ -1559,7 +1559,7 @@ bool TimeLogHistoryWorker::removeHash(const QDateTime &start)
     if (!query.prepare(queryString)) {
         qCCritical(HISTORY_WORKER_CATEGORY) << "Fail to prepare query:" << query.lastError().text()
                                             << query.lastQuery();
-        emit error(query.lastError().text());
+        emit error(tr("DB error: %1").arg(query.lastError().text()));
         return false;
     }
     query.addBindValue(start.toTime_t());
@@ -1567,7 +1567,7 @@ bool TimeLogHistoryWorker::removeHash(const QDateTime &start)
     if (!query.exec()) {
         qCCritical(HISTORY_WORKER_CATEGORY) << "Fail to execute query:" << query.lastError().text()
                                             << query.executedQuery() << query.boundValues();
-        emit error(query.lastError().text());
+        emit error(tr("DB error: %1").arg(query.lastError().text()));
         return false;
     }
 
@@ -1581,7 +1581,7 @@ QVector<TimeLogEntry> TimeLogHistoryWorker::getHistory(QSqlQuery &query) const
     if (!query.exec()) {
         qCCritical(HISTORY_WORKER_CATEGORY) << "Fail to execute query:" << query.lastError().text()
                                             << query.executedQuery() << query.boundValues();
-        emit error(query.lastError().text());
+        emit error(tr("DB error: %1").arg(query.lastError().text()));
         return result;
     }
 
@@ -1609,7 +1609,7 @@ QVector<TimeLogStats> TimeLogHistoryWorker::getStats(QSqlQuery &query) const
     if (!query.exec()) {
         qCCritical(HISTORY_WORKER_CATEGORY) << "Fail to execute query:" << query.lastError().text()
                                             << query.executedQuery() << query.boundValues();
-        emit error(query.lastError().text());
+        emit error(tr("DB error: %1").arg(query.lastError().text()));
         return result;
     }
 
@@ -1645,7 +1645,7 @@ QVector<TimeLogSyncDataEntry> TimeLogHistoryWorker::getSyncEntryData(const QDate
     if (!query.prepare(queryString)) {
         qCCritical(HISTORY_WORKER_CATEGORY) << "Fail to prepare query:" << query.lastError().text()
                                             << query.lastQuery();
-        emit error(query.lastError().text());
+        emit error(tr("DB error: %1").arg(query.lastError().text()));
         return QVector<TimeLogSyncDataEntry>();
     }
     if (mBegin.isValid()) {
@@ -1665,7 +1665,7 @@ QVector<TimeLogSyncDataEntry> TimeLogHistoryWorker::getSyncEntryData(QSqlQuery &
     if (!query.exec()) {
         qCCritical(HISTORY_WORKER_CATEGORY) << "Fail to execute query:" << query.lastError().text()
                                             << query.executedQuery() << query.boundValues();
-        emit error(query.lastError().text());
+        emit error(tr("DB error: %1").arg(query.lastError().text()));
         return result;
     }
 
@@ -1707,7 +1707,7 @@ QVector<TimeLogSyncDataCategory> TimeLogHistoryWorker::getSyncCategoryData(const
     if (!query.prepare(queryString)) {
         qCCritical(HISTORY_WORKER_CATEGORY) << "Fail to prepare query:" << query.lastError().text()
                                             << query.lastQuery();
-        emit error(query.lastError().text());
+        emit error(tr("DB error: %1").arg(query.lastError().text()));
         return QVector<TimeLogSyncDataCategory>();
     }
     if (mBegin.isValid()) {
@@ -1727,7 +1727,7 @@ QVector<TimeLogSyncDataCategory> TimeLogHistoryWorker::getSyncCategoryData(QSqlQ
     if (!query.exec()) {
         qCCritical(HISTORY_WORKER_CATEGORY) << "Fail to execute query:" << query.lastError().text()
                                             << query.executedQuery() << query.boundValues();
-        emit error(query.lastError().text());
+        emit error(tr("DB error: %1").arg(query.lastError().text()));
         return result;
     }
 
@@ -1745,7 +1745,7 @@ QVector<TimeLogSyncDataCategory> TimeLogHistoryWorker::getSyncCategoryData(QSqlQ
                                                     << jsonString << "error at offset"
                                                     << parseError.offset
                                                     << parseError.errorString() << parseError.error;
-                emit error(parseError.errorString());
+                emit error(tr("Fail to parse category data: %1").arg(parseError.errorString()));
                 return result;
             }
             data.category.data = document.object().toVariantMap();
@@ -1774,7 +1774,7 @@ TimeLogEntry TimeLogHistoryWorker::getEntry(const QUuid &uuid)
             qCCritical(HISTORY_WORKER_CATEGORY) << "Fail to prepare query:"
                                                 << query->lastError().text()
                                                 << query->lastQuery();
-            emit error(query->lastError().text());
+            emit error(tr("DB error: %1").arg(query->lastError().text()));
             delete query;
             return entry;
         }
@@ -1799,7 +1799,7 @@ QVector<TimeLogEntry> TimeLogHistoryWorker::getEntries(const QString &category) 
     if (!query.prepare(queryString)) {
         qCCritical(HISTORY_WORKER_CATEGORY) << "Fail to prepare query:" << query.lastError().text()
                                             << query.lastQuery();
-        emit error(query.lastError().text());
+        emit error(tr("DB error: %1").arg(query.lastError().text()));
         return QVector<TimeLogEntry>();
     }
     query.addBindValue(category);
@@ -1824,7 +1824,7 @@ QVector<TimeLogSyncDataEntry> TimeLogHistoryWorker::getSyncEntriesAffected(const
             qCCritical(HISTORY_WORKER_CATEGORY) << "Fail to prepare query:"
                                                 << query->lastError().text()
                                                 << query->lastQuery();
-            emit error(query->lastError().text());
+            emit error(tr("DB error: %1").arg(query->lastError().text()));
             delete query;
             return QVector<TimeLogSyncDataEntry>();
         }
@@ -1852,7 +1852,7 @@ QVector<TimeLogSyncDataCategory> TimeLogHistoryWorker::getSyncCategoriesAffected
     if (!query.prepare(queryString)) {
         qCCritical(HISTORY_WORKER_CATEGORY) << "Fail to prepare query:" << query.lastError().text()
                                             << query.lastQuery();
-        emit error(query.lastError().text());
+        emit error(tr("DB error: %1").arg(query.lastError().text()));
         return QVector<TimeLogSyncDataCategory>();
     }
     query.bindValue(":uuid", uuid.toRfc4122());
@@ -1871,7 +1871,7 @@ QMap<QDateTime, QByteArray> TimeLogHistoryWorker::getDataHashes(const QDateTime 
     if (!query.prepare(queryString)) {
         qCCritical(HISTORY_WORKER_CATEGORY) << "Fail to prepare query:" << query.lastError().text()
                                             << query.lastQuery();
-        emit error(query.lastError().text());
+        emit error(tr("DB error: %1").arg(query.lastError().text()));
         return result;
     }
     if (maxDate.isValid()) {
@@ -1881,7 +1881,7 @@ QMap<QDateTime, QByteArray> TimeLogHistoryWorker::getDataHashes(const QDateTime 
     if (!query.exec()) {
         qCCritical(HISTORY_WORKER_CATEGORY) << "Fail to execute query:" << query.lastError().text()
                                             << query.executedQuery() << query.boundValues();
-        emit error(query.lastError().text());
+        emit error(tr("DB error: %1").arg(query.lastError().text()));
         return result;
     }
 
@@ -1911,7 +1911,7 @@ void TimeLogHistoryWorker::notifyInsertUpdates(const TimeLogEntry &data)
             qCCritical(HISTORY_WORKER_CATEGORY) << "Fail to prepare query:"
                                                 << query->lastError().text()
                                                 << query->lastQuery();
-            emit error(query->lastError().text());
+            emit error(tr("DB error: %1").arg(query->lastError().text()));
             delete query;
             return;
         }
@@ -1947,7 +1947,7 @@ void TimeLogHistoryWorker::notifyRemoveUpdates(const TimeLogEntry &data)
             qCCritical(HISTORY_WORKER_CATEGORY) << "Fail to prepare query:"
                                                 << query->lastError().text()
                                                 << query->lastQuery();
-            emit error(query->lastError().text());
+            emit error(tr("DB error: %1").arg(query->lastError().text()));
             delete query;
             return;
         }
@@ -1991,7 +1991,7 @@ void TimeLogHistoryWorker::notifyEditUpdates(const TimeLogEntry &data, TimeLogHi
             qCCritical(HISTORY_WORKER_CATEGORY) << "Fail to prepare query:"
                                                 << query->lastError().text()
                                                 << query->lastQuery();
-            emit error(query->lastError().text());
+            emit error(tr("DB error: %1").arg(query->lastError().text()));
             delete query;
             return;
         }
@@ -2026,7 +2026,7 @@ bool TimeLogHistoryWorker::startTransaction(QSqlDatabase &db)
 {
     if (!db.transaction()) {
         qCCritical(HISTORY_WORKER_CATEGORY) << "Fail to start transaction:" << db.lastError().text();
-        emit error(db.lastError().text());
+        emit error(tr("DB error: %1").arg(db.lastError().text()));
         return false;
     }
 
@@ -2037,7 +2037,7 @@ bool TimeLogHistoryWorker::commitTransaction(QSqlDatabase &db)
 {
     if (!db.commit()) {
         qCCritical(HISTORY_WORKER_CATEGORY) << "Fail to commit transaction:" << db.lastError().text();
-        emit error(db.lastError().text());
+        emit error(tr("DB error: %1").arg(db.lastError().text()));
         rollbackTransaction(db);
         return false;
     }
@@ -2049,7 +2049,7 @@ void TimeLogHistoryWorker::rollbackTransaction(QSqlDatabase &db)
 {
     if (!db.rollback()) {
         qCCritical(HISTORY_WORKER_CATEGORY) << "Fail to rollback transaction:" << db.lastError().text();
-        emit error(db.lastError().text());
+        emit error(tr("DB error: %1").arg(db.lastError().text()));
     }
 }
 
@@ -2079,7 +2079,7 @@ bool TimeLogHistoryWorker::fetchCategories()
                         "    c.data AS data "
                         "FROM c LEFT OUTER JOIN t ON t.category = c.category WHERE t.category IS NULL");
     if (!prepareAndExecQuery(query, queryString)) {
-        emit error(query.lastError().text());
+        emit error(tr("DB error: %1").arg(query.lastError().text()));
         return false;
     }
 
@@ -2107,7 +2107,7 @@ bool TimeLogHistoryWorker::fetchCategories()
                                                     << jsonString << "error at offset"
                                                     << parseError.offset
                                                     << parseError.errorString() << parseError.error;
-                emit error(parseError.errorString());
+                emit error(tr("Fail to parse category data: %1").arg(parseError.errorString()));
                 return false;
             }
             category.data = document.object().toVariantMap();
@@ -2183,7 +2183,7 @@ QByteArray TimeLogHistoryWorker::calcHash(const QDateTime &begin, const QDateTim
     if (!query.prepare(queryString)) {
         qCCritical(HISTORY_WORKER_CATEGORY) << "Fail to prepare query:" << query.lastError().text()
                                             << query.lastQuery();
-        emit error(query.lastError().text());
+        emit error(tr("DB error: %1").arg(query.lastError().text()));
         return result;
     }
     query.bindValue(":mBegin", begin.toMSecsSinceEpoch());
@@ -2192,7 +2192,7 @@ QByteArray TimeLogHistoryWorker::calcHash(const QDateTime &begin, const QDateTim
     if (!query.exec()) {
         qCCritical(HISTORY_WORKER_CATEGORY) << "Fail to execute query:" << query.lastError().text()
                                             << query.executedQuery() << query.boundValues();
-        emit error(query.lastError().text());
+        emit error(tr("DB error: %1").arg(query.lastError().text()));
         return result;
     }
 

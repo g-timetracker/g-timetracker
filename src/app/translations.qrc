@@ -1,0 +1,6 @@
+<RCC>
+    <qresource prefix="/">
+        <file>translations/timetracker_en.qm</file>
+        <file>translations/timetracker_ru.qm</file>
+    </qresource>
+</RCC>

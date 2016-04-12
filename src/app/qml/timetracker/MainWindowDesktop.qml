@@ -70,27 +70,27 @@ ApplicationWindow {
         Menu {
             title: qsTr("&File")
             MenuItem {
-                text: "Search"
+                text: qsTranslate("main window", "Search")
                 onTriggered: mainWindow.showSearch()
             }
             MenuItem {
-                text: "Statistics"
+                text: qsTranslate("main window", "Statistics")
                 onTriggered: mainWindow.showStats()
             }
             MenuItem {
-                text: "History"
+                text: qsTranslate("main window", "History")
                 onTriggered: mainWindow.showHistory()
             }
             MenuItem {
-                text: "Categories"
+                text: qsTranslate("main window", "Categories")
                 onTriggered: mainWindow.showCategories()
             }
             MenuItem {
-                text: "Sync"
+                text: qsTranslate("main window", "Sync")
                 onTriggered: TimeTracker.syncer.sync()
             }
             MenuItem {
-                text: "Undo"
+                text: qsTranslate("main window", "Undo")
                 enabled: TimeTracker.undoCount
                 onTriggered: TimeTracker.undo()
             }
@@ -100,15 +100,15 @@ ApplicationWindow {
             }
         }
         Menu {
-            title: "Settings"
+            title: qsTranslate("main window", "Settings")
             MenuItem {
-                text: "Confirmations"
+                text: qsTranslate("settings", "Confirmations")
                 checkable: true
                 checked: Settings.isConfirmationsEnabled
                 onCheckedChanged: Settings.isConfirmationsEnabled = checked
             }
             MenuItem {
-                text: "Sync path"
+                text: qsTranslate("settings", "Sync folder")
                 onTriggered: mainWindow.changeSyncPath()
             }
         }
@@ -157,7 +157,7 @@ ApplicationWindow {
     Connections {
         target: TimeTracker.syncer
         onSynced: {
-            messageDialog.text = "Sync complete"
+            messageDialog.text = qsTranslate("main window", "Synced")
             messageDialog.open()
         }
     }
@@ -165,7 +165,7 @@ ApplicationWindow {
     MessageDialog {
         id: messageDialog
 
-        title: "Message"
+        title: qsTranslate("main window", "Message", "Message dialog title")
         icon: StandardIcon.Information
         standardButtons: StandardButton.Ok
     }
@@ -173,7 +173,7 @@ ApplicationWindow {
     MessageDialog {
         id: errorDialog
 
-        title: "Error"
+        title: qsTranslate("main window", "Error", "Error dialog title")
         icon: StandardIcon.Critical
         standardButtons: StandardButton.Ok
     }
@@ -181,7 +181,7 @@ ApplicationWindow {
     FileDialog {
         id: syncPathDialog
 
-        title: "Select folder for sync"
+        title: qsTranslate("settings", "Select sync folder")
         selectFolder: true
 
         onAccepted: Settings.syncPath = folder
@@ -213,7 +213,7 @@ ApplicationWindow {
             id: tabModel
 
             ListElement {
-                text: "Recent entries"
+                text: QT_TRANSLATE_NOOP("main window", "Recent")
                 source: "RecentView.qml"
                 hasCloseButton: false
             }
@@ -232,7 +232,7 @@ ApplicationWindow {
                 Repeater {
                     model: tabModel
                     delegate: LC.TabButton {
-                        text: model.text
+                        text: qsTranslate("main window", model.text)
 
                         LC.AbstractButton {
                             id: tabCloseButton

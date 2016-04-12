@@ -414,7 +414,7 @@ bool TimeLogModel::checkStartValid(int indexBefore, int indexAfter, const QDateT
         && (indexAfter == m_timeLog.size() || m_timeLog.at(indexAfter).startTime > startTime)) {
         return true;
     } else {
-        emit error(QString("Time %1 doesn't fall within a proper range").arg(startTime.toString(Qt::ISODate)));
+        emit error(tr("Time %1 doesn't fall within a proper range").arg(startTime.toString(Qt::ISODate)));
         return false;
     }
 }

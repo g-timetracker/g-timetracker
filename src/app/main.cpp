@@ -38,6 +38,10 @@ int main(int argc, char *argv[])
     app.setApplicationName("G-TimeTracker");
     app.setApplicationVersion("0.1");
 
+    QTranslator translator;
+    translator.load(QLocale::system(), "timetracker", "_", ":/translations/");
+    app.installTranslator(&translator);
+
     qSetMessagePattern("[%{time}] <%{category}> %{type} (%{file}:%{line}, %{function}) %{message}");
     FileLogger::setup();
 

@@ -22,7 +22,7 @@ ColumnLayout {
 
             LabelControl {
                 Layout.fillWidth: true
-                text: Texts.labelText("%1Category".arg(new Array(index+1).join("Sub")))
+                text: Texts.labelText(index == 0 ? qsTr("Category") : qsTr("Subcategory"))
             }
 
             ComboBoxControl {

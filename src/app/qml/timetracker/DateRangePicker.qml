@@ -8,7 +8,7 @@ ItemPositioner {
     spacing: 10
 
     LabelControl {
-        text: Texts.labelText("From")
+        text: Texts.labelText(qsTr("From"))
     }
 
     DatePicker {
@@ -19,7 +19,7 @@ ItemPositioner {
     }
 
     LabelControl {
-        text: Texts.labelText("To")
+        text: Texts.labelText(qsTr("To"))
     }
 
     DatePicker {
