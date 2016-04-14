@@ -54,7 +54,8 @@ private slots:
     void historyCategoriesChanged(QSharedPointer<TimeLogCategoryTreeNode> categories);
     void syncDataAvailable(QVector<TimeLogSyncDataEntry> entryData,
                            QVector<TimeLogSyncDataCategory> categoryData, QDateTime until);
-    void syncDataAmountAvailable(qlonglong size, QDateTime maxMTime, QDateTime mBegin, QDateTime mEnd);
+    void syncExistsAvailable(bool isExists, QDateTime mBegin, QDateTime mEnd);
+    void syncAmountAvailable(qlonglong size, QDateTime maxMTime, QDateTime mBegin, QDateTime mEnd);
     void syncEntryStatsAvailable(QVector<TimeLogSyncDataEntry> removedOld,
                                  QVector<TimeLogSyncDataEntry> removedNew,
                                  QVector<TimeLogSyncDataEntry> insertedOld,

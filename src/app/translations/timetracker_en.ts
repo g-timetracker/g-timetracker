@@ -4,36 +4,36 @@
 <context>
     <name>CategoriesView</name>
     <message>
-        <location filename="../qml/timetracker/CategoriesView.qml" line="86"/>
+        <location filename="../qml/timetracker/CategoriesView.qml" line="84"/>
         <source>Delete this category?</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/timetracker/CategoriesView.qml" line="103"/>
-        <location filename="../qml/timetracker/CategoriesView.qml" line="196"/>
+        <location filename="../qml/timetracker/CategoriesView.qml" line="101"/>
+        <location filename="../qml/timetracker/CategoriesView.qml" line="194"/>
         <source>Remove</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/timetracker/CategoriesView.qml" line="108"/>
-        <location filename="../qml/timetracker/CategoriesView.qml" line="202"/>
+        <location filename="../qml/timetracker/CategoriesView.qml" line="106"/>
+        <location filename="../qml/timetracker/CategoriesView.qml" line="200"/>
         <source>Edit</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/timetracker/CategoriesView.qml" line="113"/>
-        <location filename="../qml/timetracker/CategoriesView.qml" line="208"/>
+        <location filename="../qml/timetracker/CategoriesView.qml" line="111"/>
+        <location filename="../qml/timetracker/CategoriesView.qml" line="206"/>
         <source>Show entries</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/timetracker/CategoriesView.qml" line="118"/>
-        <location filename="../qml/timetracker/CategoriesView.qml" line="214"/>
+        <location filename="../qml/timetracker/CategoriesView.qml" line="116"/>
+        <location filename="../qml/timetracker/CategoriesView.qml" line="212"/>
         <source>Show statistics</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/timetracker/CategoriesView.qml" line="190"/>
+        <location filename="../qml/timetracker/CategoriesView.qml" line="188"/>
         <source>Create</source>
         <translation type="unfinished"></translation>
     </message>
@@ -54,22 +54,22 @@
 <context>
     <name>CategoryEditor</name>
     <message>
-        <location filename="../qml/timetracker/CategoryEditor.qml" line="28"/>
+        <location filename="../qml/timetracker/CategoryEditor.qml" line="27"/>
         <source>Name*</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/timetracker/CategoryEditor.qml" line="29"/>
+        <location filename="../qml/timetracker/CategoryEditor.qml" line="28"/>
         <source>to split the name into subcategories, use ‘&gt;’</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/timetracker/CategoryEditor.qml" line="36"/>
+        <location filename="../qml/timetracker/CategoryEditor.qml" line="35"/>
         <source>Comment</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/timetracker/CategoryEditor.qml" line="42"/>
+        <location filename="../qml/timetracker/CategoryEditor.qml" line="41"/>
         <source>*indicates required field</source>
         <translation type="unfinished"></translation>
     </message>
@@ -90,12 +90,12 @@
 <context>
     <name>CategoryPicker</name>
     <message>
-        <location filename="../qml/timetracker/CategoryPicker.qml" line="26"/>
+        <location filename="../qml/timetracker/CategoryPicker.qml" line="25"/>
         <source>Category</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/timetracker/CategoryPicker.qml" line="26"/>
+        <location filename="../qml/timetracker/CategoryPicker.qml" line="25"/>
         <source>Subcategory</source>
         <translation type="unfinished"></translation>
     </message>
@@ -103,124 +103,124 @@
 <context>
     <name>DataSyncerWorker</name>
     <message>
-        <location filename="../../lib/DataSyncerWorker.cpp" line="492"/>
-        <location filename="../../lib/DataSyncerWorker.cpp" line="731"/>
-        <location filename="../../lib/DataSyncerWorker.cpp" line="1160"/>
+        <location filename="../../lib/DataSyncerWorker.cpp" line="498"/>
+        <location filename="../../lib/DataSyncerWorker.cpp" line="742"/>
+        <location filename="../../lib/DataSyncerWorker.cpp" line="1171"/>
         <source>Fail to remove file %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../lib/DataSyncerWorker.cpp" line="533"/>
-        <location filename="../../lib/DataSyncerWorker.cpp" line="708"/>
-        <location filename="../../lib/DataSyncerWorker.cpp" line="756"/>
-        <location filename="../../lib/DataSyncerWorker.cpp" line="1015"/>
+        <location filename="../../lib/DataSyncerWorker.cpp" line="539"/>
+        <location filename="../../lib/DataSyncerWorker.cpp" line="719"/>
+        <location filename="../../lib/DataSyncerWorker.cpp" line="767"/>
+        <location filename="../../lib/DataSyncerWorker.cpp" line="1026"/>
         <source>Fail to prepare directory %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../lib/DataSyncerWorker.cpp" line="184"/>
-        <location filename="../../lib/DataSyncerWorker.cpp" line="286"/>
+        <location filename="../../lib/DataSyncerWorker.cpp" line="186"/>
+        <location filename="../../lib/DataSyncerWorker.cpp" line="288"/>
         <source>Set sync directory</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../lib/DataSyncerWorker.cpp" line="634"/>
+        <location filename="../../lib/DataSyncerWorker.cpp" line="645"/>
         <source>Fail to update directory timestamp</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../lib/DataSyncerWorker.cpp" line="742"/>
+        <location filename="../../lib/DataSyncerWorker.cpp" line="753"/>
         <source>Fail to move file %1 to %2</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../lib/DataSyncerWorker.cpp" line="743"/>
+        <location filename="../../lib/DataSyncerWorker.cpp" line="754"/>
         <source>Fail to copy file %1 to %2</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../lib/DataSyncerWorker.cpp" line="793"/>
-        <location filename="../../lib/DataSyncerWorker.cpp" line="864"/>
+        <location filename="../../lib/DataSyncerWorker.cpp" line="804"/>
+        <location filename="../../lib/DataSyncerWorker.cpp" line="875"/>
         <source>Fail to open file %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../lib/DataSyncerWorker.cpp" line="858"/>
+        <location filename="../../lib/DataSyncerWorker.cpp" line="869"/>
         <source>File %1 does not exists</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../lib/DataSyncerWorker.cpp" line="871"/>
+        <location filename="../../lib/DataSyncerWorker.cpp" line="882"/>
         <source>Invalid file %1, no stream version</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../lib/DataSyncerWorker.cpp" line="884"/>
+        <location filename="../../lib/DataSyncerWorker.cpp" line="895"/>
         <source>Invalid file %1, no data</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../lib/DataSyncerWorker.cpp" line="898"/>
+        <location filename="../../lib/DataSyncerWorker.cpp" line="909"/>
         <source>Invalid file %1, no checksum</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../lib/DataSyncerWorker.cpp" line="986"/>
+        <location filename="../../lib/DataSyncerWorker.cpp" line="997"/>
         <source>Fail to open pack file %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../lib/DataSyncerWorker.cpp" line="806"/>
+        <location filename="../../lib/DataSyncerWorker.cpp" line="817"/>
         <source>Fail to write to file %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../lib/DataSyncerWorker.cpp" line="877"/>
+        <location filename="../../lib/DataSyncerWorker.cpp" line="888"/>
         <source>Stream version too new: %1 &gt; %2</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../lib/DataSyncerWorker.cpp" line="893"/>
+        <location filename="../../lib/DataSyncerWorker.cpp" line="904"/>
         <source>Fail to read from file %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../lib/DataSyncerWorker.cpp" line="904"/>
+        <location filename="../../lib/DataSyncerWorker.cpp" line="915"/>
         <source>Invalid file %1, checksums does not match</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../lib/DataSyncerWorker.cpp" line="912"/>
+        <location filename="../../lib/DataSyncerWorker.cpp" line="923"/>
         <source>Invalid data in file %1, no format version</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../lib/DataSyncerWorker.cpp" line="918"/>
+        <location filename="../../lib/DataSyncerWorker.cpp" line="929"/>
         <source>Data format version %1 instead of %2</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../lib/DataSyncerWorker.cpp" line="943"/>
+        <location filename="../../lib/DataSyncerWorker.cpp" line="954"/>
         <source>Invalid sync entry</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../lib/DataSyncerWorker.cpp" line="963"/>
+        <location filename="../../lib/DataSyncerWorker.cpp" line="974"/>
         <source>Invalid sync category</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../lib/DataSyncerWorker.cpp" line="970"/>
+        <location filename="../../lib/DataSyncerWorker.cpp" line="981"/>
         <source>Invalid sync item type</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../lib/DataSyncerWorker.cpp" line="1021"/>
+        <location filename="../../lib/DataSyncerWorker.cpp" line="1032"/>
         <source>Fail to copy pack file to %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../lib/DataSyncerWorker.cpp" line="1031"/>
+        <location filename="../../lib/DataSyncerWorker.cpp" line="1042"/>
         <source>Fail to create pack file</source>
         <translation type="unfinished"></translation>
     </message>
@@ -331,7 +331,7 @@
 <context>
     <name>SearchView</name>
     <message>
-        <location filename="../qml/timetracker/SearchView.qml" line="35"/>
+        <location filename="../qml/timetracker/SearchView.qml" line="33"/>
         <source>Show in history</source>
         <translation type="unfinished"></translation>
     </message>
@@ -360,71 +360,73 @@
 <context>
     <name>TimeLogHistoryWorker</name>
     <message>
-        <location filename="../../lib/TimeLogHistoryWorker.cpp" line="191"/>
-        <location filename="../../lib/TimeLogHistoryWorker.cpp" line="218"/>
+        <location filename="../../lib/TimeLogHistoryWorker.cpp" line="198"/>
+        <location filename="../../lib/TimeLogHistoryWorker.cpp" line="225"/>
         <source>Category name can not be empty</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../lib/TimeLogHistoryWorker.cpp" line="195"/>
-        <location filename="../../lib/TimeLogHistoryWorker.cpp" line="222"/>
+        <location filename="../../lib/TimeLogHistoryWorker.cpp" line="202"/>
+        <location filename="../../lib/TimeLogHistoryWorker.cpp" line="229"/>
         <source>No such category: %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../lib/TimeLogHistoryWorker.cpp" line="417"/>
-        <location filename="../../lib/TimeLogHistoryWorker.cpp" line="440"/>
-        <location filename="../../lib/TimeLogHistoryWorker.cpp" line="460"/>
-        <location filename="../../lib/TimeLogHistoryWorker.cpp" line="480"/>
-        <location filename="../../lib/TimeLogHistoryWorker.cpp" line="536"/>
-        <location filename="../../lib/TimeLogHistoryWorker.cpp" line="578"/>
-        <location filename="../../lib/TimeLogHistoryWorker.cpp" line="587"/>
-        <location filename="../../lib/TimeLogHistoryWorker.cpp" line="1168"/>
-        <location filename="../../lib/TimeLogHistoryWorker.cpp" line="1209"/>
-        <location filename="../../lib/TimeLogHistoryWorker.cpp" line="1257"/>
-        <location filename="../../lib/TimeLogHistoryWorker.cpp" line="1276"/>
-        <location filename="../../lib/TimeLogHistoryWorker.cpp" line="1291"/>
-        <location filename="../../lib/TimeLogHistoryWorker.cpp" line="1299"/>
-        <location filename="../../lib/TimeLogHistoryWorker.cpp" line="1315"/>
-        <location filename="../../lib/TimeLogHistoryWorker.cpp" line="1325"/>
-        <location filename="../../lib/TimeLogHistoryWorker.cpp" line="1343"/>
-        <location filename="../../lib/TimeLogHistoryWorker.cpp" line="1355"/>
-        <location filename="../../lib/TimeLogHistoryWorker.cpp" line="1386"/>
-        <location filename="../../lib/TimeLogHistoryWorker.cpp" line="1396"/>
-        <location filename="../../lib/TimeLogHistoryWorker.cpp" line="1434"/>
-        <location filename="../../lib/TimeLogHistoryWorker.cpp" line="1446"/>
-        <location filename="../../lib/TimeLogHistoryWorker.cpp" line="1538"/>
-        <location filename="../../lib/TimeLogHistoryWorker.cpp" line="1547"/>
-        <location filename="../../lib/TimeLogHistoryWorker.cpp" line="1562"/>
-        <location filename="../../lib/TimeLogHistoryWorker.cpp" line="1570"/>
+        <location filename="../../lib/TimeLogHistoryWorker.cpp" line="424"/>
+        <location filename="../../lib/TimeLogHistoryWorker.cpp" line="447"/>
+        <location filename="../../lib/TimeLogHistoryWorker.cpp" line="467"/>
+        <location filename="../../lib/TimeLogHistoryWorker.cpp" line="487"/>
+        <location filename="../../lib/TimeLogHistoryWorker.cpp" line="543"/>
+        <location filename="../../lib/TimeLogHistoryWorker.cpp" line="592"/>
+        <location filename="../../lib/TimeLogHistoryWorker.cpp" line="601"/>
+        <location filename="../../lib/TimeLogHistoryWorker.cpp" line="1182"/>
+        <location filename="../../lib/TimeLogHistoryWorker.cpp" line="1223"/>
+        <location filename="../../lib/TimeLogHistoryWorker.cpp" line="1271"/>
+        <location filename="../../lib/TimeLogHistoryWorker.cpp" line="1290"/>
+        <location filename="../../lib/TimeLogHistoryWorker.cpp" line="1305"/>
+        <location filename="../../lib/TimeLogHistoryWorker.cpp" line="1313"/>
+        <location filename="../../lib/TimeLogHistoryWorker.cpp" line="1329"/>
+        <location filename="../../lib/TimeLogHistoryWorker.cpp" line="1339"/>
+        <location filename="../../lib/TimeLogHistoryWorker.cpp" line="1357"/>
+        <location filename="../../lib/TimeLogHistoryWorker.cpp" line="1369"/>
+        <location filename="../../lib/TimeLogHistoryWorker.cpp" line="1400"/>
+        <location filename="../../lib/TimeLogHistoryWorker.cpp" line="1410"/>
+        <location filename="../../lib/TimeLogHistoryWorker.cpp" line="1448"/>
+        <location filename="../../lib/TimeLogHistoryWorker.cpp" line="1460"/>
+        <location filename="../../lib/TimeLogHistoryWorker.cpp" line="1552"/>
+        <location filename="../../lib/TimeLogHistoryWorker.cpp" line="1561"/>
+        <location filename="../../lib/TimeLogHistoryWorker.cpp" line="1576"/>
         <location filename="../../lib/TimeLogHistoryWorker.cpp" line="1584"/>
-        <location filename="../../lib/TimeLogHistoryWorker.cpp" line="1612"/>
-        <location filename="../../lib/TimeLogHistoryWorker.cpp" line="1648"/>
-        <location filename="../../lib/TimeLogHistoryWorker.cpp" line="1668"/>
-        <location filename="../../lib/TimeLogHistoryWorker.cpp" line="1710"/>
-        <location filename="../../lib/TimeLogHistoryWorker.cpp" line="1730"/>
-        <location filename="../../lib/TimeLogHistoryWorker.cpp" line="1777"/>
-        <location filename="../../lib/TimeLogHistoryWorker.cpp" line="1802"/>
-        <location filename="../../lib/TimeLogHistoryWorker.cpp" line="1827"/>
-        <location filename="../../lib/TimeLogHistoryWorker.cpp" line="1855"/>
-        <location filename="../../lib/TimeLogHistoryWorker.cpp" line="1874"/>
-        <location filename="../../lib/TimeLogHistoryWorker.cpp" line="1884"/>
-        <location filename="../../lib/TimeLogHistoryWorker.cpp" line="1914"/>
-        <location filename="../../lib/TimeLogHistoryWorker.cpp" line="1950"/>
-        <location filename="../../lib/TimeLogHistoryWorker.cpp" line="1994"/>
-        <location filename="../../lib/TimeLogHistoryWorker.cpp" line="2029"/>
-        <location filename="../../lib/TimeLogHistoryWorker.cpp" line="2040"/>
-        <location filename="../../lib/TimeLogHistoryWorker.cpp" line="2052"/>
-        <location filename="../../lib/TimeLogHistoryWorker.cpp" line="2082"/>
-        <location filename="../../lib/TimeLogHistoryWorker.cpp" line="2186"/>
-        <location filename="../../lib/TimeLogHistoryWorker.cpp" line="2195"/>
+        <location filename="../../lib/TimeLogHistoryWorker.cpp" line="1598"/>
+        <location filename="../../lib/TimeLogHistoryWorker.cpp" line="1626"/>
+        <location filename="../../lib/TimeLogHistoryWorker.cpp" line="1662"/>
+        <location filename="../../lib/TimeLogHistoryWorker.cpp" line="1682"/>
+        <location filename="../../lib/TimeLogHistoryWorker.cpp" line="1724"/>
+        <location filename="../../lib/TimeLogHistoryWorker.cpp" line="1744"/>
+        <location filename="../../lib/TimeLogHistoryWorker.cpp" line="1791"/>
+        <location filename="../../lib/TimeLogHistoryWorker.cpp" line="1816"/>
+        <location filename="../../lib/TimeLogHistoryWorker.cpp" line="1841"/>
+        <location filename="../../lib/TimeLogHistoryWorker.cpp" line="1869"/>
+        <location filename="../../lib/TimeLogHistoryWorker.cpp" line="1894"/>
+        <location filename="../../lib/TimeLogHistoryWorker.cpp" line="1903"/>
+        <location filename="../../lib/TimeLogHistoryWorker.cpp" line="1924"/>
+        <location filename="../../lib/TimeLogHistoryWorker.cpp" line="1934"/>
+        <location filename="../../lib/TimeLogHistoryWorker.cpp" line="1964"/>
+        <location filename="../../lib/TimeLogHistoryWorker.cpp" line="2000"/>
+        <location filename="../../lib/TimeLogHistoryWorker.cpp" line="2044"/>
+        <location filename="../../lib/TimeLogHistoryWorker.cpp" line="2079"/>
+        <location filename="../../lib/TimeLogHistoryWorker.cpp" line="2090"/>
+        <location filename="../../lib/TimeLogHistoryWorker.cpp" line="2102"/>
+        <location filename="../../lib/TimeLogHistoryWorker.cpp" line="2132"/>
+        <location filename="../../lib/TimeLogHistoryWorker.cpp" line="2256"/>
+        <location filename="../../lib/TimeLogHistoryWorker.cpp" line="2265"/>
         <source>DB error: %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../lib/TimeLogHistoryWorker.cpp" line="501"/>
-        <location filename="../../lib/TimeLogHistoryWorker.cpp" line="1748"/>
-        <location filename="../../lib/TimeLogHistoryWorker.cpp" line="2110"/>
+        <location filename="../../lib/TimeLogHistoryWorker.cpp" line="508"/>
+        <location filename="../../lib/TimeLogHistoryWorker.cpp" line="1762"/>
+        <location filename="../../lib/TimeLogHistoryWorker.cpp" line="2160"/>
         <source>Fail to parse category data: %1</source>
         <translation type="unfinished"></translation>
     </message>
@@ -476,7 +478,7 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/timetracker/RecentViewDesktop.qml" line="41"/>
+        <location filename="../qml/timetracker/RecentViewDesktop.qml" line="39"/>
         <source>Add</source>
         <translation type="unfinished"></translation>
     </message>
@@ -505,22 +507,197 @@
     </message>
 </context>
 <context>
+    <name>default categories</name>
+    <message>
+        <location filename="../../lib/TimeLogDefaultCategories.cpp" line="23"/>
+        <source>Sleep</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../lib/TimeLogDefaultCategories.cpp" line="27"/>
+        <source>Work</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../lib/TimeLogDefaultCategories.cpp" line="31"/>
+        <source>Routine</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../lib/TimeLogDefaultCategories.cpp" line="32"/>
+        <source>Everyday tasks</source>
+        <comment>Routine</comment>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../lib/TimeLogDefaultCategories.cpp" line="35"/>
+        <source>Routine &gt; Hygiene</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../lib/TimeLogDefaultCategories.cpp" line="39"/>
+        <source>Routine &gt; Meal</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../lib/TimeLogDefaultCategories.cpp" line="43"/>
+        <source>Housekeeping</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../lib/TimeLogDefaultCategories.cpp" line="47"/>
+        <source>Housekeeping &gt; Cooking</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../lib/TimeLogDefaultCategories.cpp" line="51"/>
+        <source>Housekeeping &gt; Shopping</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../lib/TimeLogDefaultCategories.cpp" line="55"/>
+        <source>Housekeeping &gt; Tidying Up</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../lib/TimeLogDefaultCategories.cpp" line="59"/>
+        <source>Healthcare</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../lib/TimeLogDefaultCategories.cpp" line="63"/>
+        <source>Family</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../lib/TimeLogDefaultCategories.cpp" line="67"/>
+        <source>Sport</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../lib/TimeLogDefaultCategories.cpp" line="71"/>
+        <source>Recreation</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../lib/TimeLogDefaultCategories.cpp" line="75"/>
+        <source>Recreation &gt; Books</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../lib/TimeLogDefaultCategories.cpp" line="79"/>
+        <source>Recreation &gt; Movies</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../lib/TimeLogDefaultCategories.cpp" line="83"/>
+        <source>Recreation &gt; Video games</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../lib/TimeLogDefaultCategories.cpp" line="87"/>
+        <source>Hobby</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../lib/TimeLogDefaultCategories.cpp" line="91"/>
+        <source>Resources</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../lib/TimeLogDefaultCategories.cpp" line="92"/>
+        <source>Management of resources</source>
+        <comment>Resources</comment>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../lib/TimeLogDefaultCategories.cpp" line="95"/>
+        <source>Resources &gt; Time</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../lib/TimeLogDefaultCategories.cpp" line="96"/>
+        <source>Time spent on time tracking :)</source>
+        <comment>Resources &gt; Time</comment>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../lib/TimeLogDefaultCategories.cpp" line="99"/>
+        <source>Resources &gt; Finances</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../lib/TimeLogDefaultCategories.cpp" line="103"/>
+        <source>Moving</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../lib/TimeLogDefaultCategories.cpp" line="104"/>
+        <source>Transport and other location changes</source>
+        <comment>Moving</comment>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../lib/TimeLogDefaultCategories.cpp" line="107"/>
+        <source>Maintenance</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../lib/TimeLogDefaultCategories.cpp" line="108"/>
+        <source>Tuning, repairing and keepeng things to work</source>
+        <comment>Maintenance</comment>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../lib/TimeLogDefaultCategories.cpp" line="111"/>
+        <source>Maintenance &gt; Computer</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../lib/TimeLogDefaultCategories.cpp" line="115"/>
+        <source>Maintenance &gt; Gadgets</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../lib/TimeLogDefaultCategories.cpp" line="119"/>
+        <source>Training</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../lib/TimeLogDefaultCategories.cpp" line="120"/>
+        <source>Education and skills acquisition/mastering</source>
+        <comment>Training</comment>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../lib/TimeLogDefaultCategories.cpp" line="123"/>
+        <source>Unknown</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../lib/TimeLogDefaultCategories.cpp" line="124"/>
+        <source>Not tracked time</source>
+        <comment>Unknown</comment>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
     <name>entry editor</name>
     <message>
         <location filename="../qml/timetracker/TimeLogEntryEditorDesktop.qml" line="39"/>
-        <location filename="../qml/timetracker/TimeLogEntryEditorMobile.qml" line="36"/>
+        <location filename="../qml/timetracker/TimeLogEntryEditorMobile.qml" line="35"/>
         <source>Start date</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../qml/timetracker/TimeLogEntryEditorDesktop.qml" line="58"/>
-        <location filename="../qml/timetracker/TimeLogEntryEditorMobile.qml" line="51"/>
+        <location filename="../qml/timetracker/TimeLogEntryEditorMobile.qml" line="50"/>
         <source>Start time</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../qml/timetracker/TimeLogEntryEditorDesktop.qml" line="80"/>
-        <location filename="../qml/timetracker/TimeLogEntryEditorMobile.qml" line="69"/>
+        <location filename="../qml/timetracker/TimeLogEntryEditorMobile.qml" line="68"/>
         <source>Duration</source>
         <translation type="unfinished"></translation>
     </message>
@@ -531,7 +708,7 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/timetracker/TimeLogEntryEditorMobile.qml" line="83"/>
+        <location filename="../qml/timetracker/TimeLogEntryEditorMobile.qml" line="82"/>
         <source>Comment</source>
         <translation type="unfinished"></translation>
     </message>
@@ -539,20 +716,20 @@
 <context>
     <name>main window</name>
     <message>
-        <location filename="../qml/timetracker/CategoriesView.qml" line="12"/>
+        <location filename="../qml/timetracker/CategoriesView.qml" line="10"/>
         <location filename="../qml/timetracker/MainWindowDesktop.qml" line="85"/>
         <location filename="../qml/timetracker/MainWindowMobile.qml" line="167"/>
         <source>Categories</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/timetracker/CategoriesView.qml" line="85"/>
+        <location filename="../qml/timetracker/CategoriesView.qml" line="83"/>
         <location filename="../qml/timetracker/TimeLogView.qml" line="145"/>
         <source>Remove confirmation</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/timetracker/HistoryView.qml" line="9"/>
+        <location filename="../qml/timetracker/HistoryView.qml" line="6"/>
         <location filename="../qml/timetracker/MainWindowDesktop.qml" line="81"/>
         <location filename="../qml/timetracker/MainWindowMobile.qml" line="174"/>
         <source>History</source>
@@ -561,14 +738,14 @@
     <message>
         <location filename="../qml/timetracker/MainWindowDesktop.qml" line="73"/>
         <location filename="../qml/timetracker/MainWindowMobile.qml" line="153"/>
-        <location filename="../qml/timetracker/SearchView.qml" line="9"/>
+        <location filename="../qml/timetracker/SearchView.qml" line="7"/>
         <source>Search</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../qml/timetracker/MainWindowDesktop.qml" line="77"/>
         <location filename="../qml/timetracker/MainWindowMobile.qml" line="160"/>
-        <location filename="../qml/timetracker/StatsView.qml" line="9"/>
+        <location filename="../qml/timetracker/StatsView.qml" line="7"/>
         <source>Statistics</source>
         <translation type="unfinished"></translation>
     </message>
@@ -614,8 +791,8 @@
     <message>
         <location filename="../qml/timetracker/MainWindowDesktop.qml" line="216"/>
         <location filename="../qml/timetracker/MainWindowMobile.qml" line="146"/>
-        <location filename="../qml/timetracker/RecentViewDesktop.qml" line="8"/>
-        <location filename="../qml/timetracker/RecentViewMobile.qml" line="7"/>
+        <location filename="../qml/timetracker/RecentViewDesktop.qml" line="6"/>
+        <location filename="../qml/timetracker/RecentViewMobile.qml" line="5"/>
         <source>Recent</source>
         <translation type="unfinished"></translation>
     </message>

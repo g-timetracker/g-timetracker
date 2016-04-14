@@ -19,7 +19,8 @@ public:
     explicit TimeLogHistoryWorker(QObject *parent = 0);
     ~TimeLogHistoryWorker();
 
-    bool init(const QString &dataPath, const QString &filePath = QString());
+    bool init(const QString &dataPath, const QString &filePath = QString(),
+              bool isPopulateCategories = false);
     qlonglong size() const;
     QSharedPointer<TimeLogCategoryTreeNode> categories() const;
 
@@ -56,8 +57,10 @@ public slots:
 
     void getSyncData(const QDateTime &mBegin = QDateTime(),
                      const QDateTime &mEnd = QDateTime()) const;
-    void getSyncDataAmount(const QDateTime &mBegin = QDateTime::fromMSecsSinceEpoch(0, Qt::UTC),
-                           const QDateTime &mEnd = QDateTime::currentDateTimeUtc()) const;
+    void getSyncExists(const QDateTime &mBegin = QDateTime::fromMSecsSinceEpoch(0, Qt::UTC),
+                       const QDateTime &mEnd = QDateTime::currentDateTimeUtc()) const;
+    void getSyncAmount(const QDateTime &mBegin = QDateTime::fromMSecsSinceEpoch(0, Qt::UTC),
+                       const QDateTime &mEnd = QDateTime::currentDateTimeUtc()) const;
 
     void getHashes(const QDateTime &maxDate = QDateTime(), bool noUpdate = false);
 
@@ -73,7 +76,8 @@ signals:
     void statsDataAvailable(QVector<TimeLogStats> data, QDateTime until) const;
     void syncDataAvailable(QVector<TimeLogSyncDataEntry> entryData,
                            QVector<TimeLogSyncDataCategory> categoryData, QDateTime until) const;
-    void syncDataAmountAvailable(qlonglong size, QDateTime maxMTime, QDateTime mBegin, QDateTime mEnd) const;
+    void syncAmountAvailable(qlonglong size, QDateTime maxMTime, QDateTime mBegin, QDateTime mEnd) const;
+    void syncExistsAvailable(bool isExists, QDateTime mBegin, QDateTime mEnd) const;
     void syncEntryStatsAvailable(QVector<TimeLogSyncDataEntry> removedOld,
                                  QVector<TimeLogSyncDataEntry> removedNew,
                                  QVector<TimeLogSyncDataEntry> insertedOld,
@@ -181,6 +185,8 @@ private:
     QVector<TimeLogEntry> getEntries(const QString &category) const;
     QVector<TimeLogSyncDataEntry> getSyncEntriesAffected(const QUuid &uuid);
     QVector<TimeLogSyncDataCategory> getSyncCategoriesAffected(const QUuid &uuid);
+    bool getSyncDataExists(const QDateTime &mBegin = QDateTime::fromMSecsSinceEpoch(0, Qt::UTC),
+                           const QDateTime &mEnd = QDateTime::currentDateTimeUtc()) const;
     QMap<QDateTime, QByteArray> getDataHashes(const QDateTime &maxDate = QDateTime()) const;
     void notifyInsertUpdates(const TimeLogEntry &data);
     void notifyInsertUpdates(const QVector<TimeLogEntry> &data);
@@ -193,6 +199,8 @@ private:
     void rollbackTransaction(QSqlDatabase &db);
     QString fixCategoryName(const QString &name) const;
     bool fetchCategories();
+    bool checkIsDBEmpty();
+    bool populateCategories();
     void updateCategories();
     QSharedPointer<TimeLogCategoryTreeNode> parseCategories(const QStringList &categories) const;
     QByteArray calcHash(const QDateTime &begin, const QDateTime &end) const;

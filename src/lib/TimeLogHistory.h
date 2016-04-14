@@ -32,7 +32,8 @@ public:
     explicit TimeLogHistory(QObject *parent = 0);
     virtual ~TimeLogHistory();
 
-    bool init(const QString &dataPath, const QString &filePath = QString());
+    bool init(const QString &dataPath, const QString &filePath = QString(),
+              bool isPopulateCategories = false);
 
     qlonglong size() const;
     QSharedPointer<TimeLogCategoryTreeNode> categories() const;
@@ -71,7 +72,9 @@ public slots:
 
     void getSyncData(const QDateTime &mBegin = QDateTime(),
                      const QDateTime &mEnd = QDateTime()) const;
-    void getSyncDataAmount(const QDateTime &mBegin = QDateTime::fromMSecsSinceEpoch(0, Qt::UTC),
+    void getSyncExists(const QDateTime &mBegin = QDateTime::fromMSecsSinceEpoch(0, Qt::UTC),
+                       const QDateTime &mEnd = QDateTime::currentDateTimeUtc()) const;
+    void getSyncAmount(const QDateTime &mBegin = QDateTime::fromMSecsSinceEpoch(0, Qt::UTC),
                            const QDateTime &mEnd = QDateTime::currentDateTimeUtc()) const;
 
     void getHashes(const QDateTime &maxDate = QDateTime(), bool noUpdate = false);
@@ -88,7 +91,8 @@ signals:
     void statsDataAvailable(QVector<TimeLogStats> data, QDateTime until) const;
     void syncDataAvailable(QVector<TimeLogSyncDataEntry> entryData,
                            QVector<TimeLogSyncDataCategory> categoryData, QDateTime until) const;
-    void syncDataAmountAvailable(qlonglong size, QDateTime maxMTime, QDateTime mBegin, QDateTime mEnd) const;
+    void syncAmountAvailable(qlonglong size, QDateTime maxMTime, QDateTime mBegin, QDateTime mEnd) const;
+    void syncExistsAvailable(bool isExists, QDateTime mBegin, QDateTime mEnd) const;
     void syncEntryStatsAvailable(QVector<TimeLogSyncDataEntry> removedOld,
                                  QVector<TimeLogSyncDataEntry> removedNew,
                                  QVector<TimeLogSyncDataEntry> insertedOld,

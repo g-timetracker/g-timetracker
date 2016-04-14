@@ -225,8 +225,26 @@ void checkDB(TimeLogHistory *history,
     QVector<TimeLogSyncDataEntry> syncEntryData;
     QVector<TimeLogSyncDataCategory> syncCategoryData;
     checkFunction(extractSyncData, history, syncEntryData, syncCategoryData);
+
     QVERIFY(compareData(syncEntryData, entryData));
-    QVERIFY(compareData(syncCategoryData, categoryData));
+
+    auto syncCategoryCompare = [](const TimeLogSyncDataCategory &d1, const TimeLogSyncDataCategory &d2)
+    {
+        if (d1.sync.mTime < d2.sync.mTime) {
+            return true;
+        } else if (d1.sync.mTime > d2.sync.mTime) {
+            return false;
+        } else if (d1.category.isValid() && d2.category.isValid()) {
+            return d1.category.name < d2.category.name;
+        } else {
+            return d1.category.isValid() > d2.category.isValid();
+        }
+    };
+    QVector<TimeLogSyncDataCategory> origCategoryData(categoryData);
+    std::sort(origCategoryData.begin(), origCategoryData.end(), syncCategoryCompare);
+    std::sort(syncCategoryData.begin(), syncCategoryData.end(), syncCategoryCompare);
+
+    QVERIFY(compareData(syncCategoryData, origCategoryData));
 }
 
 void verifyHashes(const QMap<QDateTime, QByteArray> &hashes)

@@ -135,8 +135,10 @@ DataSyncerWorker::DataSyncerWorker(TimeLogHistory *db, QObject *parent) :
                                            QVector<TimeLogSyncDataCategory>,QDateTime)),
             this, SLOT(syncDataAvailable(QVector<TimeLogSyncDataEntry>,
                                          QVector<TimeLogSyncDataCategory>,QDateTime)));
-    connect(m_db, SIGNAL(syncDataAmountAvailable(qlonglong,QDateTime,QDateTime,QDateTime)),
-            this, SLOT(syncDataAmountAvailable(qlonglong,QDateTime,QDateTime,QDateTime)));
+    connect(m_db, SIGNAL(syncExistsAvailable(bool,QDateTime,QDateTime)),
+            this, SLOT(syncExistsAvailable(bool,QDateTime,QDateTime)));
+    connect(m_db, SIGNAL(syncAmountAvailable(qlonglong,QDateTime,QDateTime,QDateTime)),
+            this, SLOT(syncAmountAvailable(qlonglong,QDateTime,QDateTime,QDateTime)));
     connect(m_db, SIGNAL(syncEntryStatsAvailable(QVector<TimeLogSyncDataEntry>,
                                                  QVector<TimeLogSyncDataEntry>,
                                                  QVector<TimeLogSyncDataEntry>,
@@ -371,33 +373,37 @@ void DataSyncerWorker::syncDataAvailable(QVector<TimeLogSyncDataEntry> entryData
     emit exported(QPrivateSignal());
 }
 
-void DataSyncerWorker::syncDataAmountAvailable(qlonglong size, QDateTime maxMTime, QDateTime mBegin, QDateTime mEnd)
+void DataSyncerWorker::syncExistsAvailable(bool isExists, QDateTime mBegin, QDateTime mEnd)
 {
     Q_UNUSED(mBegin)
     Q_UNUSED(mEnd)
 
-    if (m_packSM->isRunning() /* export to pack */) {
-        if (size > 0) {
-            exportPack();
-        } else {
-            qCInfo(SYNC_WORKER_CATEGORY) << "No data to pack";
-            emit dirsSynced(QPrivateSignal());
-        }
+    if (isExists) {
+        exportPack();
     } else {
-        qCDebug(SYNC_WORKER_CATEGORY) << "Cached sync changes from DB:" << size << maxMTime;
-        qint64 elapsedTime = 0;
+        qCInfo(SYNC_WORKER_CATEGORY) << "No data to pack";
+        emit dirsSynced(QPrivateSignal());
+    }
+}
+
+void DataSyncerWorker::syncAmountAvailable(qlonglong size, QDateTime maxMTime, QDateTime mBegin, QDateTime mEnd)
+{
+    Q_UNUSED(mBegin)
+    Q_UNUSED(mEnd)
+
+    qCDebug(SYNC_WORKER_CATEGORY) << "Cached sync changes from DB:" << size << maxMTime;
+    qint64 elapsedTime = 0;
         if (m_autoSync && !m_externalSyncPath.isEmpty() && m_syncCacheTimeout > 0 && !maxMTime.isNull()
             && (elapsedTime = maxMTime.msecsTo(QDateTime::currentDateTimeUtc())) >= m_syncCacheTimeout * 1000
             && !m_syncCacheTimer->isActive()) {
-            sync();
-        } else {
+        sync();
+    } else {
             if (m_autoSync && !m_externalSyncPath.isEmpty() && m_syncCacheTimeout > 0 && elapsedTime > 0
                 && (!m_syncCacheTimer->isActive()
                     || m_syncCacheTimer->remainingTime() < m_syncCacheTimeout * 1000 - elapsedTime)) {
-                m_syncCacheTimer->start(m_syncCacheTimeout * 1000 - elapsedTime);   // found newer entry
-            }
-            addCachedSyncChanges(size);
+            m_syncCacheTimer->start(m_syncCacheTimeout * 1000 - elapsedTime);   // found newer entry
         }
+        addCachedSyncChanges(size);
     }
 }
 
@@ -550,7 +556,12 @@ void DataSyncerWorker::startExport()
         break;
     }
 
-    QDateTime mFrom = QDateTime::fromMSecsSinceEpoch(mTimeString.isEmpty() ? 0 : mTimeString.toLongLong(), Qt::UTC);
+    QDateTime mFrom;
+    if (!mTimeString.isEmpty()) {
+        mFrom = QDateTime::fromMSecsSinceEpoch(mTimeString.toLongLong(), Qt::UTC).addMSecs(1);
+    } else {
+        QDateTime::fromMSecsSinceEpoch(0, Qt::UTC);
+    }
 
     m_db->getSyncData(mFrom);
 }
@@ -608,14 +619,14 @@ void DataSyncerWorker::packSync()
         }
         m_packMTime = QDateTime::fromMSecsSinceEpoch(packMTimeString.toLongLong(), Qt::UTC);
     } else {
-        m_packMTime = QDateTime::fromMSecsSinceEpoch(-1, Qt::UTC);   // TODO: mtime >= :mBegin
+        m_packMTime = QDateTime::fromMSecsSinceEpoch(0, Qt::UTC);
     }
 
     QDateTime packPeriodStart(maxPackPeriodStart());
     if (m_forcePack) {
         exportPack();
     } else if (m_packMTime < packPeriodStart) {
-        m_db->getSyncDataAmount(m_packMTime, packPeriodStart.addMonths(1).addMSecs(-1));
+        m_db->getSyncExists(m_packMTime, packPeriodStart.addMonths(1).addMSecs(-1));
     } else {
         emit dirsSynced(QPrivateSignal());
     }
@@ -677,7 +688,7 @@ void DataSyncerWorker::checkSyncFolder()
             sync();
         }
     } else {
-        m_db->getSyncDataAmount(dataDirInfo.lastModified());
+        m_db->getSyncAmount(dataDirInfo.lastModified().addMSecs(1));
     }
 }
 

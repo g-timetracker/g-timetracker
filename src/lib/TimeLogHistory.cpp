@@ -38,8 +38,10 @@ TimeLogHistory::TimeLogHistory(QObject *parent) :
                                                QVector<TimeLogSyncDataCategory>,QDateTime)),
             this, SIGNAL(syncDataAvailable(QVector<TimeLogSyncDataEntry>,
                                            QVector<TimeLogSyncDataCategory>,QDateTime)));
-    connect(m_worker, SIGNAL(syncDataAmountAvailable(qlonglong,QDateTime,QDateTime,QDateTime)),
-            this, SIGNAL(syncDataAmountAvailable(qlonglong,QDateTime,QDateTime,QDateTime)));
+    connect(m_worker, SIGNAL(syncAmountAvailable(qlonglong,QDateTime,QDateTime,QDateTime)),
+            this, SIGNAL(syncAmountAvailable(qlonglong,QDateTime,QDateTime,QDateTime)));
+    connect(m_worker, SIGNAL(syncExistsAvailable(bool,QDateTime,QDateTime)),
+            this, SIGNAL(syncExistsAvailable(bool,QDateTime,QDateTime)));
     connect(m_worker, SIGNAL(syncEntryStatsAvailable(QVector<TimeLogSyncDataEntry>,
                                                      QVector<TimeLogSyncDataEntry>,
                                                      QVector<TimeLogSyncDataEntry>,
@@ -79,13 +81,13 @@ TimeLogHistory::~TimeLogHistory()
     }
 }
 
-bool TimeLogHistory::init(const QString &dataPath, const QString &filePath)
+bool TimeLogHistory::init(const QString &dataPath, const QString &filePath, bool isPopulateCategories)
 {
     if (m_worker->thread() != thread()) {
         return false;
     }
 
-    if (!m_worker->init(dataPath, filePath)) {
+    if (!m_worker->init(dataPath, filePath, isPopulateCategories)) {
         return false;
     }
 
@@ -205,9 +207,15 @@ void TimeLogHistory::getSyncData(const QDateTime &mBegin, const QDateTime &mEnd)
                               Q_ARG(QDateTime, mBegin), Q_ARG(QDateTime, mEnd));
 }
 
-void TimeLogHistory::getSyncDataAmount(const QDateTime &mBegin, const QDateTime &mEnd) const
+void TimeLogHistory::getSyncExists(const QDateTime &mBegin, const QDateTime &mEnd) const
 {
-    QMetaObject::invokeMethod(m_worker, "getSyncDataAmount", Qt::AutoConnection,
+    QMetaObject::invokeMethod(m_worker, "getSyncExists", Qt::AutoConnection,
+                              Q_ARG(QDateTime, mBegin), Q_ARG(QDateTime, mEnd));
+}
+
+void TimeLogHistory::getSyncAmount(const QDateTime &mBegin, const QDateTime &mEnd) const
+{
+    QMetaObject::invokeMethod(m_worker, "getSyncAmount", Qt::AutoConnection,
                               Q_ARG(QDateTime, mBegin), Q_ARG(QDateTime, mEnd));
 }
 

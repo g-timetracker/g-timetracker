@@ -31,7 +31,8 @@ SOURCES += \
     TimeLogSyncDataCategory.cpp \
     TimeLogCategory.cpp \
     TimeLogCategoryTreeNode.cpp \
-    TimeLogSyncDataEntry.cpp
+    TimeLogSyncDataEntry.cpp \
+    TimeLogDefaultCategories.cpp
 
 HEADERS += \
     TimeLogEntry.h \
@@ -57,4 +58,5 @@ HEADERS += \
     TimeLogSyncDataCategory.h \
     TimeLogCategory.h \
     TimeLogCategoryTreeNode.h \
-    TimeLogSyncDataEntry.h
+    TimeLogSyncDataEntry.h \
+    TimeLogDefaultCategories.h

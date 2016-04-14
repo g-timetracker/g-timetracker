@@ -4,6 +4,7 @@
 
 #include "tst_common.h"
 #include "TimeLogCategoryTreeNode.h"
+#include "TimeLogDefaultCategories.h"
 
 QTemporaryDir *dataDir = Q_NULLPTR;
 TimeLogHistory *history = Q_NULLPTR;
@@ -44,6 +45,8 @@ private slots:
     void categoryAddName_data();
     void categoryEditName();
     void categoryEditName_data();
+    void populateCategories();
+    void populateCategories_data();
 
     void undoEntryInsert();
     void undoEntryInsert_data();
@@ -1208,6 +1211,112 @@ void tst_DB::categoryEditName_data()
     oldData.insert("comment", QString("Test comment"));
     newData.insert("comment", QString("New comment"));
     addTestSet("edit comment");
+}
+
+void tst_DB::populateCategories()
+{
+    QFETCH(bool, isPopulateCategories);
+    QFETCH(QVector<TimeLogEntry>, origEntries);
+    QFETCH(QVector<TimeLogCategory>, origCategories);
+
+    QVector<TimeLogSyncDataEntry> origSyncEntries(genSyncData(origEntries, defaultMTimes()));
+    QVector<TimeLogSyncDataCategory> origSyncCategories(genSyncData(origCategories, defaultMTimes()));
+
+    checkFunction(importSyncData, history, origSyncEntries, origSyncCategories, 1);
+
+    TimeLogHistory testHistory;
+    QVERIFY(testHistory.init(dataDir->path(), QString(), isPopulateCategories));
+
+    if (!origEntries.isEmpty() && !origEntries.constFirst().isValid()) {
+        origEntries.clear();
+    }
+    checkFunction(checkDB, history, origEntries);
+
+    if (isPopulateCategories && origEntries.isEmpty() && origCategories.isEmpty()) {
+        origCategories = TimeLogDefaultCategories::defaultCategories();
+
+        QVector<QDateTime> mTimes;
+        mTimes.insert(0, origCategories.size(), QDateTime::fromMSecsSinceEpoch(0, Qt::UTC));
+        origSyncCategories = genSyncData(origCategories, mTimes);
+    }
+    if (!origCategories.isEmpty() && !origCategories.constFirst().isValid()) {
+        origCategories.clear();
+    }
+    checkFunction(checkDB, history, origCategories);
+    checkFunction(checkDB, history, origSyncEntries, origSyncCategories);
+}
+
+void tst_DB::populateCategories_data()
+{
+    QTest::addColumn<bool>("isPopulateCategories");
+    QTest::addColumn<QVector<TimeLogEntry> >("origEntries");
+    QTest::addColumn<QVector<TimeLogCategory> >("origCategories");
+
+
+    TimeLogEntry insertedEntry;
+    insertedEntry.startTime = defaultEntries().constFirst().startTime.addSecs(100);
+    insertedEntry.category = "CategoryNew";
+    insertedEntry.comment = "Test comment";
+    insertedEntry.uuid = QUuid::createUuid();
+
+    TimeLogEntry removedEntry;
+    removedEntry.uuid = defaultEntries().constFirst().uuid;
+
+    TimeLogCategory addedCategory;
+    addedCategory.name = "CategoryNew";
+    addedCategory.uuid = QUuid::createUuid();
+
+    TimeLogCategory removedCategory;
+    removedCategory.uuid = defaultCategories().constFirst().uuid;
+
+    QTest::newRow("empty db, populate") << true
+            << QVector<TimeLogEntry>()
+            << QVector<TimeLogCategory>();
+    QTest::newRow("empty db, no populate") << false
+            << QVector<TimeLogEntry>()
+            << QVector<TimeLogCategory>();
+
+    QTest::newRow("entry, populate") << true
+            << (QVector<TimeLogEntry>() << insertedEntry)
+            << QVector<TimeLogCategory>();
+    QTest::newRow("enrty, no populate") << false
+            << (QVector<TimeLogEntry>() << insertedEntry)
+            << QVector<TimeLogCategory>();
+
+    QTest::newRow("category, populate") << true
+            << QVector<TimeLogEntry>()
+            << (QVector<TimeLogCategory>() << addedCategory);
+    QTest::newRow("category, no populate") << false
+            << QVector<TimeLogEntry>()
+            << (QVector<TimeLogCategory>() << addedCategory);
+
+    QTest::newRow("entry and category, populate") << true
+            << (QVector<TimeLogEntry>() << insertedEntry)
+            << (QVector<TimeLogCategory>() << addedCategory);
+    QTest::newRow("enrty and category, no populate") << false
+            << (QVector<TimeLogEntry>() << insertedEntry)
+            << (QVector<TimeLogCategory>() << addedCategory);
+
+    QTest::newRow("removed entry and category, populate") << true
+            << (QVector<TimeLogEntry>() << removedEntry)
+            << (QVector<TimeLogCategory>() << addedCategory);
+    QTest::newRow("removed enrty and category, no populate") << false
+            << (QVector<TimeLogEntry>() << removedEntry)
+            << (QVector<TimeLogCategory>() << addedCategory);
+
+    QTest::newRow("entry and removed category, populate") << true
+            << (QVector<TimeLogEntry>() << insertedEntry)
+            << (QVector<TimeLogCategory>() << removedCategory);
+    QTest::newRow("enrty and removed category, no populate") << false
+            << (QVector<TimeLogEntry>() << insertedEntry)
+            << (QVector<TimeLogCategory>() << removedCategory);
+
+    QTest::newRow("removed entry and removed category, populate") << true
+            << (QVector<TimeLogEntry>() << removedEntry)
+            << (QVector<TimeLogCategory>() << removedCategory);
+    QTest::newRow("removed enrty and removed category, no populate") << false
+            << (QVector<TimeLogEntry>() << removedEntry)
+            << (QVector<TimeLogCategory>() << removedCategory);
 }
 
 void tst_DB::undoEntryInsert()

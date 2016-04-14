@@ -5,6 +5,7 @@
 #include "tst_common.h"
 #include "DataSyncer.h"
 #include "TimeLogCategoryTreeNode.h"
+#include "TimeLogDefaultCategories.h"
 
 QLoggingCategory::CategoryFilter oldCategoryFilter;
 
@@ -269,6 +270,8 @@ private slots:
     void pack_data();
     void syncPack();
     void syncPack_data();
+    void populateCategories();
+    void populateCategories_data();
 
     void unpacked();
     void unpacked_data();
@@ -641,6 +644,217 @@ void tst_SyncPack::syncPack_data()
     addTest(6, 1, 6, QDateTime(QDate(2016, 01, 10), QTime(), Qt::UTC).addMSecs(1), "+1 ms");
     addTest(6, 6, 6, QDateTime(QDate(2016, 01, 10), QTime(), Qt::UTC).addMSecs(-1), "-1 ms");
     addTest(6, 6, 6, QDateTime(QDate(2016, 01, 10), QTime(), Qt::UTC).addMSecs(1), "+1 ms");
+}
+
+void tst_SyncPack::populateCategories()
+{
+    QFETCH(bool, isPopulateCategories1);
+    QFETCH(bool, isPopulateCategories2);
+
+    QVector<TimeLogCategory> origCategories(TimeLogDefaultCategories::defaultCategories());
+    QVector<QDateTime> mTimes;
+    mTimes.insert(0, origCategories.size(), QDateTime::fromMSecsSinceEpoch(0, Qt::UTC));
+    QVector<TimeLogSyncDataCategory> origSyncCategories(genSyncData(origCategories, mTimes));
+
+    QSignalSpy syncSpy1(syncer1, SIGNAL(synced()));
+    QSignalSpy syncSpy2(syncer2, SIGNAL(synced()));
+    QSignalSpy syncErrorSpy1(syncer1, SIGNAL(error(QString)));
+    QSignalSpy syncErrorSpy2(syncer2, SIGNAL(error(QString)));
+
+    QSignalSpy historyErrorSpy1(history1, SIGNAL(error(QString)));
+    QSignalSpy historyErrorSpy2(history2, SIGNAL(error(QString)));
+    QSignalSpy historyOutdateSpy1(history1, SIGNAL(dataOutdated()));
+    QSignalSpy historyOutdateSpy2(history2, SIGNAL(dataOutdated()));
+
+    TimeLogHistory testHistory1;
+    QVERIFY(testHistory1.init(dataDir1->path(), QString(), isPopulateCategories1));
+    TimeLogHistory testHistory2;
+    QVERIFY(testHistory2.init(dataDir2->path(), QString(), isPopulateCategories2));
+
+    QFETCH(QVector<TimeLogSyncDataCategory>, newCategories);
+    checkFunction(importSyncData, history1, QVector<TimeLogSyncDataEntry>(), newCategories, 1);
+
+    if (!newCategories.isEmpty()) {
+        updateDataSet(origCategories, newCategories.constFirst().category);
+        updateDataSet(origSyncCategories, newCategories.constFirst());
+    }
+
+    const QDateTime syncStart(QDate(2016, 01, 10), QTime(), Qt::UTC);
+
+    QFETCH(bool, isPackTest);
+
+    if (isPackTest) {
+        syncer1->setSyncPath(QUrl::fromLocalFile(syncDir1->path()));
+        syncer1->setNoPack(true);
+        syncer1->sync(syncStart);
+        QVERIFY(syncSpy1.wait());
+
+        checkFunction(checkSyncFolder, QDir(dataDir1->path()).filePath("sync"),
+                      QVector<TimeLogSyncDataEntry>(),
+                      isPopulateCategories1 ? origSyncCategories : newCategories,
+                      isPopulateCategories1 ? origSyncCategories.size() : newCategories.size());
+
+        // Pack
+        syncSpy1.clear();
+        syncer1->setSyncPath(QUrl::fromLocalFile(syncDir1->path()));
+        syncer1->setNoPack(false);
+        syncer1->pack(syncStart);
+        QVERIFY(syncSpy1.wait());
+        QVERIFY(syncErrorSpy1.isEmpty());
+        QVERIFY(historyErrorSpy1.isEmpty());
+        QVERIFY(historyOutdateSpy1.isEmpty());
+
+        checkFunction(checkPackFolder, QDir(dataDir1->path()).filePath("sync"),
+                      QVector<TimeLogSyncDataEntry>(),
+                      isPopulateCategories1 ? origSyncCategories : newCategories,
+                      isPopulateCategories1 ? origCategories.size() : newCategories.size(),
+                      monthStart(syncStart).addMSecs(-1));
+    } else {
+        // Sync 1 [out]
+        syncer1->setSyncPath(QUrl::fromLocalFile(syncDir1->path()));
+        syncer1->sync(syncStart);
+        QVERIFY(syncSpy1.wait());
+        QVERIFY(syncErrorSpy1.isEmpty());
+        QVERIFY(historyErrorSpy1.isEmpty());
+        QVERIFY(historyOutdateSpy1.isEmpty());
+    }
+
+    checkFunction(checkDB, history1, QVector<TimeLogSyncDataEntry>(),
+                  isPopulateCategories1 ? origSyncCategories : newCategories);
+    checkFunction(checkPackFolder, QDir(dataDir1->path()).filePath("sync"),
+                  QVector<TimeLogSyncDataEntry>(),
+                  isPopulateCategories1 ? origSyncCategories : newCategories,
+                  isPopulateCategories1 ? origCategories.size() : newCategories.size(),
+                  monthStart(syncStart).addMSecs(-1));
+
+    // Sync 2 [in]
+    syncer2->setSyncPath(QUrl::fromLocalFile(syncDir1->path()));
+    syncer2->sync(syncStart);
+    QVERIFY(syncSpy2.wait());
+    QVERIFY(syncErrorSpy2.isEmpty());
+    QVERIFY(historyErrorSpy2.isEmpty());
+    QVERIFY(historyOutdateSpy2.isEmpty());
+
+    checkFunction(checkDB, history2, origCategories);
+    checkFunction(checkDB, history2, QVector<TimeLogSyncDataEntry>(), origSyncCategories);
+    checkFunction(checkPackFolder, QDir(dataDir2->path()).filePath("sync"),
+                  QVector<TimeLogSyncDataEntry>(), origSyncCategories, origCategories.size(),
+                  monthStart(syncStart).addMSecs(-1));
+
+    // Sync 1 [in]
+    syncer1->setSyncPath(QUrl::fromLocalFile(syncDir1->path()));
+    syncer1->sync(syncStart);
+    QVERIFY(syncSpy1.wait());
+    QVERIFY(syncErrorSpy1.isEmpty());
+    QVERIFY(historyErrorSpy1.isEmpty());
+    QVERIFY(historyOutdateSpy1.isEmpty());
+
+    checkFunction(checkDB, history1, origCategories);
+    checkFunction(checkDB, history1, QVector<TimeLogSyncDataEntry>(), origSyncCategories);
+    checkFunction(checkPackFolder, QDir(dataDir1->path()).filePath("sync"),
+                  QVector<TimeLogSyncDataEntry>(), origSyncCategories, origCategories.size(),
+                  monthStart(syncStart).addMSecs(-1));
+}
+
+void tst_SyncPack::populateCategories_data()
+{
+    QTest::addColumn<bool>("isPopulateCategories1");
+    QTest::addColumn<bool>("isPopulateCategories2");
+    QTest::addColumn<bool>("isPackTest");
+    QTest::addColumn<QVector<TimeLogSyncDataCategory> >("newCategories");
+
+    int index = 5;
+
+    const QVector<TimeLogCategory> defaultCategories(TimeLogDefaultCategories::defaultCategories());
+
+    TimeLogCategory addedCategory;
+    addedCategory.name = "CategoryNew";
+    addedCategory.uuid = QUuid::createUuid();
+    TimeLogSyncDataCategory addedSyncCategory(addedCategory, defaultMTimes().at(index));
+
+    TimeLogCategory editedCategoryName(defaultCategories.at(index));
+    addedCategory.name = "CategoryNew";
+    addedCategory.uuid = QUuid::createUuid();
+    TimeLogSyncDataCategory editedSyncCategoryName(editedCategoryName, defaultMTimes().at(index));
+
+    TimeLogCategory editedCategoryComment(defaultCategories.at(index));
+    addedCategory.data.insert("comment", "Test comment");
+    addedCategory.uuid = QUuid::createUuid();
+    TimeLogSyncDataCategory editedSyncCategoryComment(editedCategoryComment, defaultMTimes().at(index));
+
+    TimeLogCategory removedCategory;
+    removedCategory.uuid = defaultCategories.at(index).uuid;
+    TimeLogSyncDataCategory removedSyncCategory(removedCategory, defaultMTimes().at(index));
+
+    QTest::newRow("pack, empty db, populate to no populate") << true << false << true
+            << QVector<TimeLogSyncDataCategory>();
+    QTest::newRow("pack, empty db, no populate to populate") << false << true << true
+            << QVector<TimeLogSyncDataCategory>();
+    QTest::newRow("pack, empty db, populate to populate") << true << true << true
+            << QVector<TimeLogSyncDataCategory>();
+
+    QTest::newRow("pack, add, populate to no populate") << true << false << true
+            << (QVector<TimeLogSyncDataCategory>() << addedSyncCategory);
+    QTest::newRow("pack, add, no populate to populate") << false << true << true
+            << (QVector<TimeLogSyncDataCategory>() << addedSyncCategory);
+    QTest::newRow("pack, add, populate to populate") << true << true << true
+            << (QVector<TimeLogSyncDataCategory>() << addedSyncCategory);
+
+    QTest::newRow("pack, edit name, populate to no populate") << true << false << true
+            << (QVector<TimeLogSyncDataCategory>() << editedSyncCategoryName);
+    QTest::newRow("pack, edit name, no populate to populate") << false << true << true
+            << (QVector<TimeLogSyncDataCategory>() << editedSyncCategoryName);
+    QTest::newRow("pack, edit name, populate to populate") << true << true << true
+            << (QVector<TimeLogSyncDataCategory>() << editedSyncCategoryName);
+
+    QTest::newRow("pack, edit comment, populate to no populate") << true << false << true
+            << (QVector<TimeLogSyncDataCategory>() << editedSyncCategoryComment);
+    QTest::newRow("pack, edit comment, no populate to populate") << false << true << true
+            << (QVector<TimeLogSyncDataCategory>() << editedSyncCategoryComment);
+    QTest::newRow("pack, edit comment, populate to populate") << true << true << true
+            << (QVector<TimeLogSyncDataCategory>() << editedSyncCategoryComment);
+
+    QTest::newRow("pack, remove, populate to no populate") << true << false << true
+            << (QVector<TimeLogSyncDataCategory>() << removedSyncCategory);
+    QTest::newRow("pack, remove, no populate to populate") << false << true << true
+            << (QVector<TimeLogSyncDataCategory>() << removedSyncCategory);
+    QTest::newRow("pack, remove, populate to populate") << true << true << true
+            << (QVector<TimeLogSyncDataCategory>() << removedSyncCategory);
+
+    QTest::newRow("sync, empty db, populate to no populate") << true << false << false
+            << QVector<TimeLogSyncDataCategory>();
+    QTest::newRow("sync, empty db, no populate to populate") << false << true << false
+            << QVector<TimeLogSyncDataCategory>();
+    QTest::newRow("sync, empty db, populate to populate") << true << true << false
+            << QVector<TimeLogSyncDataCategory>();
+
+    QTest::newRow("sync, add, populate to no populate") << true << false << false
+            << (QVector<TimeLogSyncDataCategory>() << addedSyncCategory);
+    QTest::newRow("sync, add, no populate to populate") << false << true << false
+            << (QVector<TimeLogSyncDataCategory>() << addedSyncCategory);
+    QTest::newRow("sync, add, populate to populate") << true << true << false
+            << (QVector<TimeLogSyncDataCategory>() << addedSyncCategory);
+
+    QTest::newRow("sync, edit name, populate to no populate") << true << false << false
+            << (QVector<TimeLogSyncDataCategory>() << editedSyncCategoryName);
+    QTest::newRow("sync, edit name, no populate to populate") << false << true << false
+            << (QVector<TimeLogSyncDataCategory>() << editedSyncCategoryName);
+    QTest::newRow("sync, edit name, populate to populate") << true << true << false
+            << (QVector<TimeLogSyncDataCategory>() << editedSyncCategoryName);
+
+    QTest::newRow("sync, edit comment, populate to no populate") << true << false << false
+            << (QVector<TimeLogSyncDataCategory>() << editedSyncCategoryComment);
+    QTest::newRow("sync, edit comment, no populate to populate") << false << true << false
+            << (QVector<TimeLogSyncDataCategory>() << editedSyncCategoryComment);
+    QTest::newRow("edit comment, populate to populate") << true << true << false
+            << (QVector<TimeLogSyncDataCategory>() << editedSyncCategoryComment);
+
+    QTest::newRow("sync, remove, populate to no populate") << true << false << false
+            << (QVector<TimeLogSyncDataCategory>() << removedSyncCategory);
+    QTest::newRow("sync, remove, no populate to populate") << false << true << false
+            << (QVector<TimeLogSyncDataCategory>() << removedSyncCategory);
+    QTest::newRow("sync, remove, populate to populate") << true << true << false
+            << (QVector<TimeLogSyncDataCategory>() << removedSyncCategory);
 }
 
 void tst_SyncPack::unpacked()

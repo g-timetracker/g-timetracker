@@ -5,6 +5,7 @@
 #include "tst_common.h"
 #include "DataSyncer.h"
 #include "TimeLogCategoryTreeNode.h"
+#include "TimeLogDefaultCategories.h"
 
 QLoggingCategory::CategoryFilter oldCategoryFilter;
 
@@ -60,6 +61,8 @@ private slots:
     void categoryRemove_data();
     void categoryEdit();
     void categoryEdit_data();
+    void populateCategories();
+    void populateCategories_data();
 
     void bothRemove();
     void bothRemove_data();
@@ -1045,6 +1048,138 @@ void tst_Sync::categoryEdit_data()
     oldData.insert("comment", QString("Test comment"));
     newData.insert("comment", QString("New comment"));
     addTestSet("edit comment");
+}
+
+void tst_Sync::populateCategories()
+{
+    QFETCH(bool, isPopulateCategories1);
+    QFETCH(bool, isPopulateCategories2);
+
+    QVector<TimeLogCategory> origCategories(TimeLogDefaultCategories::defaultCategories());
+    QVector<QDateTime> mTimes;
+    mTimes.insert(0, origCategories.size(), QDateTime::fromMSecsSinceEpoch(0, Qt::UTC));
+    QVector<TimeLogSyncDataCategory> origSyncCategories(genSyncData(origCategories, mTimes));
+
+    QSignalSpy syncSpy1(syncer1, SIGNAL(synced()));
+    QSignalSpy syncSpy2(syncer2, SIGNAL(synced()));
+
+    QSignalSpy syncErrorSpy1(syncer1, SIGNAL(error(QString)));
+    QSignalSpy syncErrorSpy2(syncer2, SIGNAL(error(QString)));
+
+    QSignalSpy historyErrorSpy1(history1, SIGNAL(error(QString)));
+    QSignalSpy historyErrorSpy2(history2, SIGNAL(error(QString)));
+
+    QSignalSpy historyOutdateSpy1(history1, SIGNAL(dataOutdated()));
+    QSignalSpy historyOutdateSpy2(history2, SIGNAL(dataOutdated()));
+
+    QSignalSpy categoriesSpy(history2, SIGNAL(categoriesChanged(QSharedPointer<TimeLogCategoryTreeNode>)));
+
+    TimeLogHistory testHistory1;
+    QVERIFY(testHistory1.init(dataDir1->path(), QString(), isPopulateCategories1));
+    TimeLogHistory testHistory2;
+    QVERIFY(testHistory2.init(dataDir2->path(), QString(), isPopulateCategories2));
+
+    syncer1->sync();
+    QVERIFY(syncSpy1.wait());
+
+    syncer2->sync();
+    QVERIFY(syncSpy2. wait());
+
+    QFETCH(QVector<TimeLogSyncDataCategory>, newCategories);
+    checkFunction(importSyncData, history1, QVector<TimeLogSyncDataEntry>(), newCategories, 1);
+
+    if (!newCategories.isEmpty()) {
+        updateDataSet(origCategories, newCategories.constFirst().category);
+        updateDataSet(origSyncCategories, newCategories.constFirst());
+    }
+
+    // Sync 1 [out]
+    historyOutdateSpy1.clear();
+    historyErrorSpy1.clear();
+    syncer1->sync();
+    QVERIFY(syncSpy1.wait());
+    QVERIFY(syncErrorSpy1.isEmpty());
+    QVERIFY(historyErrorSpy1.isEmpty());
+    QVERIFY(historyOutdateSpy1.isEmpty());
+
+    // Sync 2 [in]
+    categoriesSpy.clear();
+    syncer2->sync();
+    QVERIFY(syncSpy2.wait());
+    QVERIFY(historyOutdateSpy2.isEmpty());
+    QVERIFY(syncErrorSpy2.isEmpty());
+    QVERIFY(historyErrorSpy2.isEmpty());
+
+    checkFunction(checkDB, history1, origCategories);
+    checkFunction(checkDB, history2, QVector<TimeLogSyncDataEntry>(), origSyncCategories);
+
+    checkFunction(checkDB, history2, origCategories);
+    checkFunction(checkDB, history2, QVector<TimeLogSyncDataEntry>(), origSyncCategories);
+}
+
+void tst_Sync::populateCategories_data()
+{
+    QTest::addColumn<bool>("isPopulateCategories1");
+    QTest::addColumn<bool>("isPopulateCategories2");
+    QTest::addColumn<QVector<TimeLogSyncDataCategory> >("newCategories");
+
+    int index = 5;
+
+    const QVector<TimeLogCategory> defaultCategories(TimeLogDefaultCategories::defaultCategories());
+
+    TimeLogCategory addedCategory;
+    addedCategory.name = "CategoryNew";
+    addedCategory.uuid = QUuid::createUuid();
+    TimeLogSyncDataCategory addedSyncCategory(addedCategory, defaultMTimes().at(index));
+
+    TimeLogCategory editedCategoryName(defaultCategories.at(index));
+    addedCategory.name = "CategoryNew";
+    addedCategory.uuid = QUuid::createUuid();
+    TimeLogSyncDataCategory editedSyncCategoryName(editedCategoryName, defaultMTimes().at(index));
+
+    TimeLogCategory editedCategoryComment(defaultCategories.at(index));
+    addedCategory.data.insert("comment", "Test comment");
+    addedCategory.uuid = QUuid::createUuid();
+    TimeLogSyncDataCategory editedSyncCategoryComment(editedCategoryComment, defaultMTimes().at(index));
+
+    TimeLogCategory removedCategory;
+    removedCategory.uuid = defaultCategories.at(index).uuid;
+    TimeLogSyncDataCategory removedSyncCategory(removedCategory, defaultMTimes().at(index));
+
+    QTest::newRow("empty db, populate to no populate") << true << false
+            << QVector<TimeLogSyncDataCategory>();
+    QTest::newRow("empty db, no populate to populate") << false << true
+            << QVector<TimeLogSyncDataCategory>();
+    QTest::newRow("empty db, populate to populate") << true << true
+            << QVector<TimeLogSyncDataCategory>();
+
+    QTest::newRow("add, populate to no populate") << true << false
+            << (QVector<TimeLogSyncDataCategory>() << addedSyncCategory);
+    QTest::newRow("add, no populate to populate") << false << true
+            << (QVector<TimeLogSyncDataCategory>() << addedSyncCategory);
+    QTest::newRow("add, populate to populate") << true << true
+            << (QVector<TimeLogSyncDataCategory>() << addedSyncCategory);
+
+    QTest::newRow("edit name, populate to no populate") << true << false
+            << (QVector<TimeLogSyncDataCategory>() << editedSyncCategoryName);
+    QTest::newRow("edit name, no populate to populate") << false << true
+            << (QVector<TimeLogSyncDataCategory>() << editedSyncCategoryName);
+    QTest::newRow("edit name, populate to populate") << true << true
+            << (QVector<TimeLogSyncDataCategory>() << editedSyncCategoryName);
+
+    QTest::newRow("edit comment, populate to no populate") << true << false
+            << (QVector<TimeLogSyncDataCategory>() << editedSyncCategoryComment);
+    QTest::newRow("edit comment, no populate to populate") << false << true
+            << (QVector<TimeLogSyncDataCategory>() << editedSyncCategoryComment);
+    QTest::newRow("edit comment, populate to populate") << true << true
+            << (QVector<TimeLogSyncDataCategory>() << editedSyncCategoryComment);
+
+    QTest::newRow("remove, populate to no populate") << true << false
+            << (QVector<TimeLogSyncDataCategory>() << removedSyncCategory);
+    QTest::newRow("remove, no populate to populate") << false << true
+            << (QVector<TimeLogSyncDataCategory>() << removedSyncCategory);
+    QTest::newRow("remove, populate to populate") << true << true
+            << (QVector<TimeLogSyncDataCategory>() << removedSyncCategory);
 }
 
 void tst_Sync::bothRemove()

@@ -193,5 +193,5 @@ void DBSyncer::syncNextPeriod()
 {
     QDateTime begin(m_syncPeriods.takeLast());
     qCDebug(DB_SYNCER_CATEGORY) << "Syncyng for period" << begin;
-    m_source->getSyncData(begin.addMSecs(-1), begin.addMonths(1).addMSecs(-1));
+    m_source->getSyncData(begin, begin.addMonths(1).addMSecs(-1));
 }

@@ -10,6 +10,7 @@
 
 #include "TimeLogHistoryWorker.h"
 #include "TimeLogCategoryTreeNode.h"
+#include "TimeLogDefaultCategories.h"
 
 Q_LOGGING_CATEGORY(HISTORY_WORKER_CATEGORY, "TimeLogHistoryWorker", QtInfoMsg)
 
@@ -53,7 +54,7 @@ TimeLogHistoryWorker::~TimeLogHistoryWorker()
     QSqlDatabase::removeDatabase(m_connectionName);
 }
 
-bool TimeLogHistoryWorker::init(const QString &dataPath, const QString &filePath)
+bool TimeLogHistoryWorker::init(const QString &dataPath, const QString &filePath, bool isPopulateCategories)
 {
     QString dirPath(QString("%1%2")
                     .arg(!dataPath.isEmpty() ? dataPath
@@ -86,6 +87,12 @@ bool TimeLogHistoryWorker::init(const QString &dataPath, const QString &filePath
 
     if (!fetchCategories()) {
         return false;
+    }
+
+    if (isPopulateCategories && checkIsDBEmpty()) {
+        if (!populateCategories()) {
+            return false;
+        }
     }
 
     m_isInitialized = true;
@@ -553,7 +560,14 @@ void TimeLogHistoryWorker::getSyncData(const QDateTime &mBegin, const QDateTime 
     emit syncDataAvailable(getSyncEntryData(mBegin, mEnd), getSyncCategoryData(mBegin, mEnd), mEnd);
 }
 
-void TimeLogHistoryWorker::getSyncDataAmount(const QDateTime &mBegin, const QDateTime &mEnd) const
+void TimeLogHistoryWorker::getSyncExists(const QDateTime &mBegin, const QDateTime &mEnd) const
+{
+    Q_ASSERT(m_isInitialized);
+
+    emit syncExistsAvailable(getSyncDataExists(mBegin, mEnd), mBegin, mEnd);
+}
+
+void TimeLogHistoryWorker::getSyncAmount(const QDateTime &mBegin, const QDateTime &mEnd) const
 {
     Q_ASSERT(m_isInitialized);
 
@@ -561,16 +575,16 @@ void TimeLogHistoryWorker::getSyncDataAmount(const QDateTime &mBegin, const QDat
     QSqlQuery query(db);
     QString queryString("SELECT count(*), max(mtime) FROM ( "
                         "    SELECT mtime FROM timelog "
-                        "    WHERE (mtime > :mBegin AND mtime <= :mEnd) "
+                        "    WHERE mtime BETWEEN :mBegin AND :mEnd "
                         "UNION "
                         "    SELECT mtime FROM timelog_removed "
-                        "    WHERE (mtime > :mBegin AND mtime <= :mEnd) "
+                        "    WHERE mtime BETWEEN :mBegin AND :mEnd "
                         "UNION "
                         "    SELECT mtime FROM categories "
-                        "    WHERE (mtime > :mBegin AND mtime <= :mEnd) "
+                        "    WHERE mtime BETWEEN :mBegin AND :mEnd "
                         "UNION "
                         "    SELECT mtime FROM categories_removed "
-                        "    WHERE (mtime > :mBegin AND mtime <= :mEnd) "
+                        "    WHERE mtime BETWEEN :mBegin AND :mEnd "
                         ")");
     if (!query.prepare(queryString)) {
         qCCritical(HISTORY_WORKER_CATEGORY) << "Fail to prepare query:" << query.lastError().text()
@@ -596,7 +610,7 @@ void TimeLogHistoryWorker::getSyncDataAmount(const QDateTime &mBegin, const QDat
     }
     query.finish();
 
-    emit syncDataAmountAvailable(result, maxMTime, mBegin, mEnd);
+    emit syncAmountAvailable(result, maxMTime, mBegin, mEnd);
 }
 
 void TimeLogHistoryWorker::getHashes(const QDateTime &maxDate, bool noUpdate)
@@ -1630,7 +1644,7 @@ QVector<TimeLogSyncDataEntry> TimeLogHistoryWorker::getSyncEntryData(const QDate
 {
     QSqlDatabase db = QSqlDatabase::database(m_connectionName);
     QSqlQuery query(db);
-    QString where = QString(mBegin.isValid() ? "mtime > :mBegin" : "")
+    QString where = QString(mBegin.isValid() ? "mtime >= :mBegin" : "")
                     + QString(mBegin.isValid() && mEnd.isValid() ? " AND " : "")
                     + QString(mEnd.isValid() ? "mtime <= :mEnd" : "");
     if (!where.isEmpty()) {
@@ -1692,7 +1706,7 @@ QVector<TimeLogSyncDataCategory> TimeLogHistoryWorker::getSyncCategoryData(const
 {
     QSqlDatabase db = QSqlDatabase::database(m_connectionName);
     QSqlQuery query(db);
-    QString where = QString(mBegin.isValid() ? "mtime > :mBegin" : "")
+    QString where = QString(mBegin.isValid() ? "mtime >= :mBegin" : "")
                     + QString(mBegin.isValid() && mEnd.isValid() ? " AND " : "")
                     + QString(mEnd.isValid() ? "mtime <= :mEnd" : "");
     if (!where.isEmpty()) {
@@ -1858,6 +1872,42 @@ QVector<TimeLogSyncDataCategory> TimeLogHistoryWorker::getSyncCategoriesAffected
     query.bindValue(":uuid", uuid.toRfc4122());
 
     return getSyncCategoryData(query);
+}
+
+bool TimeLogHistoryWorker::getSyncDataExists(const QDateTime &mBegin, const QDateTime &mEnd) const
+{
+    QSqlDatabase db = QSqlDatabase::database(m_connectionName);
+    QSqlQuery query(db);
+    QString queryString("SELECT mtime FROM (SELECT coalesce( "
+                        "    (SELECT mtime FROM timelog "
+                        "        WHERE mtime BETWEEN :mBegin AND :mEnd LIMIT 1), "
+                        "    (SELECT mtime FROM timelog_removed "
+                        "        WHERE mtime BETWEEN :mBegin AND :mEnd LIMIT 1), "
+                        "    (SELECT mtime FROM categories "
+                        "        WHERE mtime BETWEEN :mBegin AND :mEnd LIMIT 1), "
+                        "    (SELECT mtime FROM categories_removed "
+                        "        WHERE mtime BETWEEN :mBegin AND :mEnd LIMIT 1) "
+                        ") AS mtime) WHERE mtime IS NOT NULL");
+    if (!query.prepare(queryString)) {
+        qCCritical(HISTORY_WORKER_CATEGORY) << "Fail to prepare query:" << query.lastError().text()
+                                            << query.lastQuery();
+        emit error(tr("DB error: %1").arg(query.lastError().text()));
+        return false;
+    }
+    query.bindValue(":mBegin", mBegin.toMSecsSinceEpoch());
+    query.bindValue(":mEnd", mEnd.toMSecsSinceEpoch());
+
+    if (!query.exec()) {
+        qCCritical(HISTORY_WORKER_CATEGORY) << "Fail to execute query:" << query.lastError().text()
+                                            << query.executedQuery() << query.boundValues();
+        emit error(tr("DB error: %1").arg(query.lastError().text()));
+        return false;
+    }
+
+    bool result = query.next();
+    query.finish();
+
+    return result;
 }
 
 QMap<QDateTime, QByteArray> TimeLogHistoryWorker::getDataHashes(const QDateTime &maxDate) const
@@ -2127,6 +2177,26 @@ bool TimeLogHistoryWorker::fetchCategories()
     setSize(size);
 
     updateCategories();
+
+    return true;
+}
+
+bool TimeLogHistoryWorker::checkIsDBEmpty()
+{
+    return (m_size == 0 && m_categories.isEmpty() && !getSyncDataExists());
+}
+
+bool TimeLogHistoryWorker::populateCategories()
+{
+    QVector<TimeLogCategory> defaultCategories(TimeLogDefaultCategories::defaultCategories());
+
+    for (const TimeLogCategory &category: defaultCategories) {
+        // Use 0 mTime to make edited categories be newer than populated ones
+        TimeLogSyncDataCategory syncCategory(category, QDateTime::fromMSecsSinceEpoch(0, Qt::UTC));
+        if (!addCategoryData(syncCategory)) {
+            return false;
+        }
+    }
 
     return true;
 }
