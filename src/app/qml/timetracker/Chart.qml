@@ -7,10 +7,10 @@ Canvas {
     property string units
     property int padding: 10
     property color defaultBarColor: "#000000"
-    property color axesColor: "#607D8B"
-    property color gridColor: "#20607D8B"
-    property color labelFontColor: "#263238"
-    property real labelFontSize: 8
+    property color axesColor: "#60000000"
+    property color gridColor: "#1E000000"
+    property color labelFontColor: "#DD000000"
+    property real labelFontSize: 12
     property string labelFontFamily: "sans-serif"
     property real legendIconSize: padding
     property color legendFontColor: labelFontColor
