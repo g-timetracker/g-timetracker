@@ -1,4 +1,5 @@
 import QtQuick 2.4
+import QtQuick.Window 2.2
 import QtQuick.Layouts 1.1
 import TimeLog 1.0
 import "ChartColors.js" as ChartColors
@@ -39,11 +40,20 @@ Item {
             onCategoryChanged: requestStats()
         }
 
-        Chart {
-            id: chart
-
+        Item {
             Layout.fillHeight: true
             Layout.fillWidth: true
+
+            Chart {
+                id: chart
+
+                width: parent.width * Screen.devicePixelRatio
+                height: parent.height * Screen.devicePixelRatio
+                anchors.centerIn: parent
+                antialiasing: true
+                scale: 1.0 / Screen.devicePixelRatio
+                transformOrigin: Item.Center
+            }
         }
     }
 }

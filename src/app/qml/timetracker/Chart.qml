@@ -1,23 +1,24 @@
 import QtQuick 2.0
+import QtQuick.Window 2.2
 
 Canvas {
     id: chart
 
     property var chartData
     property string units
-    property int padding: 10
+    property int padding: 10 * Screen.devicePixelRatio
     property color defaultBarColor: "#000000"
     property color axesColor: "#60000000"
     property color gridColor: "#1E000000"
     property color labelFontColor: "#DD000000"
-    property real labelFontSize: 12
+    property real labelFontSize: 12 * Screen.devicePixelRatio
     property string labelFontFamily: "sans-serif"
     property real legendIconSize: padding
     property color legendFontColor: labelFontColor
     property real legendFontSize: labelFontSize
     property string legendFontFamily: labelFontFamily
-    property int axesWidth: 1
-    property int gridWidth: 1
+    property int axesWidth: 1 * Screen.devicePixelRatio
+    property int gridWidth: 1 * Screen.devicePixelRatio
     property int gridCells: 10
     property int maxBarWidth: chart.width / 10
 
