@@ -238,13 +238,13 @@ ApplicationWindow {
                             id: tabCloseButton
 
                             padding: 4
-                            implicitWidth: label.implicitWidth + padding * 2
-                            implicitHeight: label.implicitHeight + padding * 2
+                            implicitWidth: contentItem.implicitWidth + padding * 2
+                            implicitHeight: contentItem.implicitHeight + padding * 2
                             anchors.right: parent.right
                             anchors.top: parent.top
                             visible: model.hasCloseButton
                             text: "x"
-                            label: LabelControl {
+                            contentItem: LabelControl {
                                 text: tabCloseButton.text
                             }
                             onClicked: {

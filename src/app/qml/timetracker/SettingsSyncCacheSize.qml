@@ -22,8 +22,8 @@ Page {
 
             ToolButton {
                 text: "back"
-                label: Image {
-                    anchors.centerIn: parent
+                contentItem: Image {
+                    fillMode: Image.Pad
                     source: "images/ic_arrow_back_white_24dp.png"
                 }
 

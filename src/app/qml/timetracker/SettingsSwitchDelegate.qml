@@ -15,7 +15,7 @@ SettingsDelegate {
         onCheckedChanged: control.checked = checked
     }
 
-    label: Text {
+    contentItem: Text {
         anchors.left: parent.left
         anchors.right: indicator.right
         anchors.leftMargin: control.padding

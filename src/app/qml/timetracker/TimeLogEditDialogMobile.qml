@@ -68,8 +68,8 @@ Page {
 
             ToolButton {
                 text: editDialog.isModified ? "discard" : "back"
-                label: Image {
-                    anchors.centerIn: parent
+                contentItem: Image {
+                    fillMode: Image.Pad
                     source: editDialog.isModified ? "images/ic_close_white_24dp.png"
                                                   : "images/ic_arrow_back_white_24dp.png"
                 }

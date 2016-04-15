@@ -11,8 +11,6 @@
 #include "TimeLogCategory.h"
 #include "TimeLogStats.h"
 
-class QQuickItem;
-
 class TimeLogHistory;
 class TimeLogCategoryTreeNode;
 class DataSyncer;
@@ -43,7 +41,6 @@ public:
                               const QString &category = QString(),
                               const QString &separator = ">");
     Q_INVOKABLE static QString durationText(int duration, int maxUnits = 7);
-    Q_INVOKABLE static QPointF mapToGlobal(QQuickItem *item);
 
     void addCategory(const TimeLogCategory &category);
     void removeCategory(const QString &name);

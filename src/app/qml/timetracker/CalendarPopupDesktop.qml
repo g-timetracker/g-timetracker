@@ -34,7 +34,7 @@ Window {
         property point position
 
         function positionPopup(parentControl) {
-            var parentControlPosition = TimeTracker.mapToGlobal(parentControl)
+            var parentControlPosition = parentControl.mapToGlobal(0, 0)
             var popupX = parentControlPosition.x
             popupX -= popupX + popup.width > Screen.desktopAvailableWidth ? popup.width - parentControl.width : 0
             var popupY = parentControlPosition.y

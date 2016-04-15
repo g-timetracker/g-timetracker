@@ -8,8 +8,8 @@ Button {
 
     property url iconSource
 
-    label: Image {
-        anchors.centerIn: parent
+    contentItem: Image {
+        fillMode: Image.Pad
         source: iconSource
     }
 

@@ -9,7 +9,7 @@ SettingsDelegate {
 
     height: 72
 
-    label: Column {
+    contentItem: Column {
         anchors.verticalCenter: parent.verticalCenter
         anchors.left: parent.left
         anchors.right: parent.right

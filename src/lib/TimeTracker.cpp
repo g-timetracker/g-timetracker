@@ -1,6 +1,3 @@
-#include <QtQuick/QQuickItem>
-#include <QtQuick/QQuickWindow>
-
 #include "TimeTracker.h"
 #include "TimeLogHistory.h"
 #include "TimeLogCategoryTreeNode.h"
@@ -155,15 +152,6 @@ QString TimeTracker::durationText(int duration, int maxUnits)
     }
 
     return values.join(", ");
-}
-
-QPointF TimeTracker::mapToGlobal(QQuickItem *item)
-{
-    if (!item) {
-        return QPointF();
-    }
-
-    return (item->window()->mapToGlobal(QPoint()) + item->mapToScene(QPointF()));
 }
 
 void TimeTracker::addCategory(const TimeLogCategory &category)

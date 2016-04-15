@@ -31,8 +31,8 @@ ApplicationWindow {
 
                         ToolButton {
                             text: "menu"
-                            label: Image {
-                                anchors.centerIn: parent
+                            contentItem: Image {
+                                fillMode: Image.Pad
                                 source: "images/ic_menu_white_24dp.png"
                             }
 
@@ -45,8 +45,8 @@ ApplicationWindow {
 
                         ToolButton {
                             text: "back"
-                            label: Image {
-                                anchors.centerIn: parent
+                            contentItem: Image {
+                                fillMode: Image.Pad
                                 source: "images/ic_arrow_back_white_24dp.png"
                             }
 
@@ -119,91 +119,85 @@ ApplicationWindow {
     Drawer {
         id: drawer
 
-        anchors.fill: parent
+        height: parent.height
+        implicitWidth: Math.min(drawerItems.implicitWidth + drawerItems.anchors.margins * 2,
+                                parent.width - 56)
 
-        Pane {
-            height: parent.height
-            implicitWidth: Math.min(drawerItems.implicitWidth + drawerItems.anchors.margins * 2,
-                                    parent.width - 56)
+        Flickable {
+            anchors.fill: parent
+            contentWidth: drawerItems.implicitWidth
+            contentHeight: drawerItems.implicitHeight
+            boundsBehavior: Flickable.StopAtBounds
 
-            Flickable {
-                anchors.fill: parent
-                contentWidth: drawerItems.implicitWidth
-                contentHeight: drawerItems.implicitHeight
-                boundsBehavior: Flickable.StopAtBounds
+            ScrollBar.vertical: ScrollBar { }
 
-                ScrollBar.vertical: ScrollBar { }
+            Column {
+                id: drawerItems
 
-                Column {
-                    id: drawerItems
+                anchors.margins: 10
+                anchors.left: parent.left
+                anchors.right: parent.right
+                spacing: 10
 
-                    anchors.margins: 10
-                    anchors.left: parent.left
-                    anchors.right: parent.right
-                    spacing: 10
-
-                    ItemDelegate {
-                        text: qsTranslate("main window", "Recent")
-                        onClicked: {
-                            drawer.close()
-                            mainWindow.showRecent()
-                        }
+                ItemDelegate {
+                    text: qsTranslate("main window", "Recent")
+                    onClicked: {
+                        drawer.close()
+                        mainWindow.showRecent()
                     }
-                    ItemDelegate {
-                        text: qsTranslate("main window", "Search")
-                        onClicked: {
-                            drawer.close()
-                            mainWindow.showSearch()
-                        }
+                }
+                ItemDelegate {
+                    text: qsTranslate("main window", "Search")
+                    onClicked: {
+                        drawer.close()
+                        mainWindow.showSearch()
                     }
-                    ItemDelegate {
-                        text: qsTranslate("main window", "Statistics")
-                        onClicked: {
-                            drawer.close()
-                            mainWindow.showStats()
-                        }
+                }
+                ItemDelegate {
+                    text: qsTranslate("main window", "Statistics")
+                    onClicked: {
+                        drawer.close()
+                        mainWindow.showStats()
                     }
-                    ItemDelegate {
-                        text: qsTranslate("main window", "Categories")
-                        onClicked: {
-                            drawer.close()
-                            mainWindow.showCategories()
-                        }
+                }
+                ItemDelegate {
+                    text: qsTranslate("main window", "Categories")
+                    onClicked: {
+                        drawer.close()
+                        mainWindow.showCategories()
                     }
-                    ItemDelegate {
-                        text: qsTranslate("main window", "History")
-                        onClicked: {
-                            drawer.close()
-                            mainWindow.showHistory()
-                        }
+                }
+                ItemDelegate {
+                    text: qsTranslate("main window", "History")
+                    onClicked: {
+                        drawer.close()
+                        mainWindow.showHistory()
                     }
-                    ItemDelegate {
-                        text: qsTranslate("main window", "Sync")
-                        onClicked: {
-                            drawer.close()
-                            TimeTracker.syncer.sync(Settings.syncPath)
-                        }
+                }
+                ItemDelegate {
+                    text: qsTranslate("main window", "Sync")
+                    onClicked: {
+                        drawer.close()
+                        TimeTracker.syncer.sync(Settings.syncPath)
                     }
-                    ItemDelegate {
-                        text: qsTranslate("main window", "Undo")
-                        enabled: TimeTracker.undoCount
-                        onClicked: {
-                            drawer.close()
-                            TimeTracker.undo()
-                        }
+                }
+                ItemDelegate {
+                    text: qsTranslate("main window", "Undo")
+                    enabled: TimeTracker.undoCount
+                    onClicked: {
+                        drawer.close()
+                        TimeTracker.undo()
                     }
-                    ItemDelegate {
-                        text: qsTranslate("main window", "Settings")
-                        onClicked: {
-                            drawer.close()
-                            mainWindow.showSettings()
-                        }
+                }
+                ItemDelegate {
+                    text: qsTranslate("main window", "Settings")
+                    onClicked: {
+                        drawer.close()
+                        mainWindow.showSettings()
                     }
                 }
             }
         }
-
-        onClicked: close()
     }
 
     Binding {

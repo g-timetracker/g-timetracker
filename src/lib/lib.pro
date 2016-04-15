@@ -3,7 +3,7 @@ TARGET = timetracker
 
 CONFIG += staticlib
 
-QT += quick sql
+QT += sql
 
 DEFINES *= QT_USE_QSTRINGBUILDER
 
