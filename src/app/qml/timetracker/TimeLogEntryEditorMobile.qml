@@ -7,8 +7,8 @@ import "Texts.js" as Texts
 Column {
     id: delegateEditor
 
-    property date startTimeAfter
-    property date startTimeBefore
+    property date startTimeAfter: new Date(0)
+    property date startTimeBefore: new Date()
     property var startTimeCurrent: new Date()
 
     property alias category: categoryPicker.category
