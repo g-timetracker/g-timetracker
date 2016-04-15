@@ -92,5 +92,6 @@
         <file>qml/timetracker/CategoryNewDialog.qml</file>
         <file>qml/timetracker/TextFieldControl.qml</file>
         <file>qml/timetracker/TextAreaControl.qml</file>
+        <file>qml/timetracker/DialogMobile.qml</file>
     </qresource>
 </RCC>

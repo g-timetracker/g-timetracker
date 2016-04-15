@@ -682,6 +682,19 @@
     </message>
 </context>
 <context>
+    <name>dialog</name>
+    <message>
+        <location filename="../qml/timetracker/DialogMobile.qml" line="13"/>
+        <source>OK</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../qml/timetracker/DialogMobile.qml" line="14"/>
+        <source>Cancel</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
     <name>entry editor</name>
     <message>
         <location filename="../qml/timetracker/TimeLogEntryEditorDesktop.qml" line="39"/>
@@ -718,7 +731,7 @@
     <message>
         <location filename="../qml/timetracker/CategoriesView.qml" line="10"/>
         <location filename="../qml/timetracker/MainWindowDesktop.qml" line="85"/>
-        <location filename="../qml/timetracker/MainWindowMobile.qml" line="167"/>
+        <location filename="../qml/timetracker/MainWindowMobile.qml" line="164"/>
         <source>Categories</source>
         <translation type="unfinished"></translation>
     </message>
@@ -731,66 +744,66 @@
     <message>
         <location filename="../qml/timetracker/HistoryView.qml" line="6"/>
         <location filename="../qml/timetracker/MainWindowDesktop.qml" line="81"/>
-        <location filename="../qml/timetracker/MainWindowMobile.qml" line="174"/>
+        <location filename="../qml/timetracker/MainWindowMobile.qml" line="171"/>
         <source>History</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../qml/timetracker/MainWindowDesktop.qml" line="73"/>
-        <location filename="../qml/timetracker/MainWindowMobile.qml" line="153"/>
+        <location filename="../qml/timetracker/MainWindowMobile.qml" line="150"/>
         <location filename="../qml/timetracker/SearchView.qml" line="7"/>
         <source>Search</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../qml/timetracker/MainWindowDesktop.qml" line="77"/>
-        <location filename="../qml/timetracker/MainWindowMobile.qml" line="160"/>
-        <location filename="../qml/timetracker/StatsView.qml" line="7"/>
+        <location filename="../qml/timetracker/MainWindowMobile.qml" line="157"/>
+        <location filename="../qml/timetracker/StatsView.qml" line="8"/>
         <source>Statistics</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../qml/timetracker/MainWindowDesktop.qml" line="89"/>
-        <location filename="../qml/timetracker/MainWindowMobile.qml" line="181"/>
+        <location filename="../qml/timetracker/MainWindowMobile.qml" line="178"/>
         <source>Sync</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../qml/timetracker/MainWindowDesktop.qml" line="93"/>
-        <location filename="../qml/timetracker/MainWindowMobile.qml" line="188"/>
+        <location filename="../qml/timetracker/MainWindowMobile.qml" line="185"/>
         <source>Undo</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../qml/timetracker/MainWindowDesktop.qml" line="103"/>
-        <location filename="../qml/timetracker/MainWindowMobile.qml" line="196"/>
+        <location filename="../qml/timetracker/MainWindowMobile.qml" line="193"/>
         <location filename="../qml/timetracker/SettingsMobile.qml" line="12"/>
         <source>Settings</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../qml/timetracker/MainWindowDesktop.qml" line="160"/>
-        <location filename="../qml/timetracker/MainWindowMobile.qml" line="260"/>
+        <location filename="../qml/timetracker/MainWindowMobile.qml" line="254"/>
         <source>Synced</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../qml/timetracker/MainWindowDesktop.qml" line="168"/>
-        <location filename="../qml/timetracker/MainWindowMobile.qml" line="268"/>
+        <location filename="../qml/timetracker/MainWindowMobile.qml" line="262"/>
         <source>Message</source>
         <comment>Message dialog title</comment>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../qml/timetracker/MainWindowDesktop.qml" line="176"/>
-        <location filename="../qml/timetracker/MainWindowMobile.qml" line="276"/>
+        <location filename="../qml/timetracker/MainWindowMobile.qml" line="270"/>
         <source>Error</source>
         <comment>Error dialog title</comment>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../qml/timetracker/MainWindowDesktop.qml" line="216"/>
-        <location filename="../qml/timetracker/MainWindowMobile.qml" line="146"/>
+        <location filename="../qml/timetracker/MainWindowMobile.qml" line="143"/>
         <location filename="../qml/timetracker/RecentViewDesktop.qml" line="6"/>
         <location filename="../qml/timetracker/RecentViewMobile.qml" line="5"/>
         <source>Recent</source>

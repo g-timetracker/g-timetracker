@@ -1,14 +1,12 @@
 import QtQuick 2.0
-import QtQuick.Dialogs 1.2
 import QtQuick.Layouts 1.3
 import Qt.labs.controls 1.0
 import Qt.labs.calendar 1.0
 
-Dialog {
+DialogMobile {
     id: popup
 
-    width: 500
-    height: 300
+    customTitleBar: true
 
     property alias minimumDate: calendarModel.from
     property alias maximumDate: calendarModel.to
@@ -18,15 +16,20 @@ Dialog {
         popup.open()
     }
 
-    standardButtons: StandardButton.Cancel
+    onSelectedDateChanged: {
+        calendarList.selectedDate = selectedDate
+        calendarList.currentIndex = calendarModel.indexOf(selectedDate)
+    }
 
-    onSelectedDateChanged: calendarList.currentIndex = calendarModel.indexOf(selectedDate)
+    onAccepted: selectedDate = calendarList.selectedDate
 
     ListView {
         id: calendarList
 
-        width: 500 - 2 * 16
-        height: 300
+        property date selectedDate
+
+        implicitWidth: 500
+        implicitHeight: 300
         snapMode: ListView.SnapOneItem
         orientation: ListView.Horizontal
         highlightRangeMode: ListView.StrictlyEnforceRange
@@ -61,8 +64,7 @@ Dialog {
 
                 onClicked: {
                     if (date >= calendarModel.from && date <= calendarModel.to) {
-                        popup.selectedDate = date
-                        popup.close()
+                        calendarList.selectedDate = date
                     }
                 }
             }
