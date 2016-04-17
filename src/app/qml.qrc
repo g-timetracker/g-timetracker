@@ -11,9 +11,9 @@
         <file>qml/timetracker/SearchView.qml</file>
         <file>qml/timetracker/DatePicker.qml</file>
         <file>qml/timetracker/CalendarPopup.qml</file>
-        <file>qml/timetracker/+android/CalendarPopup.qml</file>
+        <file>qml/timetracker/+desktopStyle/CalendarPopup.qml</file>
         <file>qml/timetracker/CalendarPopupDesktop.qml</file>
-        <file>qml/timetracker/CalendarPopupMobile.qml</file>
+        <file>qml/timetracker/CalendarPopupMaterial.qml</file>
         <file>qml/timetracker/Settings.qml</file>
         <file>qml/timetracker/StatsView.qml</file>
         <file>qml/timetracker/ChartColors.js</file>
@@ -24,11 +24,12 @@
         <file>qml/timetracker/TimeEditorModel.qml</file>
         <file>qml/timetracker/TimeSpinBox.qml</file>
         <file>qml/timetracker/MainWindowDesktop.qml</file>
-        <file>qml/timetracker/MainWindowMobile.qml</file>
+        <file>qml/timetracker/MainWindowMaterial.qml</file>
         <file>qml/timetracker/MainWindow.qml</file>
         <file>qml/timetracker/+android/MainWindow.qml</file>
+        <file>qml/timetracker/+desktopStyle/MainWindow.qml</file>
         <file>qml/timetracker/TimeEditor.qml</file>
-        <file>qml/timetracker/+android/TimeEditor.qml</file>
+        <file>qml/timetracker/+desktopStyle/TimeEditor.qml</file>
         <file>qml/timetracker/TimeLogView.qml</file>
         <file>qml/timetracker/HistoryView.qml</file>
         <file>qml/timetracker/DatePeriodPicker.qml</file>
@@ -38,11 +39,11 @@
         <file>qml/timetracker/DateRangePicker.qml</file>
         <file>qml/timetracker/CategoryPicker.qml</file>
         <file>qml/timetracker/TimeLogNewDialogDesktop.qml</file>
-        <file>qml/timetracker/TimeLogNewDialogMobile.qml</file>
-        <file>qml/timetracker/+android/TimeLogNewDialog.qml</file>
+        <file>qml/timetracker/TimeLogNewDialogMaterial.qml</file>
+        <file>qml/timetracker/+desktopStyle/TimeLogNewDialog.qml</file>
         <file>qml/timetracker/TimeLogEditDialogDesktop.qml</file>
-        <file>qml/timetracker/TimeLogEditDialogMobile.qml</file>
-        <file>qml/timetracker/+android/TimeLogEditDialog.qml</file>
+        <file>qml/timetracker/TimeLogEditDialogMaterial.qml</file>
+        <file>qml/timetracker/+desktopStyle/TimeLogEditDialog.qml</file>
         <file>qml/timetracker/images/ic_arrow_back_white_24dp.png</file>
         <file>qml/timetracker/images/ic_arrow_back_white_24dp@2x.png</file>
         <file>qml/timetracker/images/ic_arrow_back_white_24dp@3x.png</file>
@@ -56,32 +57,32 @@
         <file>qml/timetracker/images/ic_menu_white_24dp@3x.png</file>
         <file>qml/timetracker/images/ic_menu_white_24dp@4x.png</file>
         <file>qml/timetracker/TimeLogEntryEditorDesktop.qml</file>
-        <file>qml/timetracker/TimeLogEntryEditorMobile.qml</file>
-        <file>qml/timetracker/+android/TimeLogEntryEditor.qml</file>
+        <file>qml/timetracker/TimeLogEntryEditorMaterial.qml</file>
+        <file>qml/timetracker/+desktopStyle/TimeLogEntryEditor.qml</file>
         <file>qml/timetracker/ItemPositioner.qml</file>
-        <file>qml/timetracker/+android/ItemPositioner.qml</file>
+        <file>qml/timetracker/+desktopStyle/ItemPositioner.qml</file>
         <file>qml/timetracker/Texts.js</file>
-        <file>qml/timetracker/+android/Texts.js</file>
+        <file>qml/timetracker/+desktopStyle/Texts.js</file>
         <file>qml/timetracker/PushButton.qml</file>
-        <file>qml/timetracker/+android/PushButton.qml</file>
-        <file>qml/timetracker/MobilePage.qml</file>
+        <file>qml/timetracker/+desktopStyle/PushButton.qml</file>
+        <file>qml/timetracker/PageMaterial.qml</file>
         <file>qml/timetracker/ComboBoxControl.qml</file>
-        <file>qml/timetracker/+android/ComboBoxControl.qml</file>
+        <file>qml/timetracker/+desktopStyle/ComboBoxControl.qml</file>
         <file>qml/timetracker/ComboBoxControlDesktop.qml</file>
-        <file>qml/timetracker/ComboBoxControlMobile.qml</file>
+        <file>qml/timetracker/ComboBoxControlMaterial.qml</file>
         <file>qml/timetracker/LabelControl.qml</file>
-        <file>qml/timetracker/+android/LabelControl.qml</file>
+        <file>qml/timetracker/+desktopStyle/LabelControl.qml</file>
         <file>qml/timetracker/LabelControlDesktop.qml</file>
-        <file>qml/timetracker/LabelControlMobile.qml</file>
+        <file>qml/timetracker/LabelControlMaterial.qml</file>
         <file>qml/timetracker/RecentViewDesktop.qml</file>
-        <file>qml/timetracker/RecentViewMobile.qml</file>
-        <file>qml/timetracker/+android/RecentView.qml</file>
+        <file>qml/timetracker/RecentViewMaterial.qml</file>
+        <file>qml/timetracker/+desktopStyle/RecentView.qml</file>
         <file>qml/timetracker/images/ic_add_white_24dp.png</file>
         <file>qml/timetracker/images/ic_add_white_24dp@2x.png</file>
         <file>qml/timetracker/images/ic_add_white_24dp@3x.png</file>
         <file>qml/timetracker/images/ic_add_white_24dp@4x.png</file>
         <file>qml/timetracker/FloatingActionButton.qml</file>
-        <file>qml/timetracker/SettingsMobile.qml</file>
+        <file>qml/timetracker/SettingsMaterial.qml</file>
         <file>qml/timetracker/SettingsDelegate.qml</file>
         <file>qml/timetracker/SettingsSwitchDelegate.qml</file>
         <file>qml/timetracker/SettingsAdvancedDelegate.qml</file>
@@ -92,7 +93,7 @@
         <file>qml/timetracker/CategoryNewDialog.qml</file>
         <file>qml/timetracker/TextFieldControl.qml</file>
         <file>qml/timetracker/TextAreaControl.qml</file>
-        <file>qml/timetracker/DialogMobile.qml</file>
-        <file>qml/timetracker/DialogMobileButtonBox.qml</file>
+        <file>qml/timetracker/DialogMaterial.qml</file>
+        <file>qml/timetracker/DialogMaterialButtonBox.qml</file>
     </qresource>
 </RCC>

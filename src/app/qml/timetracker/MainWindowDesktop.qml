@@ -214,7 +214,7 @@ ApplicationWindow {
 
             ListElement {
                 text: QT_TRANSLATE_NOOP("main window", "Recent")
-                source: "RecentView.qml"
+                source: "RecentViewDesktop.qml"
                 hasCloseButton: false
             }
         }

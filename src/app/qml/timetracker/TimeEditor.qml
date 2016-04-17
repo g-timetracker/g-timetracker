@@ -1,1 +1,1 @@
-TimeSpinBox { }
+TimeTumbler { }

@@ -1,1 +1,1 @@
-TimeLogNewDialogDesktop { }
+TimeLogNewDialogMaterial { }

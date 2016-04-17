@@ -1,1 +1,1 @@
-MainWindowMobile { }
+MainWindowMaterial { }

@@ -1,3 +1,3 @@
-import QtQuick.Controls 1.4
+import Qt.labs.controls 1.0
 
 Button { }

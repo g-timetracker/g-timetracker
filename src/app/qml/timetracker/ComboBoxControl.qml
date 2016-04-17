@@ -1,1 +1,1 @@
-ComboBoxControlDesktop { }
+ComboBoxControlMaterial { }

@@ -76,7 +76,7 @@ Popup {
             Layout.alignment: Qt.AlignLeft
         }
 
-        DialogMobileButtonBox {
+        DialogMaterialButtonBox {
             id: buttonBox
 
             Layout.fillWidth: true

@@ -101,7 +101,7 @@ ApplicationWindow {
     }
 
     function showSettings() {
-        mainView.pushPage("SettingsMobile.qml")
+        mainView.pushPage("SettingsMaterial.qml")
     }
 
     function showDialog(dialog) {
@@ -276,7 +276,7 @@ ApplicationWindow {
         id: mainView
 
         function pushPage(sourceName, parameters) {
-            var page = stackView.push(Qt.resolvedUrl("MobilePage.qml"),
+            var page = stackView.push(Qt.resolvedUrl("PageMaterial.qml"),
                                       { "source": sourceName, "toolBar": mainToolBar })
             for (var key in parameters) {
                 page.content[key] = parameters[key]
@@ -292,7 +292,7 @@ ApplicationWindow {
                 return item.objectName === pageName
             })
             var isPageExists = !!page
-            page = stackView.replace(null, isPageExists ? page : Qt.resolvedUrl("MobilePage.qml"),
+            page = stackView.replace(null, isPageExists ? page : Qt.resolvedUrl("PageMaterial.qml"),
                                      isPageExists ? {} : { "objectName": pageName,
                                                            "source": sourceName,
                                                            "toolBar": mainToolBar })

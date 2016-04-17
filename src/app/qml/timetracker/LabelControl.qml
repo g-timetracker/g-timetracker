@@ -1,1 +1,1 @@
-LabelControlDesktop { }
+LabelControlMaterial { }

@@ -1,1 +1,1 @@
-RecentViewDesktop { }
+RecentViewMaterial { }

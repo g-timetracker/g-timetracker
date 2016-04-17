@@ -1,1 +1,1 @@
-MainWindowDesktop { }
+MainWindowMaterial { }

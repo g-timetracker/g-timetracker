@@ -4,7 +4,7 @@ import Qt.labs.controls 1.0
 import Qt.labs.controls.material 1.0
 import Qt.labs.calendar 1.0
 
-DialogMobile {
+DialogMaterial {
     id: popup
 
     customTitleBar: true
@@ -180,7 +180,7 @@ DialogMobile {
                 }
             }
 
-            DialogMobileButtonBox {
+            DialogMaterialButtonBox {
                 id: buttonBox
 
                 width: parent.width

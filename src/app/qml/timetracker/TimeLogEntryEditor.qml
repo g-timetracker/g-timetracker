@@ -1,1 +1,1 @@
-TimeLogEntryEditorDesktop { }
+TimeLogEntryEditorMaterial { }

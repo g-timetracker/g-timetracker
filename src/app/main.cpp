@@ -118,6 +118,7 @@ int main(int argc, char *argv[])
         }
 
         QQmlApplicationEngine engine;
+//        QQmlFileSelector::get(&engine)->setExtraSelectors(QStringList() << "desktopStyle");
         engine.addImportPath(QString("%1/qml").arg(app.applicationDirPath()));
         engine.rootContext()->setContextProperty("TimeLogDataPath", parser.value(dataPathOption));
         engine.rootContext()->setContextProperty("TimeLogSyncPath", parser.value(syncPathOption));
