@@ -76,39 +76,17 @@ Popup {
             Layout.alignment: Qt.AlignLeft
         }
 
-        Item {
+        DialogMobileButtonBox {
+            id: buttonBox
+
             Layout.fillWidth: true
             Layout.fillHeight: false
-            Layout.minimumWidth: 56 * 5
-            implicitHeight: 52
+            Layout.minimumWidth: implicitWidth
+            affirmativeText: dialog.affirmativeText
+            dismissiveText: dialog.dismissiveText
 
-            RowLayout {
-                anchors.leftMargin: 24
-                anchors.rightMargin: 8
-                anchors.fill: parent
-                spacing: 8
-
-                Item {
-                    Layout.fillWidth: true
-                    Layout.fillHeight: true
-                }
-
-                Button {
-                    Layout.fillWidth: false
-                    Layout.fillHeight: false
-                    Layout.alignment: Qt.AlignVCenter
-                    text: dialog.dismissiveText
-                    onClicked: dialog.reject()
-                }
-
-                Button {
-                    Layout.fillWidth: false
-                    Layout.fillHeight: false
-                    Layout.alignment: Qt.AlignVCenter
-                    text: dialog.affirmativeText
-                    onClicked: dialog.accept()
-                }
-            }
+            onAccepted: dialog.accept()
+            onRejected: dialog.reject()
         }
     }
 }

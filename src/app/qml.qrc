@@ -93,5 +93,6 @@
         <file>qml/timetracker/TextFieldControl.qml</file>
         <file>qml/timetracker/TextAreaControl.qml</file>
         <file>qml/timetracker/DialogMobile.qml</file>
+        <file>qml/timetracker/DialogMobileButtonBox.qml</file>
     </qresource>
 </RCC>

@@ -685,11 +685,13 @@
     <name>dialog</name>
     <message>
         <location filename="../qml/timetracker/DialogMobile.qml" line="13"/>
+        <location filename="../qml/timetracker/DialogMobileButtonBox.qml" line="8"/>
         <source>OK</source>
         <translation>ОК</translation>
     </message>
     <message>
         <location filename="../qml/timetracker/DialogMobile.qml" line="14"/>
+        <location filename="../qml/timetracker/DialogMobileButtonBox.qml" line="9"/>
         <source>Cancel</source>
         <translation>Отмена</translation>
     </message>

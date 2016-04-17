@@ -26,11 +26,11 @@ DialogMobile {
 
     onAccepted: selectedDate = calendarList.selectedDate
 
-    Grid {
+    contentItem: Grid {
         rows: isLandscape ? 1 : 2
         columns: isLandscape ? 2 : 1
         width: isLandscape ? 512 : 328
-        height: isLandscape ? 252 : 96 + 336
+        height: isLandscape ? 252 + buttonBox.height : 96 + 336 + buttonBox.height
 
         Rectangle {
             width: isLandscape ? 168 : parent.width
@@ -65,115 +65,130 @@ DialogMobile {
             }
         }
 
-        ListView {
-            id: calendarList
-
-            property date selectedDate
-
-            function positionOnSelectedDate() {
-                currentIndex = calendarModel.indexOf(selectedDate)
-            }
-
-            implicitHeight: isLandscape ? parent.height : 336
+        Column {
             width: isLandscape ? 344 : parent.width
-            snapMode: ListView.SnapOneItem
-            orientation: ListView.Horizontal
-            highlightRangeMode: ListView.StrictlyEnforceRange
-            clip: true
 
-            model: calendarModel
-            delegate: Column {
-                width: calendarList.width
-                height: calendarList.height
+            ListView {
+                id: calendarList
 
-                Label {
-                    topPadding: isLandscape ? 20 : 18
-                    bottomPadding: isLandscape ? 8 : 20
-                    width: parent.width
-                    horizontalAlignment: Text.AlignHCenter
-                    verticalAlignment: Text.AlignVCenter
-                    font: popup.font
-                    color: popup.Material.primaryTextColor
-                    text: monthGrid.title
+                property date selectedDate
+
+                function positionOnSelectedDate() {
+                    currentIndex = calendarModel.indexOf(selectedDate)
                 }
 
-                DayOfWeekRow {
-                    anchors.horizontalCenter: parent.horizontalCenter
-                    spacing: 0
-                    padding: 0
-                    locale: monthGrid.locale
-                    font: popup.font
-                    delegate: Label {
-                        padding: 0
-                        bottomPadding: isLandscape ? 4 : 10
-                        width: isLandscape ? 46 : 44
+                implicitHeight: isLandscape ? 252 : 336
+                width: parent.width
+                snapMode: ListView.SnapOneItem
+                orientation: ListView.Horizontal
+                highlightRangeMode: ListView.StrictlyEnforceRange
+                clip: true
+
+                model: calendarModel
+                delegate: Column {
+                    width: calendarList.width
+                    height: calendarList.height
+
+                    Label {
+                        topPadding: isLandscape ? 20 : 18
+                        bottomPadding: isLandscape ? 8 : 20
+                        width: parent.width
                         horizontalAlignment: Text.AlignHCenter
                         verticalAlignment: Text.AlignVCenter
-                        font.pixelSize: 12
-                        color: popup.Material.hintTextColor
-                        text: model.narrowName
+                        font: popup.font
+                        color: popup.Material.primaryTextColor
+                        text: monthGrid.title
                     }
-                }
 
-                MonthGrid {
-                    id: monthGrid
+                    DayOfWeekRow {
+                        anchors.horizontalCenter: parent.horizontalCenter
+                        spacing: 0
+                        padding: 0
+                        locale: monthGrid.locale
+                        font: popup.font
+                        delegate: Label {
+                            padding: 0
+                            bottomPadding: isLandscape ? 4 : 10
+                            width: isLandscape ? 46 : 44
+                            horizontalAlignment: Text.AlignHCenter
+                            verticalAlignment: Text.AlignVCenter
+                            font.pixelSize: 12
+                            color: popup.Material.hintTextColor
+                            text: model.narrowName
+                        }
+                    }
 
-                    anchors.horizontalCenter: parent.horizontalCenter
-                    month: model.month
-                    year: model.year
-                    font: popup.font
-                    spacing: isLandscape ? 20 : 0
-                    padding: 0
-                    topPadding: isLandscape ? 0 : 6
-                    locale: popup.locale
-                    delegate: Label {
-                        property bool isSelected: model.date.valueOf() === calendarList.selectedDate.valueOf()
+                    MonthGrid {
+                        id: monthGrid
 
-                        height: isLandscape ? 12 : 40
-                        width: isLandscape ? 26 : 44
-                        horizontalAlignment: Text.AlignHCenter
-                        verticalAlignment: Text.AlignVCenter
-                        font.pixelSize: 12
-                        opacity: model.month === monthGrid.month ? 1 : 0
-                        color: {
-                            if (isSelected) {
-                                return popup.Material.dialogColor
-                            } else if (model.today) {
-                                return popup.Material.accentColor
-                            } else if (date >= calendarModel.from && date <= calendarModel.to) {
-                                return popup.Material.primaryTextColor
-                            } else {
-                                return popup.Material.hintTextColor
+                        anchors.horizontalCenter: parent.horizontalCenter
+                        month: model.month
+                        year: model.year
+                        font: popup.font
+                        spacing: isLandscape ? 20 : 0
+                        padding: 0
+                        topPadding: isLandscape ? 0 : 6
+                        locale: popup.locale
+                        delegate: Label {
+                            property bool isSelected: model.date.valueOf() === calendarList.selectedDate.valueOf()
+
+                            height: isLandscape ? 12 : 40
+                            width: isLandscape ? 26 : 44
+                            horizontalAlignment: Text.AlignHCenter
+                            verticalAlignment: Text.AlignVCenter
+                            font.pixelSize: 12
+                            opacity: model.month === monthGrid.month ? 1 : 0
+                            color: {
+                                if (isSelected) {
+                                    return popup.Material.dialogColor
+                                } else if (model.today) {
+                                    return popup.Material.accentColor
+                                } else if (date >= calendarModel.from && date <= calendarModel.to) {
+                                    return popup.Material.primaryTextColor
+                                } else {
+                                    return popup.Material.hintTextColor
+                                }
+                            }
+                            text: model.day
+
+                            background: Rectangle {
+                                width: isLandscape ? 32 : 40
+                                height: width
+                                anchors.centerIn: parent
+                                radius: width / 2
+                                color: popup.Material.accentColor
+                                visible: isSelected
                             }
                         }
-                        text: model.day
 
-                        background: Rectangle {
-                            width: isLandscape ? 32 : 40
-                            height: width
-                            anchors.centerIn: parent
-                            radius: width / 2
-                            color: popup.Material.accentColor
-                            visible: isSelected
-                        }
-                    }
-
-                    onClicked: {
-                        if (date >= calendarModel.from && date <= calendarModel.to) {
-                            calendarList.selectedDate = date
+                        onClicked: {
+                            if (date >= calendarModel.from && date <= calendarModel.to) {
+                                calendarList.selectedDate = date
+                            }
                         }
                     }
                 }
+
+                CalendarModel {
+                    id: calendarModel
+
+                    from: new Date(0)
+                    to: new Date()
+
+                    onFromChanged: calendarList.positionOnSelectedDate()
+                    onToChanged: calendarList.positionOnSelectedDate()
+                }
             }
 
-            CalendarModel {
-                id: calendarModel
+            DialogMobileButtonBox {
+                id: buttonBox
 
-                from: new Date(0)
-                to: new Date()
+                width: parent.width
+                affirmativeText: popup.affirmativeText
+                dismissiveText: popup.dismissiveText
 
-                onFromChanged: calendarList.positionOnSelectedDate()
-                onToChanged: calendarList.positionOnSelectedDate()
+                onAccepted: popup.accept()
+                onRejected: popup.reject()
             }
         }
     }
