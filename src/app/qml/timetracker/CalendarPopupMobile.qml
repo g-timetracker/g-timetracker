@@ -13,6 +13,8 @@ DialogMobile {
     property alias maximumDate: calendarModel.to
     property var selectedDate
 
+    property bool isLandscape: ApplicationWindow.window.width > ApplicationWindow.window.height
+
     function showPopup(parentControl) {
         popup.open()
     }
@@ -24,22 +26,25 @@ DialogMobile {
 
     onAccepted: selectedDate = calendarList.selectedDate
 
-    Column {
-        width: 328
+    Grid {
+        rows: isLandscape ? 1 : 2
+        columns: isLandscape ? 2 : 1
+        width: isLandscape ? 512 : 328
+        height: isLandscape ? 252 : 96 + 336
 
         Rectangle {
-            width: parent.width
-            height: 96
+            width: isLandscape ? 168 : parent.width
+            height: isLandscape ? parent.height : 96
             color: popup.Material.accentColor
 
             Column {
                 width: parent.width
 
                 Label {
-                    topPadding: 20
-                    bottomPadding: 2
-                    leftPadding: 24
-                    rightPadding: 24
+                    topPadding: isLandscape ? 18 : 20
+                    bottomPadding: isLandscape ? 0 : 2
+                    leftPadding: isLandscape ? 16 : 24
+                    rightPadding: isLandscape ? 16 : 24
                     verticalAlignment: Text.AlignVCenter
                     font.pixelSize: 16
                     color: popup.Material.dialogColor
@@ -47,8 +52,9 @@ DialogMobile {
                 }
 
                 Label {
-                    leftPadding: 24
-                    rightPadding: 24
+                    leftPadding: isLandscape ? 14 : 24
+                    rightPadding: isLandscape ? 14 : 24
+                    width: parent.width
                     verticalAlignment: Text.AlignVCenter
                     font.pixelSize: 34
                     font.weight: Font.Medium
@@ -68,8 +74,8 @@ DialogMobile {
                 currentIndex = calendarModel.indexOf(selectedDate)
             }
 
-            implicitHeight: 336
-            width: parent.width
+            implicitHeight: isLandscape ? parent.height : 336
+            width: isLandscape ? 344 : parent.width
             snapMode: ListView.SnapOneItem
             orientation: ListView.Horizontal
             highlightRangeMode: ListView.StrictlyEnforceRange
@@ -81,7 +87,8 @@ DialogMobile {
                 height: calendarList.height
 
                 Label {
-                    height: 56
+                    topPadding: isLandscape ? 20 : 18
+                    bottomPadding: isLandscape ? 8 : 20
                     width: parent.width
                     horizontalAlignment: Text.AlignHCenter
                     verticalAlignment: Text.AlignVCenter
@@ -97,8 +104,9 @@ DialogMobile {
                     locale: monthGrid.locale
                     font: popup.font
                     delegate: Label {
-                        height: 16
-                        width: 44
+                        padding: 0
+                        bottomPadding: isLandscape ? 4 : 10
+                        width: isLandscape ? 46 : 44
                         horizontalAlignment: Text.AlignHCenter
                         verticalAlignment: Text.AlignVCenter
                         font.pixelSize: 12
@@ -114,14 +122,15 @@ DialogMobile {
                     month: model.month
                     year: model.year
                     font: popup.font
-                    spacing: 0
+                    spacing: isLandscape ? 20 : 0
                     padding: 0
-                    topPadding: 6
+                    topPadding: isLandscape ? 0 : 6
+                    locale: popup.locale
                     delegate: Label {
                         property bool isSelected: model.date.valueOf() === calendarList.selectedDate.valueOf()
 
-                        height: 40
-                        width: 44
+                        height: isLandscape ? 12 : 40
+                        width: isLandscape ? 26 : 44
                         horizontalAlignment: Text.AlignHCenter
                         verticalAlignment: Text.AlignVCenter
                         font.pixelSize: 12
@@ -140,10 +149,10 @@ DialogMobile {
                         text: model.day
 
                         background: Rectangle {
-                            width: 40
-                            height: 40
+                            width: isLandscape ? 32 : 40
+                            height: width
                             anchors.centerIn: parent
-                            radius: 20
+                            radius: width / 2
                             color: popup.Material.accentColor
                             visible: isSelected
                         }
