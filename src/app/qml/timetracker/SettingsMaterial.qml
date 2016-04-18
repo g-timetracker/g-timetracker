@@ -1,6 +1,5 @@
 import QtQuick 2.4
 import QtQuick.Layouts 1.3
-import QtQuick.Dialogs 1.2
 import QtQuick.Window 2.2
 import Qt.labs.controls 1.0
 import Qt.labs.controls.material 1.0
@@ -53,7 +52,7 @@ Item {
                 width: parent.width
                 isLastItem: Positioner.isLastItem
                 text: qsTranslate("settings", "Sync folder")
-                additionalText: Settings.syncPath // TODO: extract path
+                additionalText: (Settings.syncPath.toString().replace(/file:\/\//, ""))
 
                 onClicked: syncPathDialog.open()
             }
@@ -95,11 +94,9 @@ Item {
         }
     }
 
-    FileDialog {
+    SyncFolderDialog {
         id: syncPathDialog
 
-        title: qsTranslate("settings", "Select sync folder")
-        selectFolder: true
         folder: Settings.syncPath
 
         onAccepted: Settings.syncPath = folder

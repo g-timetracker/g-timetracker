@@ -162,27 +162,24 @@ ApplicationWindow {
         }
     }
 
-    MessageDialog {
+    AlertDialog {
         id: messageDialog
 
         title: qsTranslate("main window", "Message", "Message dialog title")
         icon: StandardIcon.Information
-        standardButtons: StandardButton.Ok
     }
 
-    MessageDialog {
+    AlertDialog {
         id: errorDialog
 
         title: qsTranslate("main window", "Error", "Error dialog title")
         icon: StandardIcon.Critical
-        standardButtons: StandardButton.Ok
     }
 
-    FileDialog {
+    SyncFolderDialog {
         id: syncPathDialog
 
-        title: qsTranslate("settings", "Select sync folder")
-        selectFolder: true
+        folder: Settings.syncPath
 
         onAccepted: Settings.syncPath = folder
     }

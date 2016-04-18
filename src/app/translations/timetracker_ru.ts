@@ -9,31 +9,31 @@
         <translation>Удалить эту категорию?</translation>
     </message>
     <message>
-        <location filename="../qml/timetracker/CategoriesView.qml" line="101"/>
-        <location filename="../qml/timetracker/CategoriesView.qml" line="194"/>
+        <location filename="../qml/timetracker/CategoriesView.qml" line="99"/>
+        <location filename="../qml/timetracker/CategoriesView.qml" line="192"/>
         <source>Remove</source>
         <translation>Удалить</translation>
     </message>
     <message>
-        <location filename="../qml/timetracker/CategoriesView.qml" line="106"/>
-        <location filename="../qml/timetracker/CategoriesView.qml" line="200"/>
+        <location filename="../qml/timetracker/CategoriesView.qml" line="104"/>
+        <location filename="../qml/timetracker/CategoriesView.qml" line="198"/>
         <source>Edit</source>
         <translation>Редактировать</translation>
     </message>
     <message>
-        <location filename="../qml/timetracker/CategoriesView.qml" line="111"/>
-        <location filename="../qml/timetracker/CategoriesView.qml" line="206"/>
+        <location filename="../qml/timetracker/CategoriesView.qml" line="109"/>
+        <location filename="../qml/timetracker/CategoriesView.qml" line="204"/>
         <source>Show entries</source>
         <translation>Показать записи</translation>
     </message>
     <message>
-        <location filename="../qml/timetracker/CategoriesView.qml" line="116"/>
-        <location filename="../qml/timetracker/CategoriesView.qml" line="212"/>
+        <location filename="../qml/timetracker/CategoriesView.qml" line="114"/>
+        <location filename="../qml/timetracker/CategoriesView.qml" line="210"/>
         <source>Show statistics</source>
         <translation>Показать статистику</translation>
     </message>
     <message>
-        <location filename="../qml/timetracker/CategoriesView.qml" line="188"/>
+        <location filename="../qml/timetracker/CategoriesView.qml" line="186"/>
         <source>Create</source>
         <translation>Создать</translation>
     </message>
@@ -463,17 +463,17 @@
 <context>
     <name>TimeLogView</name>
     <message>
-        <location filename="../qml/timetracker/TimeLogView.qml" line="17"/>
+        <location filename="../qml/timetracker/TimeLogView.qml" line="16"/>
         <source>Edit</source>
         <translation>Редактировать</translation>
     </message>
     <message>
-        <location filename="../qml/timetracker/TimeLogView.qml" line="21"/>
+        <location filename="../qml/timetracker/TimeLogView.qml" line="20"/>
         <source>Insert before</source>
         <translation>Вставить перед</translation>
     </message>
     <message>
-        <location filename="../qml/timetracker/TimeLogView.qml" line="25"/>
+        <location filename="../qml/timetracker/TimeLogView.qml" line="24"/>
         <source>Insert after</source>
         <translation>Вставить после</translation>
     </message>
@@ -483,17 +483,17 @@
         <translation>Создать</translation>
     </message>
     <message>
-        <location filename="../qml/timetracker/TimeLogView.qml" line="29"/>
+        <location filename="../qml/timetracker/TimeLogView.qml" line="28"/>
         <source>Remove</source>
         <translation>Удалить</translation>
     </message>
     <message>
-        <location filename="../qml/timetracker/TimeLogView.qml" line="80"/>
+        <location filename="../qml/timetracker/TimeLogView.qml" line="79"/>
         <source>Cannot insert between %1 and %2</source>
         <translation>Невозможно вставить между %1 и %2</translation>
     </message>
     <message>
-        <location filename="../qml/timetracker/TimeLogView.qml" line="146"/>
+        <location filename="../qml/timetracker/TimeLogView.qml" line="144"/>
         <source>Delete this entry?</source>
         <translation>Удалить эту запись?</translation>
     </message>
@@ -501,7 +501,7 @@
 <context>
     <name>TimeTracker</name>
     <message>
-        <location filename="../../lib/TimeTracker.cpp" line="74"/>
+        <location filename="../../lib/TimeTracker.cpp" line="71"/>
         <source>Fail to initialize DB</source>
         <translation>Не удалось инициализировать БД</translation>
     </message>
@@ -695,6 +695,16 @@
         <source>Cancel</source>
         <translation>Отмена</translation>
     </message>
+    <message>
+        <location filename="../qml/timetracker/RemoveConfirmationDialogMaterial.qml" line="2"/>
+        <source>Remove</source>
+        <translation>Удалить</translation>
+    </message>
+    <message>
+        <location filename="../qml/timetracker/SyncFolderDialogMaterial.qml" line="62"/>
+        <source>Select</source>
+        <translation>Выбрать</translation>
+    </message>
 </context>
 <context>
     <name>entry editor</name>
@@ -732,80 +742,77 @@
     <name>main window</name>
     <message>
         <location filename="../qml/timetracker/MainWindowDesktop.qml" line="73"/>
-        <location filename="../qml/timetracker/MainWindowMaterial.qml" line="150"/>
+        <location filename="../qml/timetracker/MainWindowMaterial.qml" line="149"/>
         <location filename="../qml/timetracker/SearchView.qml" line="7"/>
         <source>Search</source>
         <translation>Поиск</translation>
     </message>
     <message>
         <location filename="../qml/timetracker/MainWindowDesktop.qml" line="77"/>
-        <location filename="../qml/timetracker/MainWindowMaterial.qml" line="157"/>
+        <location filename="../qml/timetracker/MainWindowMaterial.qml" line="156"/>
         <location filename="../qml/timetracker/StatsView.qml" line="8"/>
         <source>Statistics</source>
         <translation>Статистика</translation>
     </message>
     <message>
-        <location filename="../qml/timetracker/HistoryView.qml" line="6"/>
+        <location filename="../qml/timetracker/HistoryView.qml" line="8"/>
         <location filename="../qml/timetracker/MainWindowDesktop.qml" line="81"/>
-        <location filename="../qml/timetracker/MainWindowMaterial.qml" line="171"/>
+        <location filename="../qml/timetracker/MainWindowMaterial.qml" line="170"/>
         <source>History</source>
         <translation>История</translation>
     </message>
     <message>
-        <location filename="../qml/timetracker/CategoriesView.qml" line="10"/>
+        <location filename="../qml/timetracker/CategoriesView.qml" line="11"/>
         <location filename="../qml/timetracker/MainWindowDesktop.qml" line="85"/>
-        <location filename="../qml/timetracker/MainWindowMaterial.qml" line="164"/>
+        <location filename="../qml/timetracker/MainWindowMaterial.qml" line="163"/>
         <source>Categories</source>
         <translation>Категории</translation>
     </message>
     <message>
-        <location filename="../qml/timetracker/CategoriesView.qml" line="83"/>
-        <location filename="../qml/timetracker/TimeLogView.qml" line="145"/>
+        <location filename="../qml/timetracker/RemoveConfirmationDialogDesktop.qml" line="4"/>
         <source>Remove confirmation</source>
         <translation>Подтверджение удаления</translation>
     </message>
     <message>
         <location filename="../qml/timetracker/MainWindowDesktop.qml" line="89"/>
-        <location filename="../qml/timetracker/MainWindowMaterial.qml" line="178"/>
+        <location filename="../qml/timetracker/MainWindowMaterial.qml" line="177"/>
         <source>Sync</source>
         <translation>Синхронизировать</translation>
     </message>
     <message>
         <location filename="../qml/timetracker/MainWindowDesktop.qml" line="93"/>
-        <location filename="../qml/timetracker/MainWindowMaterial.qml" line="185"/>
+        <location filename="../qml/timetracker/MainWindowMaterial.qml" line="184"/>
         <source>Undo</source>
         <translation>Отменить</translation>
     </message>
     <message>
         <location filename="../qml/timetracker/MainWindowDesktop.qml" line="103"/>
-        <location filename="../qml/timetracker/MainWindowMaterial.qml" line="193"/>
-        <location filename="../qml/timetracker/SettingsMaterial.qml" line="12"/>
+        <location filename="../qml/timetracker/MainWindowMaterial.qml" line="192"/>
+        <location filename="../qml/timetracker/SettingsMaterial.qml" line="11"/>
         <source>Settings</source>
         <translation>Настройки</translation>
     </message>
     <message>
         <location filename="../qml/timetracker/MainWindowDesktop.qml" line="160"/>
-        <location filename="../qml/timetracker/MainWindowMaterial.qml" line="254"/>
+        <location filename="../qml/timetracker/MainWindowMaterial.qml" line="253"/>
         <source>Synced</source>
         <translation>Синхронизировано</translation>
     </message>
     <message>
         <location filename="../qml/timetracker/MainWindowDesktop.qml" line="168"/>
-        <location filename="../qml/timetracker/MainWindowMaterial.qml" line="262"/>
         <source>Message</source>
         <comment>Message dialog title</comment>
         <translation>Сообщение</translation>
     </message>
     <message>
-        <location filename="../qml/timetracker/MainWindowDesktop.qml" line="176"/>
-        <location filename="../qml/timetracker/MainWindowMaterial.qml" line="270"/>
+        <location filename="../qml/timetracker/MainWindowDesktop.qml" line="175"/>
         <source>Error</source>
         <comment>Error dialog title</comment>
         <translation>Ошибка</translation>
     </message>
     <message>
-        <location filename="../qml/timetracker/MainWindowDesktop.qml" line="216"/>
-        <location filename="../qml/timetracker/MainWindowMaterial.qml" line="143"/>
+        <location filename="../qml/timetracker/MainWindowDesktop.qml" line="213"/>
+        <location filename="../qml/timetracker/MainWindowMaterial.qml" line="142"/>
         <location filename="../qml/timetracker/RecentViewDesktop.qml" line="6"/>
         <location filename="../qml/timetracker/RecentViewMaterial.qml" line="7"/>
         <source>Recent</source>
@@ -816,40 +823,46 @@
     <name>settings</name>
     <message>
         <location filename="../qml/timetracker/MainWindowDesktop.qml" line="105"/>
-        <location filename="../qml/timetracker/SettingsMaterial.qml" line="35"/>
+        <location filename="../qml/timetracker/SettingsMaterial.qml" line="34"/>
         <source>Confirmations</source>
         <translation>Подтверждения</translation>
     </message>
     <message>
         <location filename="../qml/timetracker/MainWindowDesktop.qml" line="111"/>
-        <location filename="../qml/timetracker/SettingsMaterial.qml" line="55"/>
+        <location filename="../qml/timetracker/SettingsMaterial.qml" line="54"/>
+        <location filename="../qml/timetracker/SyncFolderDialogMaterial.qml" line="13"/>
+        <location filename="../qml/timetracker/SyncFolderDialogMaterial.qml" line="99"/>
         <source>Sync folder</source>
         <translation>Каталог для синхронизации</translation>
     </message>
     <message>
-        <location filename="../qml/timetracker/MainWindowDesktop.qml" line="184"/>
-        <location filename="../qml/timetracker/SettingsMaterial.qml" line="101"/>
+        <location filename="../qml/timetracker/SyncFolderDialogMaterial.qml" line="100"/>
+        <source>folder, that synchronize between your devices</source>
+        <translation>каталог, который синхронизируется между вашими устройствами</translation>
+    </message>
+    <message>
+        <location filename="../qml/timetracker/SyncFolderDialog.qml" line="4"/>
         <source>Select sync folder</source>
         <translation>Выберите каталог для синхронизации</translation>
     </message>
     <message>
-        <location filename="../qml/timetracker/SettingsMaterial.qml" line="49"/>
+        <location filename="../qml/timetracker/SettingsMaterial.qml" line="48"/>
         <source>Sync</source>
         <translation>Синхронизация</translation>
     </message>
     <message>
-        <location filename="../qml/timetracker/SettingsMaterial.qml" line="64"/>
+        <location filename="../qml/timetracker/SettingsMaterial.qml" line="63"/>
         <source>Auto sync</source>
         <translation>Синхронизировать автоматически</translation>
     </message>
     <message>
-        <location filename="../qml/timetracker/SettingsMaterial.qml" line="74"/>
+        <location filename="../qml/timetracker/SettingsMaterial.qml" line="73"/>
         <location filename="../qml/timetracker/SettingsSyncCacheSize.qml" line="11"/>
         <source>Sync cache size</source>
         <translation>Размер кэша синхронизации</translation>
     </message>
     <message numerus="yes">
-        <location filename="../qml/timetracker/SettingsMaterial.qml" line="75"/>
+        <location filename="../qml/timetracker/SettingsMaterial.qml" line="74"/>
         <source>%n record(s)</source>
         <comment>current sync cache size</comment>
         <translation>
@@ -859,13 +872,13 @@
         </translation>
     </message>
     <message>
-        <location filename="../qml/timetracker/SettingsMaterial.qml" line="87"/>
+        <location filename="../qml/timetracker/SettingsMaterial.qml" line="86"/>
         <location filename="../qml/timetracker/SettingsSyncCacheTimeout.qml" line="11"/>
         <source>Sync timeout</source>
         <translation>Таймаут синхронизации</translation>
     </message>
     <message numerus="yes">
-        <location filename="../qml/timetracker/SettingsMaterial.qml" line="88"/>
+        <location filename="../qml/timetracker/SettingsMaterial.qml" line="87"/>
         <source>%n second(s)</source>
         <comment>current sync cache timeout</comment>
         <translation>
@@ -875,8 +888,8 @@
         </translation>
     </message>
     <message>
-        <location filename="../qml/timetracker/SettingsMaterial.qml" line="78"/>
-        <location filename="../qml/timetracker/SettingsMaterial.qml" line="91"/>
+        <location filename="../qml/timetracker/SettingsMaterial.qml" line="77"/>
+        <location filename="../qml/timetracker/SettingsMaterial.qml" line="90"/>
         <source>Disabled</source>
         <translation>Отключено</translation>
     </message>

@@ -95,5 +95,17 @@
         <file>qml/timetracker/TextAreaControl.qml</file>
         <file>qml/timetracker/DialogMaterial.qml</file>
         <file>qml/timetracker/DialogMaterialButtonBox.qml</file>
+        <file>qml/timetracker/MessageDialogMaterial.qml</file>
+        <file>qml/timetracker/AlertDialogMaterial.qml</file>
+        <file>qml/timetracker/AlertDialog.qml</file>
+        <file>qml/timetracker/AlertDialogDesktop.qml</file>
+        <file>qml/timetracker/+desktopStyle/AlertDialog.qml</file>
+        <file>qml/timetracker/SyncFolderDialog.qml</file>
+        <file>qml/timetracker/SyncFolderDialogMaterial.qml</file>
+        <file>qml/timetracker/+android/SyncFolderDialog.qml</file>
+        <file>qml/timetracker/RemoveConfirmationDialog.qml</file>
+        <file>qml/timetracker/RemoveConfirmationDialogMaterial.qml</file>
+        <file>qml/timetracker/RemoveConfirmationDialogDesktop.qml</file>
+        <file>qml/timetracker/+desktopStyle/RemoveConfirmationDialog.qml</file>
     </qresource>
 </RCC>

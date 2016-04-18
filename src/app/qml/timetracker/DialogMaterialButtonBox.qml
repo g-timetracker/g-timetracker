@@ -30,6 +30,7 @@ Item {
             Layout.fillHeight: false
             Layout.alignment: Qt.AlignVCenter
             text: buttonBox.dismissiveText
+            visible: !!text
             onClicked: buttonBox.rejected()
         }
 
@@ -38,6 +39,7 @@ Item {
             Layout.fillHeight: false
             Layout.alignment: Qt.AlignVCenter
             text: buttonBox.affirmativeText
+            visible: !!text
             onClicked: buttonBox.accepted()
         }
     }

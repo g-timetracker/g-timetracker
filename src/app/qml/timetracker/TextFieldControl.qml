@@ -6,6 +6,7 @@ Column {
     property alias text: textField.text
     property alias placeholderText: textField.placeholderText
     property string helperText
+    property alias inputMethodHints: textField.inputMethodHints
 
     spacing: 0
 

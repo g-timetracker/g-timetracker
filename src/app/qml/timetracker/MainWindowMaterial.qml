@@ -1,6 +1,5 @@
 import QtQuick 2.0
 import QtQuick.Layouts 1.3
-import QtQuick.Dialogs 1.2
 import QtQml.Models 2.2
 import Qt.labs.controls 1.0
 import Qt.labs.controls.material 1.0
@@ -238,8 +237,8 @@ ApplicationWindow {
         target: TimeTracker
 
         onError: {
-            errorDialog.text = errorText
-            errorDialog.open()
+            messageDialog.text = errorText
+            messageDialog.open()
         }
         onShowSearchRequested: showSearch(category)
         onShowStatsRequested: showStats(category)
@@ -256,20 +255,8 @@ ApplicationWindow {
         }
     }
 
-    MessageDialog {
+    AlertDialog {
         id: messageDialog
-
-        title: qsTranslate("main window", "Message", "Message dialog title")
-        icon: StandardIcon.Information
-        standardButtons: StandardButton.Ok
-    }
-
-    MessageDialog {
-        id: errorDialog
-
-        title: qsTranslate("main window", "Error", "Error dialog title")
-        icon: StandardIcon.Critical
-        standardButtons: StandardButton.Ok
     }
 
     Item {

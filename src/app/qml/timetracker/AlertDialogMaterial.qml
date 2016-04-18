@@ -1,0 +1,3 @@
+MessageDialogMaterial {
+    dismissiveText: ""
+}

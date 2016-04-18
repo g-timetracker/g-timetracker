@@ -1,7 +1,6 @@
 import QtQuick 2.4
 import QtQuick.Layouts 1.1
 import Qt.labs.controls 1.0
-import QtQuick.Dialogs 1.2
 import QtQml.Models 2.2
 import TimeLog 1.0
 import "Util.js" as Util
@@ -139,15 +138,12 @@ Item {
         onError: TimeTracker.error(errorText)
     }
 
-    MessageDialog {
+    RemoveConfirmationDialog {
         id: removeConfirmationDialog
 
-        title: qsTranslate("main window", "Remove confirmation")
         text: qsTr("Delete this entry?")
-        icon: StandardIcon.Question
-        standardButtons: StandardButton.Yes | StandardButton.No
 
-        onYes: d.deleteItemUnderCursor()
+        onAccepted: d.deleteItemUnderCursor()
     }
 
     ColumnLayout {
