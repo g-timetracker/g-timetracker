@@ -19,10 +19,10 @@ ItemPositioner {
         onCurrentIndexChanged: {
             switch (currentIndex) {
             case 0:
-                dateField.selectedDate = new Date()
+                dateField.selectedDate = new Date(new Date().setHours(0, 0, 0, 0))
                 break
             case 1:
-                dateField.selectedDate = new Date(Date.now() - 86400000)
+                dateField.selectedDate = new Date(new Date(Date.now() - 86400000).setHours(0, 0, 0, 0))
                 break
             }
         }
