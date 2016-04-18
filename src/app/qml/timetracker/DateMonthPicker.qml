@@ -12,7 +12,7 @@ ItemPositioner {
         function calcModel() {
             var months = []
             for (var i = 0; i < 12; i++) {
-                months.push(new Date(new Date().setMonth(i, 1)).toLocaleString(Qt.locale(), "MMMM"))
+                months.push(Qt.locale().standaloneMonthName(i, Locale.LongFormat))
             }
 
             var result = new Array(12)
