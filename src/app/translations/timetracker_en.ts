@@ -46,8 +46,13 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/timetracker/CategoryEditDialog.qml" line="83"/>
+        <location filename="../qml/timetracker/CategoryEditDialog.qml" line="89"/>
         <source>Save</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../qml/timetracker/CategoryEditDialog.qml" line="98"/>
+        <source>Discard category changes?</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -82,8 +87,13 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/timetracker/CategoryNewDialog.qml" line="74"/>
+        <location filename="../qml/timetracker/CategoryNewDialog.qml" line="80"/>
         <source>Create</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../qml/timetracker/CategoryNewDialog.qml" line="89"/>
+        <source>Discard new category?</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -352,8 +362,13 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/timetracker/TimeLogEditDialogMaterial.qml" line="91"/>
+        <location filename="../qml/timetracker/TimeLogEditDialogMaterial.qml" line="97"/>
         <source>Save</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../qml/timetracker/TimeLogEditDialogMaterial.qml" line="106"/>
+        <source>Discard entry changes?</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -455,8 +470,13 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/timetracker/TimeLogNewDialogMaterial.qml" line="79"/>
+        <location filename="../qml/timetracker/TimeLogNewDialogMaterial.qml" line="85"/>
         <source>Create</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../qml/timetracker/TimeLogNewDialogMaterial.qml" line="94"/>
+        <source>Discard new entry?</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -698,6 +718,14 @@
     <message>
         <location filename="../qml/timetracker/RemoveConfirmationDialogMaterial.qml" line="2"/>
         <source>Remove</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../qml/timetracker/CategoryEditDialog.qml" line="99"/>
+        <location filename="../qml/timetracker/CategoryNewDialog.qml" line="90"/>
+        <location filename="../qml/timetracker/TimeLogEditDialogMaterial.qml" line="107"/>
+        <location filename="../qml/timetracker/TimeLogNewDialogMaterial.qml" line="95"/>
+        <source>Discard</source>
         <translation type="unfinished"></translation>
     </message>
     <message>

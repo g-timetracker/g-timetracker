@@ -74,7 +74,13 @@ Page {
                                                   : "images/ic_arrow_back_white_24dp.png"
                 }
 
-                onClicked: editDialog.reject()
+                onClicked: {
+                    if (editDialog.isModified && Settings.isConfirmationsEnabled) {
+                        discardConfirmationDialog.open()
+                    } else {
+                        editDialog.reject()
+                    }
+                }
             }
 
             LabelControl {
@@ -92,6 +98,15 @@ Page {
                 onClicked: editDialog.accept()
             }
         }
+    }
+
+    MessageDialogMaterial {
+        id: discardConfirmationDialog
+
+        text: qsTr("Discard entry changes?")
+        affirmativeText: qsTranslate("dialog", "Discard")
+
+        onAccepted: editDialog.reject()
     }
 
     Flickable {
