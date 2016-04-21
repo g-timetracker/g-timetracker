@@ -16,6 +16,7 @@ SpinBox {
     from: d.minDateTime.valueOf() / 1000
     to: d.maxDateTime.valueOf() / 1000
     stepSize: 1
+    editable: true
 
     validator: RegExpValidator {
         regExp: /([01]?[0-9]|2[0-3]):[0-5][0-9](:[0-5][0-9])?/

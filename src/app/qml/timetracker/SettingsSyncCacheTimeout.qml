@@ -66,6 +66,7 @@ Page {
                 SpinBox {
                     anchors.horizontalCenter: parent.horizontalCenter
                     to: 24 * 3600
+                    editable: true
                     value: Settings.syncCacheTimeout
                     onValueChanged: Settings.syncCacheTimeout = value
                 }
