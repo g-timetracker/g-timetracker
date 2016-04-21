@@ -48,7 +48,7 @@ ApplicationWindow {
     function showCategories() {
         if (mainView.categoriesIndex === -1) {
             mainView.categoriesIndex = tabModel.count
-            tabModel.append({ "text": "Categories", "source": "CategoriesView.qml",
+            tabModel.append({ "text": "Categories", "source": "CategoriesViewDesktop.qml",
                                 "hasCloseButton": true })
         }
         tabBar.setCurrentIndex(mainView.categoriesIndex)

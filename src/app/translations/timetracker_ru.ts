@@ -2,43 +2,6 @@
 <!DOCTYPE TS>
 <TS version="2.1" language="ru_RU">
 <context>
-    <name>CategoriesView</name>
-    <message>
-        <location filename="../qml/timetracker/CategoriesView.qml" line="84"/>
-        <source>Delete this category?</source>
-        <translation>Удалить эту категорию?</translation>
-    </message>
-    <message>
-        <location filename="../qml/timetracker/CategoriesView.qml" line="99"/>
-        <location filename="../qml/timetracker/CategoriesView.qml" line="192"/>
-        <source>Remove</source>
-        <translation>Удалить</translation>
-    </message>
-    <message>
-        <location filename="../qml/timetracker/CategoriesView.qml" line="104"/>
-        <location filename="../qml/timetracker/CategoriesView.qml" line="198"/>
-        <source>Edit</source>
-        <translation>Редактировать</translation>
-    </message>
-    <message>
-        <location filename="../qml/timetracker/CategoriesView.qml" line="109"/>
-        <location filename="../qml/timetracker/CategoriesView.qml" line="204"/>
-        <source>Show entries</source>
-        <translation>Показать записи</translation>
-    </message>
-    <message>
-        <location filename="../qml/timetracker/CategoriesView.qml" line="114"/>
-        <location filename="../qml/timetracker/CategoriesView.qml" line="210"/>
-        <source>Show statistics</source>
-        <translation>Показать статистику</translation>
-    </message>
-    <message>
-        <location filename="../qml/timetracker/CategoriesView.qml" line="186"/>
-        <source>Create</source>
-        <translation>Создать</translation>
-    </message>
-</context>
-<context>
     <name>CategoryEditDialog</name>
     <message>
         <location filename="../qml/timetracker/CategoryEditDialog.qml" line="13"/>
@@ -46,12 +9,12 @@
         <translation>Редактирование</translation>
     </message>
     <message>
-        <location filename="../qml/timetracker/CategoryEditDialog.qml" line="89"/>
+        <location filename="../qml/timetracker/CategoryEditDialog.qml" line="98"/>
         <source>Save</source>
         <translation>Сохранить</translation>
     </message>
     <message>
-        <location filename="../qml/timetracker/CategoryEditDialog.qml" line="98"/>
+        <location filename="../qml/timetracker/CategoryEditDialog.qml" line="107"/>
         <source>Discard category changes?</source>
         <translation>Отклонить изменения категории?</translation>
     </message>
@@ -527,6 +490,45 @@
     </message>
 </context>
 <context>
+    <name>categories view</name>
+    <message>
+        <location filename="../qml/timetracker/CategoriesViewDesktop.qml" line="50"/>
+        <location filename="../qml/timetracker/CategoriesViewMaterial.qml" line="74"/>
+        <source>Remove this category?</source>
+        <translation>Удалить эту категорию?</translation>
+    </message>
+    <message>
+        <location filename="../qml/timetracker/CategoriesViewDesktop.qml" line="65"/>
+        <location filename="../qml/timetracker/CategoriesViewDesktop.qml" line="144"/>
+        <location filename="../qml/timetracker/CategoriesViewMaterial.qml" line="96"/>
+        <location filename="../qml/timetracker/CategoriesViewMaterial.qml" line="204"/>
+        <source>Remove</source>
+        <translation>Удалить</translation>
+    </message>
+    <message>
+        <location filename="../qml/timetracker/CategoriesViewDesktop.qml" line="70"/>
+        <location filename="../qml/timetracker/CategoriesViewDesktop.qml" line="150"/>
+        <location filename="../qml/timetracker/CategoriesViewMaterial.qml" line="106"/>
+        <location filename="../qml/timetracker/CategoriesViewMaterial.qml" line="213"/>
+        <source>Show entries</source>
+        <translation>Показать записи</translation>
+    </message>
+    <message>
+        <location filename="../qml/timetracker/CategoriesViewDesktop.qml" line="75"/>
+        <location filename="../qml/timetracker/CategoriesViewDesktop.qml" line="156"/>
+        <location filename="../qml/timetracker/CategoriesViewMaterial.qml" line="111"/>
+        <location filename="../qml/timetracker/CategoriesViewMaterial.qml" line="222"/>
+        <source>Show statistics</source>
+        <translation>Показать статистику</translation>
+    </message>
+    <message>
+        <location filename="../qml/timetracker/CategoriesViewMaterial.qml" line="101"/>
+        <location filename="../qml/timetracker/CategoriesViewMaterial.qml" line="195"/>
+        <source>Edit</source>
+        <translation>Редактировать</translation>
+    </message>
+</context>
+<context>
     <name>default categories</name>
     <message>
         <location filename="../../lib/TimeLogDefaultCategories.cpp" line="23"/>
@@ -721,7 +723,7 @@
         <translation>Удалить</translation>
     </message>
     <message>
-        <location filename="../qml/timetracker/CategoryEditDialog.qml" line="99"/>
+        <location filename="../qml/timetracker/CategoryEditDialog.qml" line="108"/>
         <location filename="../qml/timetracker/CategoryNewDialog.qml" line="90"/>
         <location filename="../qml/timetracker/TimeLogEditDialogMaterial.qml" line="107"/>
         <location filename="../qml/timetracker/TimeLogNewDialogMaterial.qml" line="95"/>
@@ -790,7 +792,8 @@
         <translation>История</translation>
     </message>
     <message>
-        <location filename="../qml/timetracker/CategoriesView.qml" line="11"/>
+        <location filename="../qml/timetracker/CategoriesViewDesktop.qml" line="11"/>
+        <location filename="../qml/timetracker/CategoriesViewMaterial.qml" line="11"/>
         <location filename="../qml/timetracker/MainWindowDesktop.qml" line="85"/>
         <location filename="../qml/timetracker/MainWindowMaterial.qml" line="163"/>
         <source>Categories</source>

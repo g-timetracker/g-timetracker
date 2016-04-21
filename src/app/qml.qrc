@@ -20,6 +20,9 @@
         <file>qml/timetracker/MaterialColors.js</file>
         <file>qml/timetracker/Chart.qml</file>
         <file>qml/timetracker/CategoriesView.qml</file>
+        <file>qml/timetracker/CategoriesViewMaterial.qml</file>
+        <file>qml/timetracker/CategoriesViewDesktop.qml</file>
+        <file>qml/timetracker/+desktopStyle/CategoriesView.qml</file>
         <file>qml/timetracker/TimeLogFilter.qml</file>
         <file>qml/timetracker/TimeEditorModel.qml</file>
         <file>qml/timetracker/TimeSpinBox.qml</file>
@@ -107,5 +110,10 @@
         <file>qml/timetracker/RemoveConfirmationDialogMaterial.qml</file>
         <file>qml/timetracker/RemoveConfirmationDialogDesktop.qml</file>
         <file>qml/timetracker/+desktopStyle/RemoveConfirmationDialog.qml</file>
+        <file>qml/timetracker/CategoryDelegate.qml</file>
+        <file>qml/timetracker/images/ic_expand_more_white_24dp.png</file>
+        <file>qml/timetracker/images/ic_expand_more_white_24dp@2x.png</file>
+        <file>qml/timetracker/images/ic_expand_more_white_24dp@3x.png</file>
+        <file>qml/timetracker/images/ic_expand_more_white_24dp@4x.png</file>
     </qresource>
 </RCC>

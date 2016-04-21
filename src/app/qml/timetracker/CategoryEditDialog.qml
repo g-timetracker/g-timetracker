@@ -12,37 +12,45 @@ Page {
 
     property string title: qsTr("Edit category")
 
-    property string categoryName
-    property var categoryData
+    property CategoryDelegate delegateItem
 
     function checkIsModified() {
-        return editor.categoryName !== categoryName
-                || (!editor.categoryComment ? !!categoryData && !!categoryData["comment"]
-                                            : !categoryData || !categoryData["comment"]
-                                              || editor.categoryComment !== categoryData["comment"])
+        return !(delegateItem
+                 && editor.categoryName === delegateItem.fullName
+                 && (!editor.categoryComment ? !delegateItem.categoryData || !delegateItem.categoryData["comment"]
+                                             : delegateItem.categoryData && delegateItem.categoryData["comment"]
+                                               && editor.categoryComment === delegateItem.categoryData["comment"]))
     }
 
-    function setData(name, data) {
-        editor.categoryName = categoryName = name
-        categoryData = data ? data : {}
-        editor.categoryComment = categoryData["comment"] ? categoryData["comment"] : ""
+    function setData(item) {
+        delegateItem = item
+
+        if (!delegateItem) {
+            return
+        }
+
+        editor.categoryName = delegateItem.fullName
+        editor.categoryComment = delegateItem.categoryData["comment"] ? delegateItem.categoryData["comment"] : ""
     }
 
     function accept() {
         dialog.close()
 
-        var data = categoryData
+        var data = delegateItem.categoryData
         if (!!editor.categoryComment) {
             data["comment"] = editor.categoryComment
         } else {
             delete data["comment"]
         }
 
-        dialog.dataAccepted(TimeTracker.createTimeLogCategoryData(editor.categoryName, data))
+        delegateItem.updateData(TimeTracker.createTimeLogCategoryData(editor.categoryName, data))
+        delegateItem = null
     }
 
     function reject() {
         dialog.close()
+
+        delegateItem = null
     }
 
     function close() {

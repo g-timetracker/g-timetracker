@@ -20,7 +20,8 @@ public:
         FullNameRole,
         DataRole,
         CommentRole,
-        HasItemsRole
+        HasItemsRole,
+        CategoryRole
     };
     Q_ENUM(Roles)
 
@@ -37,9 +38,11 @@ public:
     virtual QHash<int, QByteArray> roleNames() const;
     virtual Qt::ItemFlags flags(const QModelIndex &index) const;
 
+    virtual bool setData(const QModelIndex &index, const QVariant &value, int role);
+
     Q_INVOKABLE void removeItem(const QModelIndex &index);
+    Q_INVOKABLE void removeItem(const QString &name);
     Q_INVOKABLE void addItem(TimeLogCategoryData data);
-    Q_INVOKABLE void editItem(const QModelIndex &index, TimeLogCategoryData data);
 
     void setTimeTracker(TimeTracker *timeTracker);
 

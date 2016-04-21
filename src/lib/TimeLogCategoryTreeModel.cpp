@@ -91,6 +91,8 @@ QVariant TimeLogCategoryTreeModel::data(const QModelIndex &index, int role) cons
         return QVariant::fromValue(node->category.data.value("comment"));
     case HasItemsRole:
         return QVariant::fromValue(node->hasItems);
+    case CategoryRole:
+        return QVariant::fromValue(TimeLogCategoryData(node->category));
     default:
         return QVariant();
     }
@@ -117,6 +119,7 @@ QHash<int, QByteArray> TimeLogCategoryTreeModel::roleNames() const
     roles[DataRole] = "data";
     roles[CommentRole] = "comment";
     roles[HasItemsRole] = "hasItems";
+    roles[CategoryRole] = "category";
 
     return roles;
 }
@@ -128,6 +131,33 @@ Qt::ItemFlags TimeLogCategoryTreeModel::flags(const QModelIndex &index) const
     }
 
     return SUPER::flags(index) | Qt::ItemIsEditable;
+}
+
+bool TimeLogCategoryTreeModel::setData(const QModelIndex &index, const QVariant &value, int role)
+{
+    if (!m_timeTracker) {
+        return false;
+    }
+
+    if (!index.isValid()) {
+        return false;
+    }
+
+    if (role != CategoryRole) {
+        return false;
+    }
+
+    TimeLogCategoryData data = value.value<TimeLogCategoryData>();
+    Q_ASSERT(data.isValid());
+    TimeLogCategoryTreeNode *node = static_cast<TimeLogCategoryTreeNode*>(index.internalPointer());
+    TimeLogCategory category(node->category.uuid, data);
+    if (category.uuid.isNull()) {
+        category.uuid = QUuid::createUuid();
+    }
+
+    m_timeTracker->editCategory(node->category.name, category);
+
+    return true;
 }
 
 void TimeLogCategoryTreeModel::removeItem(const QModelIndex &index)
@@ -145,6 +175,11 @@ void TimeLogCategoryTreeModel::removeItem(const QModelIndex &index)
     m_timeTracker->removeCategory(node->category.name);
 }
 
+void TimeLogCategoryTreeModel::removeItem(const QString &name)
+{
+    m_timeTracker->removeCategory(name);
+}
+
 void TimeLogCategoryTreeModel::addItem(TimeLogCategoryData data)
 {
     if (!m_timeTracker) {
@@ -152,25 +187,6 @@ void TimeLogCategoryTreeModel::addItem(TimeLogCategoryData data)
     }
 
     m_timeTracker->addCategory(TimeLogCategory(QUuid::createUuid(), data));
-}
-
-void TimeLogCategoryTreeModel::editItem(const QModelIndex &index, TimeLogCategoryData data)
-{
-    if (!m_timeTracker) {
-        return;
-    }
-
-    if (!index.isValid()) {
-        return;
-    }
-
-    TimeLogCategoryTreeNode *node = static_cast<TimeLogCategoryTreeNode*>(index.internalPointer());
-    TimeLogCategory category(node->category.uuid, data);
-    if (category.uuid.isNull()) {
-        category.uuid = QUuid::createUuid();
-    }
-
-    m_timeTracker->editCategory(node->category.name, category);
 }
 
 void TimeLogCategoryTreeModel::setTimeTracker(TimeTracker *timeTracker)
