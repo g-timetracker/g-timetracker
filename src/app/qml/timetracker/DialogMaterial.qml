@@ -29,7 +29,7 @@ Popup {
     signal accepted()
     signal rejected()
 
-    closePolicy: Popup.OnEscape | Popup.OnReleaseOutside
+    closePolicy: Popup.CloseOnEscape | Popup.CloseOnReleaseOutside
     modal: true
     padding: 0
     margins: 16
