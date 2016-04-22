@@ -1,3 +1,5 @@
+#include <QStandardPaths>
+
 #include "TimeTracker.h"
 #include "TimeLogHistory.h"
 #include "TimeLogCategoryTreeNode.h"
@@ -152,6 +154,11 @@ QString TimeTracker::durationText(int duration, int maxUnits)
     }
 
     return values.join(", ");
+}
+
+QUrl TimeTracker::documentsLocation()
+{
+    return QUrl::fromLocalFile(QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation));
 }
 
 void TimeTracker::addCategory(const TimeLogCategory &category)

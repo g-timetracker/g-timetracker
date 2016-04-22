@@ -9,12 +9,12 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/timetracker/CategoryEditDialog.qml" line="98"/>
+        <location filename="../qml/timetracker/CategoryEditDialog.qml" line="97"/>
         <source>Save</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/timetracker/CategoryEditDialog.qml" line="107"/>
+        <location filename="../qml/timetracker/CategoryEditDialog.qml" line="106"/>
         <source>Discard category changes?</source>
         <translation type="unfinished"></translation>
     </message>
@@ -484,7 +484,7 @@
 <context>
     <name>TimeTracker</name>
     <message>
-        <location filename="../../lib/TimeTracker.cpp" line="71"/>
+        <location filename="../../lib/TimeTracker.cpp" line="73"/>
         <source>Fail to initialize DB</source>
         <translation type="unfinished"></translation>
     </message>
@@ -707,13 +707,13 @@
     <name>dialog</name>
     <message>
         <location filename="../qml/timetracker/DialogMaterial.qml" line="13"/>
-        <location filename="../qml/timetracker/DialogMaterialButtonBox.qml" line="8"/>
+        <location filename="../qml/timetracker/DialogMaterialButtonBox.qml" line="9"/>
         <source>OK</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../qml/timetracker/DialogMaterial.qml" line="14"/>
-        <location filename="../qml/timetracker/DialogMaterialButtonBox.qml" line="9"/>
+        <location filename="../qml/timetracker/DialogMaterialButtonBox.qml" line="10"/>
         <source>Cancel</source>
         <translation type="unfinished"></translation>
     </message>
@@ -723,7 +723,7 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/timetracker/CategoryEditDialog.qml" line="108"/>
+        <location filename="../qml/timetracker/CategoryEditDialog.qml" line="107"/>
         <location filename="../qml/timetracker/CategoryNewDialog.qml" line="90"/>
         <location filename="../qml/timetracker/TimeLogEditDialogMaterial.qml" line="107"/>
         <location filename="../qml/timetracker/TimeLogNewDialogMaterial.qml" line="95"/>
@@ -858,18 +858,23 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/timetracker/SettingsMaterial.qml" line="63"/>
+        <location filename="../qml/timetracker/SettingsMaterial.qml" line="56"/>
+        <source>Not set</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../qml/timetracker/SettingsMaterial.qml" line="64"/>
         <source>Auto sync</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/timetracker/SettingsMaterial.qml" line="73"/>
+        <location filename="../qml/timetracker/SettingsMaterial.qml" line="74"/>
         <location filename="../qml/timetracker/SettingsSyncCacheSize.qml" line="11"/>
         <source>Sync cache size</source>
         <translation type="unfinished"></translation>
     </message>
     <message numerus="yes">
-        <location filename="../qml/timetracker/SettingsMaterial.qml" line="74"/>
+        <location filename="../qml/timetracker/SettingsMaterial.qml" line="75"/>
         <source>%n record(s)</source>
         <comment>current sync cache size</comment>
         <translation>
@@ -878,13 +883,13 @@
         </translation>
     </message>
     <message>
-        <location filename="../qml/timetracker/SettingsMaterial.qml" line="86"/>
+        <location filename="../qml/timetracker/SettingsMaterial.qml" line="87"/>
         <location filename="../qml/timetracker/SettingsSyncCacheTimeout.qml" line="11"/>
         <source>Sync timeout</source>
         <translation type="unfinished"></translation>
     </message>
     <message numerus="yes">
-        <location filename="../qml/timetracker/SettingsMaterial.qml" line="87"/>
+        <location filename="../qml/timetracker/SettingsMaterial.qml" line="88"/>
         <source>%n second(s)</source>
         <comment>current sync cache timeout</comment>
         <translation>
@@ -893,8 +898,8 @@
         </translation>
     </message>
     <message>
-        <location filename="../qml/timetracker/SettingsMaterial.qml" line="77"/>
-        <location filename="../qml/timetracker/SettingsMaterial.qml" line="90"/>
+        <location filename="../qml/timetracker/SettingsMaterial.qml" line="78"/>
+        <location filename="../qml/timetracker/SettingsMaterial.qml" line="91"/>
         <source>Disabled</source>
         <translation type="unfinished"></translation>
     </message>
@@ -923,14 +928,14 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/timetracker/SettingsSyncCacheSize.qml" line="76"/>
+        <location filename="../qml/timetracker/SettingsSyncCacheSize.qml" line="77"/>
         <source>With this setting you can control, after which amount of records application start the synchronization.
 
 To make it sync after each record, set it to ‘0’.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/timetracker/SettingsSyncCacheTimeout.qml" line="77"/>
+        <location filename="../qml/timetracker/SettingsSyncCacheTimeout.qml" line="78"/>
         <source>With this setting you can control, how much time (in seconds) application would wait after last record before the sync.
 
 To disable sync by timeout, set it to ‘0’.</source>

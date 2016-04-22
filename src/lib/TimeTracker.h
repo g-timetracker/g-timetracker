@@ -41,6 +41,7 @@ public:
                               const QString &category = QString(),
                               const QString &separator = ">");
     Q_INVOKABLE static QString durationText(int duration, int maxUnits = 7);
+    Q_INVOKABLE static QUrl documentsLocation();
 
     void addCategory(const TimeLogCategory &category);
     void removeCategory(const QString &name);
