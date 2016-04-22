@@ -1,6 +1,6 @@
 import QtQuick 2.0
 import QtQuick.Controls.Private 1.0 as QQC1P
-import Qt.labs.controls 1.0
+import QtQuick.Controls 2.0
 import QtQuick.Layouts 1.1
 import QtQml.Models 2.2
 import TimeLog 1.0

@@ -1,8 +1,8 @@
 import QtQuick 2.4
 import QtQuick.Layouts 1.3
 import QtQuick.Window 2.2
-import Qt.labs.controls 1.0
-import Qt.labs.controls.material 1.0
+import QtQuick.Controls 2.0
+import QtQuick.Controls.Material 2.0
 import TimeLog 1.0
 
 Item {

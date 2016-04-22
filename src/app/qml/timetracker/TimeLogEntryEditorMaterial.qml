@@ -1,5 +1,5 @@
 import QtQuick 2.4
-import Qt.labs.controls 1.0
+import QtQuick.Controls 2.0
 import TimeLog 1.0
 import "Util.js" as Util
 import "Texts.js" as Texts
