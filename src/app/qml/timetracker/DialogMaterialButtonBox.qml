@@ -1,6 +1,7 @@
 import QtQuick 2.5
 import QtQuick.Layouts 1.3
 import QtQuick.Controls 2.0
+import QtQuick.Controls.Material 2.0
 
 Item {
     id: buttonBox
@@ -25,19 +26,23 @@ Item {
             Layout.fillHeight: true
         }
 
-        Button {
+        FlatButton {
             Layout.fillWidth: false
             Layout.fillHeight: false
             Layout.alignment: Qt.AlignVCenter
+            textColor: ApplicationWindow.contentItem ? ApplicationWindow.contentItem.Material.accentColor
+                                                     : Material.primaryTextColor // TODO: remove workaround
             text: buttonBox.dismissiveText
             visible: !!text
             onClicked: buttonBox.rejected()
         }
 
-        Button {
+        FlatButton {
             Layout.fillWidth: false
             Layout.fillHeight: false
             Layout.alignment: Qt.AlignVCenter
+            textColor: ApplicationWindow.contentItem ? ApplicationWindow.contentItem.Material.accentColor
+                                                     : Material.primaryTextColor // TODO: remove workaround
             text: buttonBox.affirmativeText
             visible: !!text
             onClicked: buttonBox.accepted()

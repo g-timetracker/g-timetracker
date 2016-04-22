@@ -115,5 +115,6 @@
         <file>qml/timetracker/images/ic_expand_more_white_24dp@2x.png</file>
         <file>qml/timetracker/images/ic_expand_more_white_24dp@3x.png</file>
         <file>qml/timetracker/images/ic_expand_more_white_24dp@4x.png</file>
+        <file>qml/timetracker/FlatButton.qml</file>
     </qresource>
 </RCC>
