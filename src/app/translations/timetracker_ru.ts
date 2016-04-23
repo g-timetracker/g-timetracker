@@ -500,8 +500,8 @@
     <message>
         <location filename="../qml/timetracker/CategoriesViewDesktop.qml" line="65"/>
         <location filename="../qml/timetracker/CategoriesViewDesktop.qml" line="144"/>
-        <location filename="../qml/timetracker/CategoriesViewMaterial.qml" line="96"/>
-        <location filename="../qml/timetracker/CategoriesViewMaterial.qml" line="204"/>
+        <location filename="../qml/timetracker/CategoriesViewMaterial.qml" line="101"/>
+        <location filename="../qml/timetracker/CategoriesViewMaterial.qml" line="205"/>
         <source>Remove</source>
         <translation>Удалить</translation>
     </message>
@@ -509,7 +509,7 @@
         <location filename="../qml/timetracker/CategoriesViewDesktop.qml" line="70"/>
         <location filename="../qml/timetracker/CategoriesViewDesktop.qml" line="150"/>
         <location filename="../qml/timetracker/CategoriesViewMaterial.qml" line="106"/>
-        <location filename="../qml/timetracker/CategoriesViewMaterial.qml" line="213"/>
+        <location filename="../qml/timetracker/CategoriesViewMaterial.qml" line="214"/>
         <source>Show entries</source>
         <translation>Показать записи</translation>
     </message>
@@ -517,13 +517,13 @@
         <location filename="../qml/timetracker/CategoriesViewDesktop.qml" line="75"/>
         <location filename="../qml/timetracker/CategoriesViewDesktop.qml" line="156"/>
         <location filename="../qml/timetracker/CategoriesViewMaterial.qml" line="111"/>
-        <location filename="../qml/timetracker/CategoriesViewMaterial.qml" line="222"/>
+        <location filename="../qml/timetracker/CategoriesViewMaterial.qml" line="223"/>
         <source>Show statistics</source>
         <translation>Показать статистику</translation>
     </message>
     <message>
-        <location filename="../qml/timetracker/CategoriesViewMaterial.qml" line="101"/>
-        <location filename="../qml/timetracker/CategoriesViewMaterial.qml" line="195"/>
+        <location filename="../qml/timetracker/CategoriesViewMaterial.qml" line="96"/>
+        <location filename="../qml/timetracker/CategoriesViewMaterial.qml" line="196"/>
         <source>Edit</source>
         <translation>Редактировать</translation>
     </message>
@@ -731,7 +731,7 @@
         <translation>Отклонить</translation>
     </message>
     <message>
-        <location filename="../qml/timetracker/SyncFolderDialogMaterial.qml" line="62"/>
+        <location filename="../qml/timetracker/SyncFolderDialogMaterial.qml" line="63"/>
         <source>Select</source>
         <translation>Выбрать</translation>
     </message>
@@ -861,15 +861,9 @@
     <message>
         <location filename="../qml/timetracker/MainWindowDesktop.qml" line="111"/>
         <location filename="../qml/timetracker/SettingsMaterial.qml" line="54"/>
-        <location filename="../qml/timetracker/SyncFolderDialogMaterial.qml" line="13"/>
-        <location filename="../qml/timetracker/SyncFolderDialogMaterial.qml" line="99"/>
+        <location filename="../qml/timetracker/SyncFolderDialogMaterial.qml" line="11"/>
         <source>Sync folder</source>
         <translation>Каталог для синхронизации</translation>
-    </message>
-    <message>
-        <location filename="../qml/timetracker/SyncFolderDialogMaterial.qml" line="100"/>
-        <source>folder, that synchronize between your devices</source>
-        <translation>каталог, который синхронизируется между вашими устройствами</translation>
     </message>
     <message>
         <location filename="../qml/timetracker/SyncFolderDialog.qml" line="4"/>

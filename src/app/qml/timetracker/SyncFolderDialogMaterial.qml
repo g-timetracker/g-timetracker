@@ -1,18 +1,16 @@
 import QtQuick 2.4
 import QtQuick.Layouts 1.3
-import QtQuick.Window 2.2
 import QtQuick.Controls 2.0
 import QtQuick.Controls.Material 2.0
+import Qt.labs.folderlistmodel 2.1
 import TimeLog 1.0
 
 Page {
     id: dialog
 
-    property bool isModified: field.text !== (folder.toString().replace(/file:\/\//, ""))
-
     property string title: qsTranslate("settings", "Sync folder")
 
-    property url folder
+    property alias folder: folderModel.folder
 
     function open() {
         TimeTracker.showDialogRequested(dialog)
@@ -20,8 +18,6 @@ Page {
 
     function accept() {
         dialog.close()
-
-        folder = field.text
 
         dialog.accepted()
     }
@@ -35,71 +31,78 @@ Page {
     visible: false
 
     header: ToolBar {
-        RowLayout {
+        height: 48 * 2
+        ColumnLayout {
             anchors.fill: parent
+            spacing: 0
 
-            ToolButton {
-                text: "back"
-                contentItem: Image {
-                    fillMode: Image.Pad
-                    source: "images/ic_arrow_back_white_24dp.png"
+            RowLayout {
+                Layout.fillHeight: true
+                Layout.fillWidth: true
+
+                ToolButton {
+                    text: "back"
+                    contentItem: Image {
+                        fillMode: Image.Pad
+                        source: "images/ic_arrow_back_white_24dp.png"
+                    }
+
+                    onClicked: dialog.close()
                 }
 
-                onClicked: dialog.close()
+                LabelControl {
+                    Layout.fillWidth: true
+                    Material.theme: Material.Dark
+                    font.pixelSize: 20
+                    text: title
+                }
+
+                ToolButton {
+                    Material.theme: Material.Dark
+                    font.pixelSize: 14
+                    text: qsTranslate("dialog", "Select")
+                    onClicked: dialog.accept()
+                }
             }
 
-            LabelControl {
+            Label {
                 Layout.fillWidth: true
+                Layout.fillHeight: true
                 Material.theme: Material.Dark
+                leftPadding: 52 // TODO: 72
+                rightPadding: 16
+                verticalAlignment: Text.AlignVCenter
                 font.pixelSize: 20
-                text: title
-            }
-
-            ToolButton {
-                enabled: dialog.isModified
-                Material.theme: Material.Dark
-                font.pixelSize: 14
-                text: qsTranslate("dialog", "Select")
-                onClicked: dialog.accept()
+                elide: Text.ElideLeft
+                text: dialog.folder.toString().replace(/file:\/\//, "")
             }
         }
     }
 
-    onFolderChanged: field.text = (folder.toString().replace(/file:\/\//, ""))
+    FolderListModel {
+        id: folderModel
 
-    Flickable {
-        anchors.bottomMargin: Qt.inputMethod.keyboardRectangle.height / Screen.devicePixelRatio
+        showFiles: false
+        showDotAndDotDot: true
+        showOnlyReadable: true
+    }
+
+    ListView {
         anchors.fill: parent
-        contentWidth: settingsItem.width
-        contentHeight: settingsItem.height
+
         boundsBehavior: Flickable.StopAtBounds
 
         ScrollBar.vertical: ScrollBar { }
 
-        Item {
-            id: settingsItem
-
-            width: dialog.width
-            implicitHeight: container.height + container.anchors.margins * 2
-
-            Column {
-                id: container
-
-                anchors.margins: 16
-                anchors.top: parent.top
-                anchors.left: parent.left
-                anchors.right: parent.right
-                spacing: 16
-
-                TextFieldControl {
-                    id: field
-
-                    width: parent.width
-                    inputMethodHints: Qt.ImhNoPredictiveText
-                    placeholderText: qsTranslate("settings", "Sync folder")
-                    helperText: qsTranslate("settings", "folder, that synchronize between your devices")
-                }
-            }
+        model: folderModel
+        delegate: ItemDelegate {
+            width: parent.width
+            // Don't show current dir and parent dir for /
+            visible: text !== "." && (text !== ".." || folderModel.folder.toString() !== "file:///")
+            height: visible ? implicitHeight : 0
+            text: model.fileName
+            onClicked: folderModel.folder = (model.fileName === ".." ? folderModel.parentFolder
+                                                                     : model.fileURL)
         }
     }
 }
