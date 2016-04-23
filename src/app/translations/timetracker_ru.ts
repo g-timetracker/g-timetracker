@@ -484,7 +484,7 @@
 <context>
     <name>TimeTracker</name>
     <message>
-        <location filename="../../lib/TimeTracker.cpp" line="73"/>
+        <location filename="../../lib/TimeTracker.cpp" line="74"/>
         <source>Fail to initialize DB</source>
         <translation>Не удалось инициализировать БД</translation>
     </message>
@@ -729,6 +729,26 @@
         <location filename="../qml/timetracker/TimeLogNewDialogMaterial.qml" line="95"/>
         <source>Discard</source>
         <translation>Отклонить</translation>
+    </message>
+    <message>
+        <location filename="../qml/timetracker/CreateFolderDialogMaterial.qml" line="13"/>
+        <source>Create directory</source>
+        <translation>Создать каталог</translation>
+    </message>
+    <message>
+        <location filename="../qml/timetracker/CreateFolderDialogMaterial.qml" line="24"/>
+        <source>Fail to create directory</source>
+        <translation>Не удалось создать каталог</translation>
+    </message>
+    <message>
+        <location filename="../qml/timetracker/CreateFolderDialogMaterial.qml" line="61"/>
+        <source>Create</source>
+        <translation>Создать</translation>
+    </message>
+    <message>
+        <location filename="../qml/timetracker/CreateFolderDialogMaterial.qml" line="96"/>
+        <source>Directory name</source>
+        <translation>Имя каталога</translation>
     </message>
     <message>
         <location filename="../qml/timetracker/SyncFolderDialogMaterial.qml" line="63"/>

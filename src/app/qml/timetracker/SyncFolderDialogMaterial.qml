@@ -74,13 +74,21 @@ Page {
                 verticalAlignment: Text.AlignVCenter
                 font.pixelSize: 20
                 elide: Text.ElideLeft
-                text: dialog.folder.toString().replace(/file:\/\//, "")
+                text: folderModel.path
             }
         }
     }
 
+    CreateFolderDialogMaterial {
+        id: createDialog
+
+        path: folderModel.path
+    }
+
     FolderListModel {
         id: folderModel
+
+        property string path: folder.toString().replace(/file:\/\//, "")
 
         showFiles: false
         showDotAndDotDot: true
@@ -98,11 +106,20 @@ Page {
         delegate: ItemDelegate {
             width: parent.width
             // Don't show current dir and parent dir for /
-            visible: text !== "." && (text !== ".." || folderModel.folder.toString() !== "file:///")
+            visible: text !== "." && (text !== ".." || folderModel.path !== "/")
             height: visible ? implicitHeight : 0
             text: model.fileName
             onClicked: folderModel.folder = (model.fileName === ".." ? folderModel.parentFolder
                                                                      : model.fileURL)
         }
+    }
+
+    FloatingActionButton {
+        iconSource: "images/ic_add_white_24dp.png"
+
+        anchors.right: parent.right
+        anchors.bottom: parent.bottom
+        anchors.margins: height / 2
+        onClicked: createDialog.open()
     }
 }

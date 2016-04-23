@@ -1,4 +1,5 @@
 #include <QStandardPaths>
+#include <QDir>
 
 #include "TimeTracker.h"
 #include "TimeLogHistory.h"
@@ -159,6 +160,11 @@ QString TimeTracker::durationText(int duration, int maxUnits)
 QUrl TimeTracker::documentsLocation()
 {
     return QUrl::fromLocalFile(QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation));
+}
+
+bool TimeTracker::createFolder(const QString &path, const QString &name)
+{
+    return QDir(path).mkdir(name);
 }
 
 void TimeTracker::addCategory(const TimeLogCategory &category)

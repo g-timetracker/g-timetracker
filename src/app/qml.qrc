@@ -116,5 +116,6 @@
         <file>qml/timetracker/images/ic_expand_more_white_24dp@3x.png</file>
         <file>qml/timetracker/images/ic_expand_more_white_24dp@4x.png</file>
         <file>qml/timetracker/FlatButton.qml</file>
+        <file>qml/timetracker/CreateFolderDialogMaterial.qml</file>
     </qresource>
 </RCC>
