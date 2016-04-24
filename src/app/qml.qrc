@@ -10,6 +10,9 @@
         <file>qml/timetracker/RecentView.qml</file>
         <file>qml/timetracker/SearchView.qml</file>
         <file>qml/timetracker/DatePicker.qml</file>
+        <file>qml/timetracker/DatePickerMaterial.qml</file>
+        <file>qml/timetracker/DatePickerDesktop.qml</file>
+        <file>qml/timetracker/+desktopStyle/DatePicker.qml</file>
         <file>qml/timetracker/CalendarPopup.qml</file>
         <file>qml/timetracker/+desktopStyle/CalendarPopup.qml</file>
         <file>qml/timetracker/CalendarPopupDesktop.qml</file>
@@ -117,5 +120,9 @@
         <file>qml/timetracker/images/ic_expand_more_white_24dp@4x.png</file>
         <file>qml/timetracker/FlatButton.qml</file>
         <file>qml/timetracker/CreateFolderDialogMaterial.qml</file>
+        <file>qml/timetracker/images/ic_arrow_drop_down_white_24dp.png</file>
+        <file>qml/timetracker/images/ic_arrow_drop_down_white_24dp@2x.png</file>
+        <file>qml/timetracker/images/ic_arrow_drop_down_white_24dp@3x.png</file>
+        <file>qml/timetracker/images/ic_arrow_drop_down_white_24dp@4x.png</file>
     </qresource>
 </RCC>

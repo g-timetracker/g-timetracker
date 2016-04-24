@@ -15,7 +15,8 @@ ItemPositioner {
         id: fromField
 
         minimumDate: new Date(0)
-        maximumDate: toField.selectedDate
+        maximumDate: !!toField.selectedDate ? toField.selectedDate : new Date()
+        selectedDate: maximumDate
     }
 
     LabelControl {
@@ -25,7 +26,8 @@ ItemPositioner {
     DatePicker {
         id: toField
 
-        minimumDate: fromField.selectedDate
+        minimumDate: !!fromField.selectedDate ? fromField.selectedDate : new Date(0)
         maximumDate: new Date()
+        selectedDate: maximumDate
     }
 }
