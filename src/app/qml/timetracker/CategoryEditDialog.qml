@@ -12,7 +12,7 @@ Page {
 
     property string title: qsTr("Edit category")
 
-    property CategoryDelegate delegateItem
+    property var delegateItem   // TODO: change to CategoryDelegate when fixed in Qt
 
     function checkIsModified() {
         return !(delegateItem

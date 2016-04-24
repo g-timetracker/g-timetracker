@@ -9,6 +9,7 @@ Item {
     id: timeLogView
 
     property alias model: delegateModel.model
+    property alias currentItem: listView.currentItem
     property bool reverse: false
 
     property alias menuModel: itemMenu.contentData
@@ -29,24 +30,58 @@ Item {
         onTriggered: timeLogView.itemRemove()
     }
 
+    property alias bottomSheetModel: bottomSheetItems.children
+    property ItemDelegate editBottomSheetItem: ItemDelegate {
+        width: bottomSheetItems.width
+        text: qsTr("Edit")
+        onClicked: {
+            timeLogView.itemEdit()
+            timeLogView.closeBottomSheet()
+        }
+    }
+    property ItemDelegate insertBeforeBottomSheetItem: ItemDelegate {
+        width: bottomSheetItems.width
+        text: qsTr("Insert before")
+        onClicked: {
+            timeLogView.itemInsertBefore()
+            timeLogView.closeBottomSheet()
+        }
+    }
+    property ItemDelegate insertAfterBottomSheetItem: ItemDelegate {
+        width: bottomSheetItems.width
+        text: qsTr("Insert after")
+        onClicked: {
+            timeLogView.itemInsertAfter()
+            timeLogView.closeBottomSheet()
+        }
+    }
+    property ItemDelegate removeBottomSheetItem: ItemDelegate {
+        width: bottomSheetItems.width
+        text: qsTr("Remove")
+        onClicked: {
+            timeLogView.itemRemove()
+            timeLogView.closeBottomSheet()
+        }
+    }
+
     signal insert(var modelIndex, var newData)
     signal append(var newData)
     signal remove(var modelIndex)
 
     function itemEdit() {
-        editDialog.setData(listView.itemUnderCursor())
+        editDialog.setData(listView.currentItem)
         TimeTracker.showDialogRequested(editDialog)
     }
 
     function itemInsertBefore() {
-        var index = listView.indexUnderCursor()
-        var item = listView.itemUnderCursor()
+        var index = listView.currentIndex
+        var item = listView.currentItem
         d.insert(index, item.precedingStart, item.startTime)
     }
 
     function itemInsertAfter() {
-        var index = listView.indexUnderCursor()
-        var item = listView.itemUnderCursor()
+        var index = listView.currentIndex
+        var item = listView.currentItem
         d.insert(timeLogView.reverse ? index - 1 : index + 1, item.startTime, item.succeedingStart)
     }
 
@@ -60,12 +95,12 @@ Item {
         if (Settings.isConfirmationsEnabled) {
             removeConfirmationDialog.open()
         } else {
-            d.deleteItemUnderCursor()
+            d.deleteCurrentItem()
         }
     }
 
-    function pointedItem() {
-        return listView.itemUnderCursor()
+    function closeBottomSheet() {
+        bottomSheet.close()
     }
 
     QtObject {
@@ -80,8 +115,8 @@ Item {
             }
         }
 
-        function deleteItemUnderCursor() {
-            timeLogView.remove(delegateModel.modelIndex(listView.indexUnderCursor()))
+        function deleteCurrentItem() {
+            timeLogView.remove(delegateModel.modelIndex(listView.currentIndex))
         }
     }
 
@@ -92,6 +127,12 @@ Item {
             x = mouseArea.mouseX
             y = mouseArea.mouseY
             open()
+        }
+
+        onClosed: {
+            if (!removeConfirmationDialog.visible) {
+                listView.currentIndex = -1
+            }
         }
 
          contentData: [
@@ -114,7 +155,8 @@ Item {
             comment: model.comment
             precedingStart: model.precedingStart
             succeedingStart: model.succeedingStart
-            isLastItem: model.index === delegateModel.count
+            isCurrent: ListView.isCurrentItem
+            isLast: model.index === (timeLogView.reverse ? 0 : listView.count - 1)
         }
     }
 
@@ -143,7 +185,8 @@ Item {
 
         text: qsTr("Delete this entry?")
 
-        onAccepted: d.deleteItemUnderCursor()
+        onAccepted: d.deleteCurrentItem()
+        onClosed: listView.currentIndex = -1
     }
 
     ColumnLayout {
@@ -153,19 +196,12 @@ Item {
         ListView {
             id: listView
 
-            function itemUnderCursor() {
-                return itemAt(mouseArea.mouseX + contentX, mouseArea.mouseY + contentY)
-            }
-
-            function indexUnderCursor() {
-                return indexAt(mouseArea.mouseX + contentX, mouseArea.mouseY + contentY)
-            }
-
             Layout.fillHeight: true
             Layout.fillWidth: true
             verticalLayoutDirection: timeLogView.reverse ? ListView.BottomToTop : ListView.TopToBottom
             clip: true
             model: delegateModel
+            currentIndex: -1
 
             MouseArea {
                 id: mouseArea
@@ -173,30 +209,80 @@ Item {
                 anchors.fill: parent
                 acceptedButtons: Qt.LeftButton | Qt.RightButton
 
+                Timer {
+                    id: singleClickTimer
+
+                    interval: 100
+
+                    onTriggered: bottomSheet.open()
+                }
+
                 onDoubleClicked: {
-                    if (listView.itemAt(mouse.x + listView.contentX,
-                                        mouse.y + listView.contentY)) {
-                        timeLogView.itemEdit()
-                    }
+                    singleClickTimer.stop()
+                    timeLogView.itemEdit()
+                    listView.currentIndex = -1
                 }
 
                 onPressAndHold:{
-                    if (mouse.button === Qt.LeftButton && listView.itemAt(mouse.x + listView.contentX,
-                                                                          mouse.y + listView.contentY)) {
+                    var index = listView.indexAt(mouse.x + listView.contentX,
+                                                 mouse.y + listView.contentY)
+                    if (index > -1 && mouse.button === Qt.LeftButton) {
+                        listView.currentIndex = index
                         itemMenu.popup()
                     }
                 }
 
                 onClicked: {
-                    if (mouse.button === Qt.RightButton && listView.itemAt(mouse.x + listView.contentX,
-                                                                           mouse.y + listView.contentY)) {
-                        itemMenu.popup()
+                    if (itemMenu.visible) {
+                        return
+                    }
+
+                    var index = listView.indexAt(mouse.x + listView.contentX,
+                                                 mouse.y + listView.contentY)
+                    if (index > -1) {
+                        listView.currentIndex = index
+                        if (mouse.button === Qt.RightButton) {
+                            itemMenu.popup()
+                        } else if (Qt.platform.os !== "android") {  // Double-clicks are only for desktop
+                            singleClickTimer.start()
+                        } else {
+                            bottomSheet.open()
+                        }
                     }
                 }
             }
         }
         Item {
             Layout.preferredHeight: (!timeLogView.reverse || listView.contentHeight > parent.height ? 0 : parent.height - listView.contentHeight)
+        }
+    }
+
+    Drawer {
+        id: bottomSheet
+
+        width: parent.width
+        implicitHeight: bottomSheetItems.implicitHeight + 16
+        edge: Qt.BottomEdge
+        dragMargin: 0
+
+        onClosed: {
+            if (!removeConfirmationDialog.visible) {
+                listView.currentIndex = -1
+            }
+        }
+
+        Column {
+            id: bottomSheetItems
+
+            width: parent.width
+            y: 8
+
+            children: [
+                editBottomSheetItem,
+                insertBeforeBottomSheetItem,
+                insertAfterBottomSheetItem,
+                removeBottomSheetItem
+            ]
         }
     }
 }

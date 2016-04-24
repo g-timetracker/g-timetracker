@@ -29,13 +29,23 @@ Item {
         TimeLogView {
             id: timeLogView
 
+            function showHistory() {
+                var item = timeLogView.currentItem
+                var beginDate = new Date(Math.max(item.startTime.valueOf() - 6 * 60 * 60 * 1000, 0))
+                var endDate = new Date(Math.min(item.succeedingStart.valueOf() - 1000 + 6 * 60 * 60 * 1000, Date.now()))
+                TimeTracker.showHistoryRequested(beginDate, endDate)
+            }
+
             property MenuItem showHistoryMenuItem: MenuItem {
                 text: qsTr("Show in history")
-                onTriggered: {
-                    var item = timeLogView.pointedItem()
-                    var beginDate = new Date(Math.max(item.startTime.valueOf() - 6 * 60 * 60 * 1000, 0))
-                    var endDate = new Date(Math.min(item.succeedingStart.valueOf() - 1000 + 6 * 60 * 60 * 1000, Date.now()))
-                    TimeTracker.showHistoryRequested(beginDate, endDate)
+                onTriggered: timeLogView.showHistory()
+            }
+            property ItemDelegate showHistoryBottomSheetItem: ItemDelegate {
+                width: timeLogView.width
+                text: qsTr("Show in history")
+                onClicked: {
+                    timeLogView.showHistory()
+                    timeLogView.closeBottomSheet()
                 }
             }
 
@@ -45,6 +55,10 @@ Item {
             menuModel: [
                 showHistoryMenuItem,
                 timeLogView.editMenuItem
+            ]
+            bottomSheetModel: [
+                showHistoryBottomSheetItem,
+                timeLogView.editBottomSheetItem
             ]
         }
     }

@@ -12,7 +12,7 @@ Page {
 
     property string title: qsTr("Edit entry")
 
-    property TimeLogDelegate delegateItem
+    property var delegateItem   // TODO: change to TimeLogDelegate when fixed in Qt
 
     function checkIsModified() {
         return !(delegateItem
