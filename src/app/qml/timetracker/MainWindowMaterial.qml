@@ -62,6 +62,21 @@ ApplicationWindow {
                     text: stackView.currentItem.title ? stackView.currentItem.title : ""
                 }
             }
+
+            Rectangle {
+                width: parent.width
+                implicitHeight: progressBar.implicitHeight
+                y: parent.height - height
+                color: "white"
+                visible: TimeTracker.syncer ? TimeTracker.syncer.isRunning : false
+
+                ProgressBar {
+                    id: progressBar
+
+                    width: parent.width
+                    indeterminate: true
+                }
+            }
         }
     }
 

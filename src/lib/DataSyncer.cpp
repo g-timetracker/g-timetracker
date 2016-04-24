@@ -123,6 +123,8 @@ void DataSyncer::syncError(const QString &errorText)
 
 void DataSyncer::syncFinished()
 {
+    setIsRunning(false);
+
     if (!m_notifySync && !m_notifyNextSync) {
         return;
     } else if (m_notifyNextSync) {
