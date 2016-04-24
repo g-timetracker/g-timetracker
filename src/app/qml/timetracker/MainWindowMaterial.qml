@@ -177,6 +177,7 @@ ApplicationWindow {
                     text: qsTranslate("main window", "Sync")
                     onClicked: {
                         drawer.close()
+                        TimeTracker.syncer.notifyNextSync = true
                         TimeTracker.syncer.sync(Settings.syncPath)
                     }
                 }
@@ -209,6 +210,13 @@ ApplicationWindow {
         target: TimeTracker.syncer
         property: "syncPath"
         value: TimeLogSyncPath ? TimeLogSyncPath : Settings.syncPath
+        when: TimeTracker.syncer
+    }
+
+    Binding {
+        target: TimeTracker.syncer
+        property: "notifySync"
+        value: false
         when: TimeTracker.syncer
     }
 

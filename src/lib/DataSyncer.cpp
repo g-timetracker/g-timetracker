@@ -6,12 +6,14 @@
 DataSyncer::DataSyncer(TimeLogHistory *history, QObject *parent) :
     QObject(parent),
     m_isRunning(false),
+    m_notifySync(true),
+    m_notifyNextSync(false),
     m_autoSync(true),
     m_thread(new QThread(this)),
     m_worker(new DataSyncerWorker(history, this))
 {
-    connect(m_worker, SIGNAL(error(QString)), this, SIGNAL(error(QString)));
-    connect(m_worker, SIGNAL(synced()), this, SIGNAL(synced()));
+    connect(m_worker, SIGNAL(error(QString)), this, SLOT(syncError(QString)));
+    connect(m_worker, SIGNAL(synced()), this, SLOT(syncFinished()));
     connect(m_worker, SIGNAL(started()), this, SLOT(syncStarted()));
     connect(m_worker, SIGNAL(stopped()), this, SLOT(syncStopped()));
 }
@@ -108,6 +110,26 @@ void DataSyncer::setNoPack(bool noPack)
 void DataSyncer::sync(const QDateTime &start)
 {
     QMetaObject::invokeMethod(m_worker, "sync", Qt::AutoConnection, Q_ARG(QDateTime, start));
+}
+
+void DataSyncer::syncError(const QString &errorText)
+{
+    if (m_notifyNextSync) {
+        m_notifyNextSync = false;
+    }
+
+    emit error(errorText);
+}
+
+void DataSyncer::syncFinished()
+{
+    if (!m_notifySync && !m_notifyNextSync) {
+        return;
+    } else if (m_notifyNextSync) {
+        m_notifyNextSync = false;
+    }
+
+    emit synced(QPrivateSignal());
 }
 
 void DataSyncer::syncStarted()

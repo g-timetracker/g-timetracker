@@ -87,7 +87,10 @@ ApplicationWindow {
             }
             MenuItem {
                 text: qsTranslate("main window", "Sync")
-                onTriggered: TimeTracker.syncer.sync()
+                onTriggered: {
+                    TimeTracker.syncer.notifyNextSync = true
+                    TimeTracker.syncer.sync()
+                }
             }
             MenuItem {
                 text: qsTranslate("main window", "Undo")
@@ -124,6 +127,13 @@ ApplicationWindow {
         target: TimeTracker.syncer
         property: "syncPath"
         value: TimeLogSyncPath ? TimeLogSyncPath : Settings.syncPath
+        when: TimeTracker.syncer
+    }
+
+    Binding {
+        target: TimeTracker.syncer
+        property: "notifySync"
+        value: false
         when: TimeTracker.syncer
     }
 
