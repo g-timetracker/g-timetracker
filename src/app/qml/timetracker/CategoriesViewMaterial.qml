@@ -142,6 +142,8 @@ Item {
             onCollapse: adaptorModel.collapse(adaptorModel.mapRowToModelIndex(model.index))
         }
 
+        ScrollBar.vertical: ScrollBar { }
+
         MouseArea {
             id: mouseArea
 

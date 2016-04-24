@@ -203,6 +203,8 @@ Item {
             model: delegateModel
             currentIndex: -1
 
+            ScrollBar.vertical: ScrollBar { }
+
             MouseArea {
                 id: mouseArea
 
