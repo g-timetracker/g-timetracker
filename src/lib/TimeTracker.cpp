@@ -18,22 +18,24 @@ enum TimeUnits {
 
 struct TimeUnit {
     TimeUnit() :
-        id(Seconds), name("seconds"), value(1) { }
-    TimeUnit(TimeUnits id, QString name, int value) :
-        id(id), name(name), value(value) { }
+        id(Seconds), full("seconds"), abbreviated("s"), value(1) { }
+    TimeUnit(TimeUnits id, const QString &full, const QString &abbreviated, int value) :
+        id(id), full(full), abbreviated(abbreviated), value(value) { }
 
     TimeUnits id;
-    QString name;
+    QString full;
+    QString abbreviated;
     int value;
 };
 
-static const QVector<TimeUnit> timeUnits = QVector<TimeUnit>() << TimeUnit(Seconds, "seconds", 1)
-                                                               << TimeUnit(Minutes, "minutes", 60)
-                                                               << TimeUnit(Hours, "hours", 60 * 60)
-                                                               << TimeUnit(Days, "days", 24 * 60 * 60)
-                                                               << TimeUnit(Weeks, "weeks", 7 * 24 * 60 * 60)
-                                                               << TimeUnit(Months, "months", 30 * 24 * 60 * 60)
-                                                               << TimeUnit(Years, "years", 365 * 24 * 60 * 60);
+static const QVector<TimeUnit> timeUnits = QVector<TimeUnit>()
+        << TimeUnit(Seconds, "seconds", "s", 1)
+        << TimeUnit(Minutes, "minutes", "min", 60)
+        << TimeUnit(Hours, "hours", "hr", 60 * 60)
+        << TimeUnit(Days, "days", "d", 24 * 60 * 60)
+        << TimeUnit(Weeks, "weeks", "wk", 7 * 24 * 60 * 60)
+        << TimeUnit(Months, "months", "mo", 30 * 24 * 60 * 60)
+        << TimeUnit(Years, "years", "yr", 365 * 24 * 60 * 60);
 
 bool durationTimeCompare(const TimeLogStats &a, const TimeLogStats &b)
 {
@@ -136,7 +138,7 @@ void TimeTracker::getStats(const QDateTime &begin, const QDateTime &end, const Q
     m_history->getStats(begin, end, category, separator);
 }
 
-QString TimeTracker::durationText(int duration, int maxUnits)
+QString TimeTracker::durationText(int duration, int maxUnits, bool isAbbreviate)
 {
     QStringList values;
     while (--maxUnits >= 0) {
@@ -147,7 +149,8 @@ QString TimeTracker::durationText(int duration, int maxUnits)
         } else {
             value.setNum(static_cast<float>(duration) / timeUnits.at(unit).value, 'f', 1);
         }
-        values.append(QString("%1 %2").arg(value).arg(timeUnits.at(unit).name));
+        values.append(QString("%1 %2").arg(value).arg(isAbbreviate ? timeUnits.at(unit).abbreviated
+                                                                   : timeUnits.at(unit).full));
         duration %= timeUnits.at(unit).value;
         if (!duration) {
             break;
@@ -206,7 +209,7 @@ void TimeTracker::statsDataAvailable(QVector<TimeLogStats> data, QDateTime until
         maxValue = max->durationTime;
     }
     unit = calcTimeUnits(maxValue);
-    result.insert("units", timeUnits.at(unit).name);
+    result.insert("units", timeUnits.at(unit).abbreviated);
     result.insert("max", static_cast<float>(maxValue) / timeUnits.at(unit).value);
 
     QVariantList dataset;

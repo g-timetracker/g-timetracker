@@ -61,7 +61,8 @@ Rectangle {
                 elide: Text.ElideRight
                 font.pixelSize: 14
                 color: Material.secondaryTextColor
-                text: TimeTracker.durationText(timeLogDelegate.durationTime, 2)
+                text: TimeTracker.durationText(timeLogDelegate.durationTime, 2,
+                                               timeLogDelegate.width < 600) // phone in portrait
             }
         }
 
