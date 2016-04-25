@@ -173,6 +173,21 @@ QString TimeTracker::durationText(int duration, int maxUnits, bool isAbbreviate)
     return values.join(", ");
 }
 
+QString TimeTracker::rangeText(const QDateTime &from, const QDateTime &to)
+{
+    QDate fromDate(from.date());
+    QDate toDate(to.date());
+
+    if (fromDate == toDate) {
+        return QString(fromDate.toString(Qt::DefaultLocaleShortDate) + " "
+                       + from.time().toString(Qt::DefaultLocaleShortDate) + "\u2013"
+                       + to.time().toString(Qt::DefaultLocaleShortDate));
+    } else {
+        return QString(from.toString(Qt::DefaultLocaleShortDate) + " \u2013 "
+                       + to.toString(Qt::DefaultLocaleShortDate));
+    }
+}
+
 QUrl TimeTracker::documentsLocation()
 {
     return QUrl::fromLocalFile(QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation));

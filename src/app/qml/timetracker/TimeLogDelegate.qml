@@ -75,8 +75,8 @@ Rectangle {
                 Layout.fillWidth: false
                 font.pixelSize: 14
                 color: Material.primaryTextColor
-                text: Qt.formatDateTime(timeLogDelegate.startTime) + " \u2013 "
-                      + Qt.formatDateTime(new Date(timeLogDelegate.succeedingStart.valueOf() - 1000))
+                text: TimeTracker.rangeText(timeLogDelegate.startTime,
+                                            new Date(timeLogDelegate.succeedingStart.valueOf() - 1000))
             }
 
             Label {

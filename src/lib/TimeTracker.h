@@ -41,6 +41,7 @@ public:
                               const QString &category = QString(),
                               const QString &separator = ">");
     Q_INVOKABLE static QString durationText(int duration, int maxUnits = 7, bool isAbbreviate = false);
+    Q_INVOKABLE static QString rangeText(const QDateTime &from, const QDateTime &to);
     Q_INVOKABLE static QUrl documentsLocation();
     Q_INVOKABLE static bool createFolder(const QString &path, const QString &name);
 
