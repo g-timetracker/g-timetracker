@@ -145,15 +145,16 @@ ApplicationWindow {
 
             ScrollBar.vertical: ScrollBar { }
 
-            Column {
+            ColumnLayout {
                 id: drawerItems
 
-                anchors.margins: 10
                 anchors.left: parent.left
                 anchors.right: parent.right
-                spacing: 10
+                spacing: 0
 
                 ItemDelegate {
+                    Layout.fillWidth: true
+                    Layout.minimumWidth: implicitWidth
                     text: qsTranslate("main window", "Recent")
                     onClicked: {
                         drawer.close()
@@ -161,6 +162,8 @@ ApplicationWindow {
                     }
                 }
                 ItemDelegate {
+                    Layout.fillWidth: true
+                    Layout.minimumWidth: implicitWidth
                     text: qsTranslate("main window", "Search")
                     onClicked: {
                         drawer.close()
@@ -168,6 +171,8 @@ ApplicationWindow {
                     }
                 }
                 ItemDelegate {
+                    Layout.fillWidth: true
+                    Layout.minimumWidth: implicitWidth
                     text: qsTranslate("main window", "Statistics")
                     onClicked: {
                         drawer.close()
@@ -175,6 +180,8 @@ ApplicationWindow {
                     }
                 }
                 ItemDelegate {
+                    Layout.fillWidth: true
+                    Layout.minimumWidth: implicitWidth
                     text: qsTranslate("main window", "Categories")
                     onClicked: {
                         drawer.close()
@@ -182,6 +189,8 @@ ApplicationWindow {
                     }
                 }
                 ItemDelegate {
+                    Layout.fillWidth: true
+                    Layout.minimumWidth: implicitWidth
                     text: qsTranslate("main window", "History")
                     onClicked: {
                         drawer.close()
@@ -189,6 +198,8 @@ ApplicationWindow {
                     }
                 }
                 ItemDelegate {
+                    Layout.fillWidth: true
+                    Layout.minimumWidth: implicitWidth
                     text: qsTranslate("main window", "Sync")
                     onClicked: {
                         drawer.close()
@@ -197,6 +208,8 @@ ApplicationWindow {
                     }
                 }
                 ItemDelegate {
+                    Layout.fillWidth: true
+                    Layout.minimumWidth: implicitWidth
                     text: qsTranslate("main window", "Undo")
                     enabled: TimeTracker.undoCount
                     onClicked: {
@@ -205,6 +218,8 @@ ApplicationWindow {
                     }
                 }
                 ItemDelegate {
+                    Layout.fillWidth: true
+                    Layout.minimumWidth: implicitWidth
                     text: qsTranslate("main window", "Settings")
                     onClicked: {
                         drawer.close()
