@@ -144,11 +144,7 @@ QString TimeTracker::durationText(int duration, int maxUnits, bool isAbbreviate)
     while (--maxUnits >= 0) {
         int unit = calcTimeUnits(duration);
         QString value;
-        if (maxUnits > 0 || !(duration % timeUnits.at(unit).value)) {
-            value.setNum(duration / timeUnits.at(unit).value);
-        } else {
-            value.setNum(static_cast<float>(duration) / timeUnits.at(unit).value, 'f', 1);
-        }
+        value.setNum(duration / timeUnits.at(unit).value);
         values.append(QString("%1 %2").arg(value).arg(isAbbreviate ? timeUnits.at(unit).abbreviated
                                                                    : timeUnits.at(unit).full));
         duration %= timeUnits.at(unit).value;
