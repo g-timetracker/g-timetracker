@@ -2,7 +2,6 @@ import QtQuick 2.0
 import QtQuick.Controls 1.4 as QQC1 // FIXME: crashes without this
 import QtQuick.Controls 2.0
 import QtQuick.Controls.Material 2.0
-import QtGraphicalEffects 1.0
 
 TextField {
     id: datePicker
@@ -22,7 +21,7 @@ TextField {
         onClicked: popup.showPopup(datePicker)
     }
 
-    Image {
+    IconMaterial {
         id: icon
 
         anchors.topMargin: datePicker.topPadding
@@ -30,14 +29,7 @@ TextField {
         anchors.top: datePicker.top
         anchors.bottom: datePicker.bottom
         anchors.right: datePicker.right
-        fillMode: Image.Pad
         source: "images/ic_arrow_drop_down_white_24dp.png"
-    }
-
-    ColorOverlay {
-        anchors.fill: icon
-        source: icon
-        color: Material.secondaryTextColor
     }
 
     CalendarPopup {

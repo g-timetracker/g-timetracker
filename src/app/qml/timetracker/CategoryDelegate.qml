@@ -69,27 +69,15 @@ ItemDelegate {
         ToolButton {
             Layout.alignment: Qt.AlignRight | Qt.AlignVCenter
             Layout.fillWidth: false
-            contentItem: Item {
+            contentItem: IconMaterial {
                 visible: categoryDelegate.hasChildren
+                source: "images/ic_expand_more_white_24dp.png"
                 rotation: categoryDelegate.isExpanded ? 180 : 0
                 Behavior on rotation {
                     animation: NumberAnimation {
                         duration: 100
                         easing.type: Easing.OutCubic
                     }
-                }
-
-                Image {
-                    id: icon
-
-                    anchors.centerIn: parent
-                    fillMode: Image.Pad
-                    source: "images/ic_expand_more_white_24dp.png"
-                }
-                ColorOverlay {
-                    anchors.fill: icon
-                    source: icon
-                    color: Material.secondaryTextColor
                 }
             }
 
