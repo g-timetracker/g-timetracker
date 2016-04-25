@@ -1,3 +1,4 @@
+#include <QCoreApplication>
 #include <QStandardPaths>
 #include <QDir>
 
@@ -16,26 +17,42 @@ enum TimeUnits {
     Years
 };
 
+// HACK: handle plurals
+#undef QT_TRANSLATE_NOOP
+#define QT_TRANSLATE_NOOP(ctx, str, cmnt, n) str
+
 struct TimeUnit {
     TimeUnit() :
-        id(Seconds), full("seconds"), abbreviated("s"), value(1) { }
-    TimeUnit(TimeUnits id, const QString &full, const QString &abbreviated, int value) :
+        id(Seconds), full(QT_TRANSLATE_NOOP("duration", "%n second(s)", 0, 0)),
+        abbreviated(QT_TRANSLATE_NOOP("duration", "%n s", 0, 0)), value(1) { }
+    TimeUnit(TimeUnits id, const char *full, const char *abbreviated, int value) :
         id(id), full(full), abbreviated(abbreviated), value(value) { }
 
     TimeUnits id;
-    QString full;
-    QString abbreviated;
+    const char *full;
+    const char *abbreviated;
     int value;
 };
 
 static const QVector<TimeUnit> timeUnits = QVector<TimeUnit>()
-        << TimeUnit(Seconds, "seconds", "s", 1)
-        << TimeUnit(Minutes, "minutes", "min", 60)
-        << TimeUnit(Hours, "hours", "hr", 60 * 60)
-        << TimeUnit(Days, "days", "d", 24 * 60 * 60)
-        << TimeUnit(Weeks, "weeks", "wk", 7 * 24 * 60 * 60)
-        << TimeUnit(Months, "months", "mo", 30 * 24 * 60 * 60)
-        << TimeUnit(Years, "years", "yr", 365 * 24 * 60 * 60);
+        << TimeUnit(Seconds, QT_TRANSLATE_NOOP("duration", "%n second(s)", 0, 0),
+                    QT_TRANSLATE_NOOP("duration", "%n s", 0, 0), 1)
+        << TimeUnit(Minutes, QT_TRANSLATE_NOOP("duration", "%n minute(s)", 0, 0),
+                    QT_TRANSLATE_NOOP("duration", "%n min", 0, 0), 60)
+        << TimeUnit(Hours, QT_TRANSLATE_NOOP("duration", "%n hour(s)", 0, 0),
+                    QT_TRANSLATE_NOOP("duration", "%n hr", 0, 0), 60 * 60)
+        << TimeUnit(Days, QT_TRANSLATE_NOOP("duration", "%n day(s)", 0, 0),
+                    QT_TRANSLATE_NOOP("duration", "%n d", 0, 0), 24 * 60 * 60)
+        << TimeUnit(Weeks, QT_TRANSLATE_NOOP("duration", "%n week(s)", 0, 0),
+                    QT_TRANSLATE_NOOP("duration", "%n wk", 0, 0), 7 * 24 * 60 * 60)
+        << TimeUnit(Months, QT_TRANSLATE_NOOP("duration", "%n month(s)", 0, 0),
+                    QT_TRANSLATE_NOOP("duration", "%n mo", 0, 0), 30 * 24 * 60 * 60)
+        << TimeUnit(Years, QT_TRANSLATE_NOOP("duration", "%n year(s)", 0, 0),
+                    QT_TRANSLATE_NOOP("duration", "%n yr", 0, 0), 365 * 24 * 60 * 60);
+
+// restore hacked macro
+#undef QT_TRANSLATE_NOOP
+#define QT_TRANSLATE_NOOP(ctx, str) str
 
 bool durationTimeCompare(const TimeLogStats &a, const TimeLogStats &b)
 {
@@ -143,10 +160,10 @@ QString TimeTracker::durationText(int duration, int maxUnits, bool isAbbreviate)
     QStringList values;
     while (--maxUnits >= 0) {
         int unit = calcTimeUnits(duration);
-        QString value;
-        value.setNum(duration / timeUnits.at(unit).value);
-        values.append(QString("%1 %2").arg(value).arg(isAbbreviate ? timeUnits.at(unit).abbreviated
-                                                                   : timeUnits.at(unit).full));
+        values.append(QCoreApplication::translate("duration",
+                                                  isAbbreviate ? timeUnits.at(unit).abbreviated
+                                                               : timeUnits.at(unit).full,
+                                                  nullptr, duration / timeUnits.at(unit).value));
         duration %= timeUnits.at(unit).value;
         if (!duration) {
             break;

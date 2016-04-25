@@ -78,7 +78,10 @@ Canvas {
             ctx.textBaseline = "middle"
             var maxLabelWidth = 0
             for (var i = 0; i < tickValues.length; i++) {
-                var labelText = "%1%2".arg(tickValues[i]).arg(chart.units ? " " + chart.units : "")
+                var labelText = qsTranslate("duration", chart.units || "", "", tickValues[i])
+                // Qt translator can handle plurals only for integers, so replace rounded value
+                labelText = labelText.replace(Math.floor(tickValues[i]),
+                                              tickValues[i].toLocaleString(Qt.locale(), "f", 1))
                 maxLabelWidth = Math.max(ctx.measureText(labelText).width, maxLabelWidth)
                 ctx.fillText(labelText, padding, tickPositions[i])
             }

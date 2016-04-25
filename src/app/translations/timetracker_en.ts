@@ -265,7 +265,7 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/timetracker/DateRangePicker.qml" line="22"/>
+        <location filename="../qml/timetracker/DateRangePicker.qml" line="25"/>
         <source>To</source>
         <translation type="unfinished"></translation>
     </message>
@@ -296,7 +296,7 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/timetracker/MainWindowDesktop.qml" line="98"/>
+        <location filename="../qml/timetracker/MainWindowDesktop.qml" line="101"/>
         <source>E&amp;xit</source>
         <translation type="unfinished"></translation>
     </message>
@@ -304,7 +304,8 @@
 <context>
     <name>SearchView</name>
     <message>
-        <location filename="../qml/timetracker/SearchView.qml" line="33"/>
+        <location filename="../qml/timetracker/SearchView.qml" line="42"/>
+        <location filename="../qml/timetracker/SearchView.qml" line="46"/>
         <source>Show in history</source>
         <translation type="unfinished"></translation>
     </message>
@@ -447,16 +448,19 @@
     <name>TimeLogView</name>
     <message>
         <location filename="../qml/timetracker/TimeLogView.qml" line="16"/>
+        <location filename="../qml/timetracker/TimeLogView.qml" line="35"/>
         <source>Edit</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../qml/timetracker/TimeLogView.qml" line="20"/>
+        <location filename="../qml/timetracker/TimeLogView.qml" line="43"/>
         <source>Insert before</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../qml/timetracker/TimeLogView.qml" line="24"/>
+        <location filename="../qml/timetracker/TimeLogView.qml" line="51"/>
         <source>Insert after</source>
         <translation type="unfinished"></translation>
     </message>
@@ -467,16 +471,17 @@
     </message>
     <message>
         <location filename="../qml/timetracker/TimeLogView.qml" line="28"/>
+        <location filename="../qml/timetracker/TimeLogView.qml" line="59"/>
         <source>Remove</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/timetracker/TimeLogView.qml" line="79"/>
+        <location filename="../qml/timetracker/TimeLogView.qml" line="113"/>
         <source>Cannot insert between %1 and %2</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/timetracker/TimeLogView.qml" line="144"/>
+        <location filename="../qml/timetracker/TimeLogView.qml" line="185"/>
         <source>Delete this entry?</source>
         <translation type="unfinished"></translation>
     </message>
@@ -484,7 +489,7 @@
 <context>
     <name>TimeTracker</name>
     <message>
-        <location filename="../../lib/TimeTracker.cpp" line="74"/>
+        <location filename="../../lib/TimeTracker.cpp" line="93"/>
         <source>Fail to initialize DB</source>
         <translation type="unfinished"></translation>
     </message>
@@ -501,7 +506,7 @@
         <location filename="../qml/timetracker/CategoriesViewDesktop.qml" line="65"/>
         <location filename="../qml/timetracker/CategoriesViewDesktop.qml" line="144"/>
         <location filename="../qml/timetracker/CategoriesViewMaterial.qml" line="101"/>
-        <location filename="../qml/timetracker/CategoriesViewMaterial.qml" line="205"/>
+        <location filename="../qml/timetracker/CategoriesViewMaterial.qml" line="207"/>
         <source>Remove</source>
         <translation type="unfinished"></translation>
     </message>
@@ -509,7 +514,7 @@
         <location filename="../qml/timetracker/CategoriesViewDesktop.qml" line="70"/>
         <location filename="../qml/timetracker/CategoriesViewDesktop.qml" line="150"/>
         <location filename="../qml/timetracker/CategoriesViewMaterial.qml" line="106"/>
-        <location filename="../qml/timetracker/CategoriesViewMaterial.qml" line="214"/>
+        <location filename="../qml/timetracker/CategoriesViewMaterial.qml" line="216"/>
         <source>Show entries</source>
         <translation type="unfinished"></translation>
     </message>
@@ -517,13 +522,13 @@
         <location filename="../qml/timetracker/CategoriesViewDesktop.qml" line="75"/>
         <location filename="../qml/timetracker/CategoriesViewDesktop.qml" line="156"/>
         <location filename="../qml/timetracker/CategoriesViewMaterial.qml" line="111"/>
-        <location filename="../qml/timetracker/CategoriesViewMaterial.qml" line="223"/>
+        <location filename="../qml/timetracker/CategoriesViewMaterial.qml" line="225"/>
         <source>Show statistics</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../qml/timetracker/CategoriesViewMaterial.qml" line="96"/>
-        <location filename="../qml/timetracker/CategoriesViewMaterial.qml" line="196"/>
+        <location filename="../qml/timetracker/CategoriesViewMaterial.qml" line="198"/>
         <source>Edit</source>
         <translation type="unfinished"></translation>
     </message>
@@ -757,6 +762,123 @@
     </message>
 </context>
 <context>
+    <name>duration</name>
+    <message numerus="yes">
+        <location filename="../../lib/TimeTracker.cpp" line="27"/>
+        <location filename="../../lib/TimeTracker.cpp" line="39"/>
+        <source>%n second(s)</source>
+        <translation>
+            <numerusform>%n second</numerusform>
+            <numerusform>%n seconds</numerusform>
+        </translation>
+    </message>
+    <message numerus="yes">
+        <location filename="../../lib/TimeTracker.cpp" line="41"/>
+        <source>%n minute(s)</source>
+        <translation>
+            <numerusform>%n minute</numerusform>
+            <numerusform>%n minutes</numerusform>
+        </translation>
+    </message>
+    <message numerus="yes">
+        <location filename="../../lib/TimeTracker.cpp" line="43"/>
+        <source>%n hour(s)</source>
+        <translation>
+            <numerusform>%n hour</numerusform>
+            <numerusform>%n hours</numerusform>
+        </translation>
+    </message>
+    <message numerus="yes">
+        <location filename="../../lib/TimeTracker.cpp" line="44"/>
+        <source>%n hr</source>
+        <translation type="unfinished">
+            <numerusform></numerusform>
+            <numerusform></numerusform>
+        </translation>
+    </message>
+    <message numerus="yes">
+        <location filename="../../lib/TimeTracker.cpp" line="45"/>
+        <source>%n day(s)</source>
+        <translation>
+            <numerusform>%n day</numerusform>
+            <numerusform>%n days</numerusform>
+        </translation>
+    </message>
+    <message numerus="yes">
+        <location filename="../../lib/TimeTracker.cpp" line="47"/>
+        <source>%n week(s)</source>
+        <translation>
+            <numerusform>%n week</numerusform>
+            <numerusform>%n weeks</numerusform>
+        </translation>
+    </message>
+    <message numerus="yes">
+        <location filename="../../lib/TimeTracker.cpp" line="48"/>
+        <source>%n wk</source>
+        <translation type="unfinished">
+            <numerusform></numerusform>
+            <numerusform></numerusform>
+        </translation>
+    </message>
+    <message numerus="yes">
+        <location filename="../../lib/TimeTracker.cpp" line="49"/>
+        <source>%n month(s)</source>
+        <translation>
+            <numerusform>%n month</numerusform>
+            <numerusform>%n months</numerusform>
+        </translation>
+    </message>
+    <message numerus="yes">
+        <location filename="../../lib/TimeTracker.cpp" line="50"/>
+        <source>%n mo</source>
+        <translation type="unfinished">
+            <numerusform></numerusform>
+            <numerusform></numerusform>
+        </translation>
+    </message>
+    <message numerus="yes">
+        <location filename="../../lib/TimeTracker.cpp" line="51"/>
+        <source>%n year(s)</source>
+        <translation>
+            <numerusform>%n year</numerusform>
+            <numerusform>%n years</numerusform>
+        </translation>
+    </message>
+    <message numerus="yes">
+        <location filename="../../lib/TimeTracker.cpp" line="28"/>
+        <location filename="../../lib/TimeTracker.cpp" line="40"/>
+        <source>%n s</source>
+        <translation type="unfinished">
+            <numerusform></numerusform>
+            <numerusform></numerusform>
+        </translation>
+    </message>
+    <message numerus="yes">
+        <location filename="../../lib/TimeTracker.cpp" line="42"/>
+        <source>%n min</source>
+        <translation type="unfinished">
+            <numerusform></numerusform>
+            <numerusform></numerusform>
+        </translation>
+    </message>
+    <message numerus="yes">
+        <location filename="../../lib/TimeTracker.cpp" line="46"/>
+        <source>%n d</source>
+        <translation type="unfinished">
+            <numerusform></numerusform>
+            <numerusform></numerusform>
+        </translation>
+    </message>
+    <message numerus="yes">
+        <location filename="../../lib/TimeTracker.cpp" line="52"/>
+        <source>%n yr</source>
+        <translation type="unfinished">
+            <numerusform></numerusform>
+            <numerusform></numerusform>
+        </translation>
+    </message>
+</context>
+<context>
     <name>entry editor</name>
     <message>
         <location filename="../qml/timetracker/TimeLogEntryEditorDesktop.qml" line="39"/>
@@ -799,7 +921,7 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/timetracker/RemoveConfirmationDialogDesktop.qml" line="4"/>
+        <location filename="../qml/timetracker/RemoveConfirmationDialogDesktop.qml" line="6"/>
         <source>Remove confirmation</source>
         <translation type="unfinished"></translation>
     </message>
@@ -831,38 +953,38 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/timetracker/MainWindowDesktop.qml" line="93"/>
-        <location filename="../qml/timetracker/MainWindowMaterial.qml" line="184"/>
+        <location filename="../qml/timetracker/MainWindowDesktop.qml" line="96"/>
+        <location filename="../qml/timetracker/MainWindowMaterial.qml" line="185"/>
         <source>Undo</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/timetracker/MainWindowDesktop.qml" line="103"/>
-        <location filename="../qml/timetracker/MainWindowMaterial.qml" line="192"/>
+        <location filename="../qml/timetracker/MainWindowDesktop.qml" line="106"/>
+        <location filename="../qml/timetracker/MainWindowMaterial.qml" line="193"/>
         <location filename="../qml/timetracker/SettingsMaterial.qml" line="11"/>
         <source>Settings</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/timetracker/MainWindowDesktop.qml" line="160"/>
-        <location filename="../qml/timetracker/MainWindowMaterial.qml" line="253"/>
+        <location filename="../qml/timetracker/MainWindowDesktop.qml" line="170"/>
+        <location filename="../qml/timetracker/MainWindowMaterial.qml" line="261"/>
         <source>Synced</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/timetracker/MainWindowDesktop.qml" line="168"/>
+        <location filename="../qml/timetracker/MainWindowDesktop.qml" line="178"/>
         <source>Message</source>
         <comment>Message dialog title</comment>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/timetracker/MainWindowDesktop.qml" line="175"/>
+        <location filename="../qml/timetracker/MainWindowDesktop.qml" line="185"/>
         <source>Error</source>
         <comment>Error dialog title</comment>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/timetracker/MainWindowDesktop.qml" line="213"/>
+        <location filename="../qml/timetracker/MainWindowDesktop.qml" line="223"/>
         <location filename="../qml/timetracker/MainWindowMaterial.qml" line="142"/>
         <location filename="../qml/timetracker/RecentViewDesktop.qml" line="6"/>
         <location filename="../qml/timetracker/RecentViewMaterial.qml" line="7"/>
@@ -924,13 +1046,13 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/timetracker/MainWindowDesktop.qml" line="105"/>
+        <location filename="../qml/timetracker/MainWindowDesktop.qml" line="108"/>
         <location filename="../qml/timetracker/SettingsMaterial.qml" line="34"/>
         <source>Confirmations</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/timetracker/MainWindowDesktop.qml" line="111"/>
+        <location filename="../qml/timetracker/MainWindowDesktop.qml" line="114"/>
         <location filename="../qml/timetracker/SettingsMaterial.qml" line="54"/>
         <location filename="../qml/timetracker/SyncFolderDialogMaterial.qml" line="11"/>
         <source>Sync folder</source>
