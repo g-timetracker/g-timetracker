@@ -13,20 +13,28 @@ Item {
     property bool reverse: false
 
     property alias menuModel: itemMenu.contentData
-    property MenuItem editMenuItem: MenuItem {
+    property MenuItem editMenuItem: MenuItemMaterial {
         text: qsTr("Edit")
+        iconItem.source: "images/ic_mode_edit_white_24dp.png"
         onTriggered: timeLogView.itemEdit()
     }
-    property MenuItem insertBeforeMenuItem: MenuItem {
+    property MenuItem insertBeforeMenuItem: MenuItemMaterial {
         text: qsTr("Insert before")
+        iconItem.source: "images/ic_subdirectory_arrow_right_white_24dp.png"
+        iconItem.transform: Scale {
+            yScale: -1
+            origin.y: 12
+        }
         onTriggered: timeLogView.itemInsertBefore()
     }
-    property MenuItem insertAfterMenuItem: MenuItem {
+    property MenuItem insertAfterMenuItem: MenuItemMaterial {
         text: qsTr("Insert after")
+        iconItem.source: "images/ic_subdirectory_arrow_right_white_24dp.png"
         onTriggered: timeLogView.itemInsertAfter()
     }
-    property MenuItem removeMenuItem: MenuItem {
+    property MenuItem removeMenuItem: MenuItemMaterial {
         text: qsTr("Delete")
+        iconItem.source: "images/ic_delete_white_24dp.png"
         onTriggered: timeLogView.itemRemove()
     }
 

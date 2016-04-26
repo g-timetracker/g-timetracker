@@ -36,8 +36,9 @@ Item {
                 TimeTracker.showHistoryRequested(beginDate, endDate)
             }
 
-            property MenuItem showHistoryMenuItem: MenuItem {
+            property MenuItem showHistoryMenuItem: MenuItemMaterial {
                 text: qsTr("Show in history")
+                iconItem.source: "images/ic_history_white_24dp.png"
                 onTriggered: timeLogView.showHistory()
             }
             property ItemDelegate showHistoryBottomSheetItem: ItemDelegateMaterial {

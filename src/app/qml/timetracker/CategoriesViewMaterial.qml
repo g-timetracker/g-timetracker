@@ -91,28 +91,33 @@ Item {
             }
         }
 
-        MenuItem {
+        MenuItemMaterial {
             text: qsTranslate("categories view", "Edit")
+            iconItem.source: "images/ic_mode_edit_white_24dp.png"
             enabled: d.isEditEnabled
             onTriggered: d.edit()
         }
-        MenuItem {
+        MenuItemMaterial {
             text: qsTranslate("categories view", "Add subcategory")
+            iconItem.source: "images/ic_add_white_24dp.png"
             enabled: d.isAddSubcategoryEnabled
             onTriggered: d.create(treeView.currentItem.fullName)
         }
-        MenuItem {
+        MenuItemMaterial {
             text: qsTranslate("categories view", "Delete")
+            iconItem.source: "images/ic_delete_white_24dp.png"
             enabled: d.isRemoveEnabled
             onTriggered: d.remove()
         }
-        MenuItem {
+        MenuItemMaterial {
             text: qsTranslate("categories view", "Show entries")
+            iconItem.source: "images/ic_search_white_24dp.png"
             enabled: d.isShowEntriesEnabled
             onTriggered: d.showEntries()
         }
-        MenuItem {
+        MenuItemMaterial {
             text: qsTranslate("categories view", "Show statistics")
+            iconItem.source: "images/ic_show_chart_white_24dp.png"
             enabled: d.isShowStatsEnabled
             onTriggered: d.showStats()
         }
