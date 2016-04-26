@@ -3,6 +3,9 @@ import QtQuick.Controls.Material 2.0
 import QtGraphicalEffects 1.0
 
 Item {
+    id: iconMaterial
+
+    property bool enabled: true
     property alias source: icon.source
 
     implicitHeight: icon.implicitHeight
@@ -17,6 +20,6 @@ Item {
     ColorOverlay {
         anchors.fill: icon
         source: icon
-        color: Material.secondaryTextColor
+        color: iconMaterial.enabled ? Material.secondaryTextColor : Material.switchUncheckedTrackColor
     }
 }

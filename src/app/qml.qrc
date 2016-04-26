@@ -125,5 +125,50 @@
         <file>qml/timetracker/images/ic_arrow_drop_down_white_24dp@3x.png</file>
         <file>qml/timetracker/images/ic_arrow_drop_down_white_24dp@4x.png</file>
         <file>qml/timetracker/IconMaterial.qml</file>
+        <file>qml/timetracker/ItemDelegateMaterial.qml</file>
+        <file>qml/timetracker/images/ic_delete_white_24dp.png</file>
+        <file>qml/timetracker/images/ic_delete_white_24dp@2x.png</file>
+        <file>qml/timetracker/images/ic_delete_white_24dp@3x.png</file>
+        <file>qml/timetracker/images/ic_delete_white_24dp@4x.png</file>
+        <file>qml/timetracker/images/ic_mode_edit_white_24dp.png</file>
+        <file>qml/timetracker/images/ic_mode_edit_white_24dp@2x.png</file>
+        <file>qml/timetracker/images/ic_mode_edit_white_24dp@3x.png</file>
+        <file>qml/timetracker/images/ic_mode_edit_white_24dp@4x.png</file>
+        <file>qml/timetracker/images/ic_subdirectory_arrow_right_white_24dp.png</file>
+        <file>qml/timetracker/images/ic_subdirectory_arrow_right_white_24dp@2x.png</file>
+        <file>qml/timetracker/images/ic_subdirectory_arrow_right_white_24dp@3x.png</file>
+        <file>qml/timetracker/images/ic_subdirectory_arrow_right_white_24dp@4x.png</file>
+        <file>qml/timetracker/images/ic_history_white_24dp.png</file>
+        <file>qml/timetracker/images/ic_history_white_24dp@2x.png</file>
+        <file>qml/timetracker/images/ic_history_white_24dp@3x.png</file>
+        <file>qml/timetracker/images/ic_history_white_24dp@4x.png</file>
+        <file>qml/timetracker/images/ic_search_white_24dp.png</file>
+        <file>qml/timetracker/images/ic_search_white_24dp@2x.png</file>
+        <file>qml/timetracker/images/ic_search_white_24dp@3x.png</file>
+        <file>qml/timetracker/images/ic_search_white_24dp@4x.png</file>
+        <file>qml/timetracker/images/ic_show_chart_white_24dp.png</file>
+        <file>qml/timetracker/images/ic_show_chart_white_24dp@2x.png</file>
+        <file>qml/timetracker/images/ic_show_chart_white_24dp@3x.png</file>
+        <file>qml/timetracker/images/ic_show_chart_white_24dp@4x.png</file>
+        <file>qml/timetracker/images/ic_undo_white_24dp.png</file>
+        <file>qml/timetracker/images/ic_undo_white_24dp@2x.png</file>
+        <file>qml/timetracker/images/ic_undo_white_24dp@3x.png</file>
+        <file>qml/timetracker/images/ic_undo_white_24dp@4x.png</file>
+        <file>qml/timetracker/images/ic_sync_white_24dp.png</file>
+        <file>qml/timetracker/images/ic_sync_white_24dp@2x.png</file>
+        <file>qml/timetracker/images/ic_sync_white_24dp@3x.png</file>
+        <file>qml/timetracker/images/ic_sync_white_24dp@4x.png</file>
+        <file>qml/timetracker/images/ic_settings_white_24dp.png</file>
+        <file>qml/timetracker/images/ic_settings_white_24dp@2x.png</file>
+        <file>qml/timetracker/images/ic_settings_white_24dp@3x.png</file>
+        <file>qml/timetracker/images/ic_settings_white_24dp@4x.png</file>
+        <file>qml/timetracker/images/ic_today_white_24dp.png</file>
+        <file>qml/timetracker/images/ic_today_white_24dp@2x.png</file>
+        <file>qml/timetracker/images/ic_today_white_24dp@3x.png</file>
+        <file>qml/timetracker/images/ic_today_white_24dp@4x.png</file>
+        <file>qml/timetracker/images/ic_folder_white_24dp.png</file>
+        <file>qml/timetracker/images/ic_folder_white_24dp@2x.png</file>
+        <file>qml/timetracker/images/ic_folder_white_24dp@3x.png</file>
+        <file>qml/timetracker/images/ic_folder_white_24dp@4x.png</file>
     </qresource>
 </RCC>

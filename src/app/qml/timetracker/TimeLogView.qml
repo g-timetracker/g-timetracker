@@ -31,33 +31,42 @@ Item {
     }
 
     property alias bottomSheetModel: bottomSheetItems.children
-    property ItemDelegate editBottomSheetItem: ItemDelegate {
+    property ItemDelegate editBottomSheetItem: ItemDelegateMaterial {
         width: bottomSheetItems.width
         text: qsTr("Edit")
+        iconItem.source: "images/ic_mode_edit_white_24dp.png"
         onClicked: {
             timeLogView.itemEdit()
             timeLogView.closeBottomSheet()
         }
     }
-    property ItemDelegate insertBeforeBottomSheetItem: ItemDelegate {
+    property ItemDelegate insertBeforeBottomSheetItem: ItemDelegateMaterial {
         width: bottomSheetItems.width
         text: qsTr("Insert before")
+        iconItem.source: "images/ic_subdirectory_arrow_right_white_24dp.png"
+        iconItem.transform: Scale {
+            yScale: -1
+            origin.y: 12
+        }
         onClicked: {
             timeLogView.itemInsertBefore()
             timeLogView.closeBottomSheet()
         }
     }
-    property ItemDelegate insertAfterBottomSheetItem: ItemDelegate {
+    property ItemDelegate insertAfterBottomSheetItem: ItemDelegateMaterial {
         width: bottomSheetItems.width
         text: qsTr("Insert after")
+        iconItem.source: "images/ic_subdirectory_arrow_right_white_24dp.png"
         onClicked: {
             timeLogView.itemInsertAfter()
             timeLogView.closeBottomSheet()
         }
     }
-    property ItemDelegate removeBottomSheetItem: ItemDelegate {
+    property ItemDelegate removeBottomSheetItem: ItemDelegateMaterial {
+        id: control
         width: bottomSheetItems.width
         text: qsTr("Remove")
+        iconItem.source: "images/ic_delete_white_24dp.png"
         onClicked: {
             timeLogView.itemRemove()
             timeLogView.closeBottomSheet()

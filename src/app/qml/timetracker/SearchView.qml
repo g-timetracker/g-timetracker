@@ -40,9 +40,10 @@ Item {
                 text: qsTr("Show in history")
                 onTriggered: timeLogView.showHistory()
             }
-            property ItemDelegate showHistoryBottomSheetItem: ItemDelegate {
+            property ItemDelegate showHistoryBottomSheetItem: ItemDelegateMaterial {
                 width: timeLogView.width
                 text: qsTr("Show in history")
+                iconItem.source: "images/ic_history_white_24dp.png"
                 onClicked: {
                     timeLogView.showHistory()
                     timeLogView.closeBottomSheet()

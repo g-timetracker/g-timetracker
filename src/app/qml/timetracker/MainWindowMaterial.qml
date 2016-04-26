@@ -152,75 +152,83 @@ ApplicationWindow {
                 anchors.right: parent.right
                 spacing: 0
 
-                ItemDelegate {
+                ItemDelegateMaterial {
                     Layout.fillWidth: true
                     Layout.minimumWidth: implicitWidth
                     text: qsTranslate("main window", "Recent")
+                    iconItem.source: "images/ic_today_white_24dp.png"
                     onClicked: {
                         drawer.close()
                         mainWindow.showRecent()
                     }
                 }
-                ItemDelegate {
+                ItemDelegateMaterial {
                     Layout.fillWidth: true
                     Layout.minimumWidth: implicitWidth
                     text: qsTranslate("main window", "Search")
+                    iconItem.source: "images/ic_search_white_24dp.png"
                     onClicked: {
                         drawer.close()
                         mainWindow.showSearch()
                     }
                 }
-                ItemDelegate {
+                ItemDelegateMaterial {
                     Layout.fillWidth: true
                     Layout.minimumWidth: implicitWidth
                     text: qsTranslate("main window", "Statistics")
+                    iconItem.source: "images/ic_show_chart_white_24dp.png"
                     onClicked: {
                         drawer.close()
                         mainWindow.showStats()
                     }
                 }
-                ItemDelegate {
+                ItemDelegateMaterial {
                     Layout.fillWidth: true
                     Layout.minimumWidth: implicitWidth
                     text: qsTranslate("main window", "Categories")
+                    iconItem.source: "images/ic_folder_white_24dp.png"
                     onClicked: {
                         drawer.close()
                         mainWindow.showCategories()
                     }
                 }
-                ItemDelegate {
+                ItemDelegateMaterial {
                     Layout.fillWidth: true
                     Layout.minimumWidth: implicitWidth
                     text: qsTranslate("main window", "History")
+                    iconItem.source: "images/ic_history_white_24dp.png"
                     onClicked: {
                         drawer.close()
                         mainWindow.showHistory()
                     }
                 }
-                ItemDelegate {
+                ItemDelegateMaterial {
                     Layout.fillWidth: true
                     Layout.minimumWidth: implicitWidth
                     text: qsTranslate("main window", "Sync")
+                    iconItem.source: "images/ic_sync_white_24dp.png"
                     onClicked: {
                         drawer.close()
                         TimeTracker.syncer.notifyNextSync = true
                         TimeTracker.syncer.sync(Settings.syncPath)
                     }
                 }
-                ItemDelegate {
+                ItemDelegateMaterial {
                     Layout.fillWidth: true
                     Layout.minimumWidth: implicitWidth
                     text: qsTranslate("main window", "Undo")
+                    iconItem.source: "images/ic_undo_white_24dp.png"
                     enabled: TimeTracker.undoCount
                     onClicked: {
                         drawer.close()
                         TimeTracker.undo()
                     }
                 }
-                ItemDelegate {
+                ItemDelegateMaterial {
                     Layout.fillWidth: true
                     Layout.minimumWidth: implicitWidth
                     text: qsTranslate("main window", "Settings")
+                    iconItem.source: "images/ic_settings_white_24dp.png"
                     onClicked: {
                         drawer.close()
                         mainWindow.showSettings()

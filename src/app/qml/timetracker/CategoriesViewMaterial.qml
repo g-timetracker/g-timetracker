@@ -191,36 +191,40 @@ Item {
             width: parent.width
             y: 8
 
-            ItemDelegate {
+            ItemDelegateMaterial {
                 width: parent.width
                 text: qsTranslate("categories view", "Edit")
+                iconItem.source: "images/ic_mode_edit_white_24dp.png"
                 enabled: d.isEditEnabled
                 onClicked: {
                     d.edit()
                     bottomSheet.close()
                 }
             }
-            ItemDelegate {
+            ItemDelegateMaterial {
                 width: parent.width
                 text: qsTranslate("categories view", "Remove")
+                iconItem.source: "images/ic_delete_white_24dp.png"
                 enabled: d.isRemoveEnabled
                 onClicked: {
                     d.remove()
                     bottomSheet.close()
                 }
             }
-            ItemDelegate {
+            ItemDelegateMaterial {
                 width: parent.width
                 text: qsTranslate("categories view", "Show entries")
+                iconItem.source: "images/ic_search_white_24dp.png"
                 enabled: d.isShowEntriesEnabled
                 onClicked: {
                     d.showEntries()
                     bottomSheet.close()
                 }
             }
-            ItemDelegate {
+            ItemDelegateMaterial {
                 width: parent.width
                 text: qsTranslate("categories view", "Show statistics")
+                iconItem.source: "images/ic_show_chart_white_24dp.png"
                 enabled: d.isShowStatsEnabled
                 onClicked: {
                     d.showStats()
