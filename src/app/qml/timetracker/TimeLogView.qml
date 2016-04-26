@@ -26,7 +26,7 @@ Item {
         onTriggered: timeLogView.itemInsertAfter()
     }
     property MenuItem removeMenuItem: MenuItem {
-        text: qsTr("Remove")
+        text: qsTr("Delete")
         onTriggered: timeLogView.itemRemove()
     }
 
@@ -65,7 +65,7 @@ Item {
     property ItemDelegate removeBottomSheetItem: ItemDelegateMaterial {
         id: control
         width: bottomSheetItems.width
-        text: qsTr("Remove")
+        text: qsTr("Delete")
         iconItem.source: "images/ic_delete_white_24dp.png"
         onClicked: {
             timeLogView.itemRemove()

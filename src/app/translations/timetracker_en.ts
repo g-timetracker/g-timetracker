@@ -465,14 +465,14 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/timetracker/RecentViewDesktop.qml" line="39"/>
-        <source>Add</source>
+        <location filename="../qml/timetracker/TimeLogView.qml" line="28"/>
+        <location filename="../qml/timetracker/TimeLogView.qml" line="67"/>
+        <source>Delete</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/timetracker/TimeLogView.qml" line="28"/>
-        <location filename="../qml/timetracker/TimeLogView.qml" line="67"/>
-        <source>Remove</source>
+        <location filename="../qml/timetracker/RecentViewDesktop.qml" line="41"/>
+        <source>Add</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -499,7 +499,7 @@
     <message>
         <location filename="../qml/timetracker/CategoriesViewDesktop.qml" line="50"/>
         <location filename="../qml/timetracker/CategoriesViewMaterial.qml" line="75"/>
-        <source>Remove this category?</source>
+        <source>Delete this category?</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -507,7 +507,7 @@
         <location filename="../qml/timetracker/CategoriesViewDesktop.qml" line="144"/>
         <location filename="../qml/timetracker/CategoriesViewMaterial.qml" line="107"/>
         <location filename="../qml/timetracker/CategoriesViewMaterial.qml" line="224"/>
-        <source>Remove</source>
+        <source>Delete</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -730,7 +730,7 @@
     </message>
     <message>
         <location filename="../qml/timetracker/RemoveConfirmationDialogMaterial.qml" line="2"/>
-        <source>Remove</source>
+        <source>Delete</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -927,11 +927,6 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/timetracker/RemoveConfirmationDialogDesktop.qml" line="6"/>
-        <source>Remove confirmation</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
         <location filename="../qml/timetracker/HistoryView.qml" line="8"/>
         <location filename="../qml/timetracker/MainWindowDesktop.qml" line="81"/>
         <location filename="../qml/timetracker/MainWindowMaterial.qml" line="183"/>
@@ -995,6 +990,11 @@
         <location filename="../qml/timetracker/RecentViewDesktop.qml" line="6"/>
         <location filename="../qml/timetracker/RecentViewMaterial.qml" line="7"/>
         <source>Recent</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../qml/timetracker/RemoveConfirmationDialogDesktop.qml" line="6"/>
+        <source>Delete confirmation</source>
         <translation type="unfinished"></translation>
     </message>
 </context>

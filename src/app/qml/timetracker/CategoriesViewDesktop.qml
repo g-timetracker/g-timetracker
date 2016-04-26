@@ -45,7 +45,7 @@ Item {
     RemoveConfirmationDialog {
         id: removeConfirmationDialog
 
-        text: qsTranslate("categories view", "Remove this category?")
+        text: qsTranslate("categories view", "Delete this category?")
 
         onAccepted: categoryModel.removeItem(treeView.selection.currentIndex)
     }
@@ -60,7 +60,7 @@ Item {
         }
 
         MenuItem {
-            text: qsTranslate("categories view", "Remove")
+            text: qsTranslate("categories view", "Delete")
             enabled: d.isRemoveEnabled
             onTriggered: d.remove()
         }
@@ -139,7 +139,7 @@ Item {
             PushButton {
                 anchors.verticalCenter: parent.verticalCenter
                 enabled: d.isRemoveEnabled
-                text: qsTranslate("categories view", "Remove")
+                text: qsTranslate("categories view", "Delete")
                 onClicked: d.remove()
             }
             PushButton {

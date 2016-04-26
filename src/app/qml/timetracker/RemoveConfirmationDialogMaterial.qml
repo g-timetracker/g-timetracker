@@ -1,3 +1,3 @@
 MessageDialogMaterial {
-    affirmativeText: qsTranslate("dialog", "Remove")
+    affirmativeText: qsTranslate("dialog", "Delete")
 }

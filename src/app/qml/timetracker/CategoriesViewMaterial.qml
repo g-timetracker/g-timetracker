@@ -70,7 +70,7 @@ Item {
     RemoveConfirmationDialog {
         id: removeConfirmationDialog
 
-        text: qsTranslate("categories view", "Remove this category?")
+        text: qsTranslate("categories view", "Delete this category?")
 
         onAccepted: categoryModel.removeItem(treeView.currentItem.fullName)
         onClosed: treeView.currentIndex = -1
@@ -102,7 +102,7 @@ Item {
             onTriggered: d.create(treeView.currentItem.fullName)
         }
         MenuItem {
-            text: qsTranslate("categories view", "Remove")
+            text: qsTranslate("categories view", "Delete")
             enabled: d.isRemoveEnabled
             onTriggered: d.remove()
         }
@@ -219,7 +219,7 @@ Item {
             }
             ItemDelegateMaterial {
                 width: parent.width
-                text: qsTranslate("categories view", "Remove")
+                text: qsTranslate("categories view", "Delete")
                 iconItem.source: "images/ic_delete_white_24dp.png"
                 enabled: d.isRemoveEnabled
                 onClicked: {

@@ -3,7 +3,7 @@ import QtQuick.Dialogs 1.2
 MessageDialog {
     signal closed()
 
-    title: qsTranslate("main window", "Remove confirmation")
+    title: qsTranslate("main window", "Delete confirmation")
     icon: StandardIcon.Question
     standardButtons: StandardButton.Yes | StandardButton.No
     onYes: accept()
