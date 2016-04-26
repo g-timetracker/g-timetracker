@@ -14,11 +14,12 @@ Item {
         property bool isRemoveEnabled: !!treeView.currentItem
                                        && !treeView.currentItem.hasItems
         property bool isEditEnabled: !!treeView.currentItem
+        property bool isAddSubcategoryEnabled: !!treeView.currentItem
         property bool isShowEntriesEnabled: !!treeView.currentItem
         property bool isShowStatsEnabled: !!treeView.currentItem
 
-        function create() {
-            newDialog.setData()
+        function create(parentName) {
+            newDialog.setData(parentName ? parentName + " > " : "")
             TimeTracker.showDialogRequested(newDialog)
         }
 
@@ -94,6 +95,11 @@ Item {
             text: qsTranslate("categories view", "Edit")
             enabled: d.isEditEnabled
             onTriggered: d.edit()
+        }
+        MenuItem {
+            text: qsTranslate("categories view", "Add subcategory")
+            enabled: d.isAddSubcategoryEnabled
+            onTriggered: d.create(treeView.currentItem.fullName)
         }
         MenuItem {
             text: qsTranslate("categories view", "Remove")
@@ -198,6 +204,16 @@ Item {
                 enabled: d.isEditEnabled
                 onClicked: {
                     d.edit()
+                    bottomSheet.close()
+                }
+            }
+            ItemDelegateMaterial {
+                width: parent.width
+                text: qsTranslate("categories view", "Add subcategory")
+                iconItem.source: "images/ic_add_white_24dp.png"
+                enabled: d.isAddSubcategoryEnabled
+                onClicked: {
+                    d.create(treeView.currentItem.fullName)
                     bottomSheet.close()
                 }
             }

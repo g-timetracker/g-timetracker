@@ -16,8 +16,8 @@ Page {
         return (!!editor.categoryName || !!editor.categoryComment)
     }
 
-    function setData() {
-        editor.categoryName = ""
+    function setData(name) {
+        editor.categoryName = name ? name : ""
         editor.categoryComment = ""
     }
 
