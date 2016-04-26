@@ -170,5 +170,9 @@
         <file>qml/timetracker/images/ic_folder_white_24dp@2x.png</file>
         <file>qml/timetracker/images/ic_folder_white_24dp@3x.png</file>
         <file>qml/timetracker/images/ic_folder_white_24dp@4x.png</file>
+        <file>qml/timetracker/images/ic_create_new_folder_white_24dp.png</file>
+        <file>qml/timetracker/images/ic_create_new_folder_white_24dp@2x.png</file>
+        <file>qml/timetracker/images/ic_create_new_folder_white_24dp@3x.png</file>
+        <file>qml/timetracker/images/ic_create_new_folder_white_24dp@4x.png</file>
     </qresource>
 </RCC>

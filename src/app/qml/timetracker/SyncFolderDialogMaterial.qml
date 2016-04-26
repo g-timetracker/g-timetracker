@@ -115,7 +115,7 @@ Page {
     }
 
     FloatingActionButton {
-        iconSource: "images/ic_add_white_24dp.png"
+        iconSource: "images/ic_create_new_folder_white_24dp.png"
 
         anchors.right: parent.right
         anchors.bottom: parent.bottom
