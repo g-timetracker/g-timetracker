@@ -402,8 +402,7 @@ ApplicationWindow {
         Page {
             id: recentPage
 
-            property alias title: recentView.title
-
+            title: recentView.title
             objectName: "recentPage"
 
             header: Loader {

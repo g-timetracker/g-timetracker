@@ -10,8 +10,6 @@ Page {
 
     property bool isModified: checkIsModified()
 
-    property string title: qsTr("Edit entry")
-
     property var delegateItem   // TODO: change to TimeLogDelegate when fixed in Qt
 
     function checkIsModified() {
@@ -60,6 +58,7 @@ Page {
 
     signal error(string errorText)
 
+    title: qsTr("Edit entry")
     visible: false
 
     header: ToolBar {

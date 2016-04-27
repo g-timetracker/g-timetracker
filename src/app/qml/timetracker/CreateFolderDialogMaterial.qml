@@ -10,8 +10,6 @@ Page {
 
     property bool isModified: !!field.text
 
-    property string title: qsTranslate("dialog", "Create directory")
-
     property string path
 
     function open() {
@@ -31,6 +29,7 @@ Page {
         TimeTracker.backRequested()
     }
 
+    title: qsTranslate("dialog", "Create directory")
     visible: false
 
     header: ToolBar {

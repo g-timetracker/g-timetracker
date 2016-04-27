@@ -10,8 +10,6 @@ Page {
 
     property bool isModified: checkIsModified()
 
-    property string title: qsTr("Edit category")
-
     property var delegateItem   // TODO: change to CategoryDelegate when fixed in Qt
 
     function checkIsModified() {
@@ -60,6 +58,7 @@ Page {
     signal dataAccepted(var newData)
     signal error(string errorText)
 
+    title: qsTr("Edit category")
     visible: false
 
     header: ToolBar {

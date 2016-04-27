@@ -8,12 +8,11 @@ import TimeLog 1.0
 Page {
     id: settingsDialog
 
-    property string title: qsTranslate("settings", "Sync timeout")
-
     function close() {
         TimeTracker.backRequested()
     }
 
+    title: qsTranslate("settings", "Sync timeout")
     visible: false
 
     header: ToolBar {

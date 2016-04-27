@@ -8,8 +8,6 @@ import TimeLog 1.0
 Page {
     id: dialog
 
-    property string title: qsTranslate("settings", "Sync folder")
-
     property alias folder: folderModel.folder
 
     function open() {
@@ -28,6 +26,7 @@ Page {
 
     signal accepted()
 
+    title: qsTranslate("settings", "Sync folder")
     visible: false
 
     header: ToolBar {

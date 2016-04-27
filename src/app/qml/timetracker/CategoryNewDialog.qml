@@ -10,8 +10,6 @@ Page {
 
     property bool isModified: checkIsModified()
 
-    property string title: qsTr("New category")
-
     function checkIsModified() {
         return (!!editor.categoryName || !!editor.categoryComment)
     }
@@ -43,6 +41,7 @@ Page {
     signal dataAccepted(var newData)
     signal error(string errorText)
 
+    title: qsTr("New category")
     visible: false
 
     header: ToolBar {

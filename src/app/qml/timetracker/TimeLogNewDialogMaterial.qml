@@ -10,8 +10,6 @@ Page {
 
     property bool isModified: checkIsModified()
 
-    property string title: qsTr("New entry")
-
     property alias startTimeAfter: delegateEditor.startTimeAfter
     property alias startTimeBefore: delegateEditor.startTimeBefore
     property int indexBefore
@@ -48,6 +46,7 @@ Page {
     signal dataAccepted(var newData)
     signal error(string errorText)
 
+    title: qsTr("New entry")
     visible: false
 
     header: ToolBar {
