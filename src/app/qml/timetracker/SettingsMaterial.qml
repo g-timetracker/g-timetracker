@@ -52,8 +52,8 @@ Item {
                 width: parent.width
                 isLastItem: Positioner.isLastItem
                 text: qsTranslate("settings", "Sync folder")
-                additionalText: !!Settings.syncPath.toString() ? (Settings.syncPath.toString().replace(/file:\/\//, ""))
-                                                               : qsTranslate("settings", "Not set")
+                additionalText: TimeTracker.syncer.syncPath.toString().replace(/file:\/\//, "")
+                                || qsTranslate("settings", "Not set")
 
                 onClicked: syncPathDialog.open()
             }
