@@ -14,6 +14,10 @@ Item {
         TimeTracker.backRequested()
     }
 
+    function openSyncFolderDialog() {
+        syncPathDialog.open()
+    }
+
     Flickable {
         anchors.bottomMargin: Qt.inputMethod.keyboardRectangle.height / Screen.devicePixelRatio
         anchors.fill: parent

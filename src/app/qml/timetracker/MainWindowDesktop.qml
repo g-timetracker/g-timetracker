@@ -88,8 +88,12 @@ ApplicationWindow {
             MenuItem {
                 text: qsTranslate("main window", "Sync")
                 onTriggered: {
-                    TimeTracker.syncer.notifyNextSync = true
-                    TimeTracker.syncer.sync()
+                    if (!TimeTracker.syncer.syncPath.toString()) {
+                        mainWindow.changeSyncPath()
+                    } else {
+                        TimeTracker.syncer.notifyNextSync = true
+                        TimeTracker.syncer.sync()
+                    }
                 }
             }
             MenuItem {

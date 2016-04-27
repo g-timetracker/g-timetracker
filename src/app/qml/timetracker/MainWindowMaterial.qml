@@ -209,8 +209,31 @@ ApplicationWindow {
                     iconItem.source: "images/ic_sync_white_24dp.png"
                     onClicked: {
                         drawer.close()
-                        TimeTracker.syncer.notifyNextSync = true
-                        TimeTracker.syncer.sync(Settings.syncPath)
+
+                        if (!TimeTracker.syncer.syncPath.toString()) {
+                            if (Qt.platform.os === "android") {
+                                mainView.pushPages(
+                                            [
+                                                {
+                                                    "sourceName": "SettingsMaterial.qml",
+                                                    "wrapToPage": true
+                                                },
+                                                {
+                                                    "sourceName": "SyncFolderDialogMaterial.qml",
+                                                    "wrapToPage": false,
+                                                    "parameters": {
+                                                        "folder": TimeTracker.documentsLocation()
+                                                    }
+                                                }
+                                            ])
+                            } else {
+                                mainWindow.showSettings()
+                                stackView.currentItem.content.openSyncFolderDialog()
+                            }
+                        } else {
+                            TimeTracker.syncer.notifyNextSync = true
+                            TimeTracker.syncer.sync(Settings.syncPath)
+                        }
                     }
                 }
                 ItemDelegateMaterial {
@@ -308,12 +331,41 @@ ApplicationWindow {
     Item {
         id: mainView
 
-        function pushPage(sourceName, parameters) {
-            var page = stackView.push(Qt.resolvedUrl("PageMaterial.qml"),
-                                      { "source": sourceName, "toolBar": mainToolBar })
-            for (var key in parameters) {
-                page.content[key] = parameters[key]
+        function pushPages(pages) {
+            var stackPages = []
+            for (var i = 0; i < pages.length; i++) {
+                if (pages[i]["wrapToPage"] === true) {
+                    stackPages.push(Qt.resolvedUrl("PageMaterial.qml"))
+                    stackPages.push({ "source": pages[i]["sourceName"], "toolBar": mainToolBar })
+                } else {
+                    stackPages.push(Qt.resolvedUrl(pages[i]["sourceName"]))
+                    stackPages.push(pages[i]["parameters"] || {})
+                }
             }
+
+            stackView.push(stackPages)
+
+            for (var j = pages.length - 1; j >= 0; j--) {
+                if (!pages[j]["parameters"]) {
+                    continue
+                }
+
+                var page = stackView.get(stackView.depth - 1 - (pages.length - 1 - j), StackView.ForceLoad)
+                var parameters = pages[j]["parameters"]
+                if (pages[j]["wrapToPage"] === true) {
+                    for (var key in parameters) {
+                        page.content[key] = parameters[key]
+                    }
+                }
+            }
+        }
+
+        function pushPage(sourceName, parameters) {
+            pushPages([{
+                           "sourceName": sourceName,
+                           "parameters": parameters,
+                           "wrapToPage": true
+                      }])
         }
 
         function switchToPage(pageName, sourceName, parameters) {
