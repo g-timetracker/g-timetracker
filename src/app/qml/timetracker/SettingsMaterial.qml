@@ -99,8 +99,6 @@ Item {
         id: syncPathDialog
 
         folder: !!Settings.syncPath.toString() ? Settings.syncPath : TimeTracker.documentsLocation()
-
-        onAccepted: Settings.syncPath = folder
     }
 
     SettingsSyncCacheSize {
