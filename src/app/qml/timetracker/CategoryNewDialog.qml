@@ -44,42 +44,21 @@ Page {
     title: qsTr("New category")
     visible: false
 
-    header: ToolBar {
-        RowLayout {
-            anchors.fill: parent
+    header: ToolBarMaterial {
+        title: dialog.title
+        leftIcon: dialog.isModified ? "images/ic_close_white_24dp.png"
+                                    : "images/ic_arrow_back_white_24dp.png"
+        rightText: qsTr("Create")
+        rightEnabled: dialog.isModified && editor.acceptable
 
-            ToolButton {
-                text: dialog.isModified ? "discard" : "back"
-                contentItem: Image {
-                    fillMode: Image.Pad
-                    source: dialog.isModified ? "images/ic_close_white_24dp.png"
-                                              : "images/ic_arrow_back_white_24dp.png"
-                }
-
-                onClicked: {
-                    if (dialog.isModified && Settings.isConfirmationsEnabled) {
-                        discardConfirmationDialog.open()
-                    } else {
-                        dialog.reject()
-                    }
-                }
-            }
-
-            LabelControl {
-                Layout.fillWidth: true
-                Material.theme: Material.Dark
-                font.pixelSize: 20
-                text: title
-            }
-
-            ToolButton {
-                enabled: dialog.isModified && editor.acceptable
-                Material.theme: Material.Dark
-                font.pixelSize: 14
-                text: qsTr("Create")
-                onClicked: dialog.accept()
+        onLeftActivated: {
+            if (dialog.isModified && Settings.isConfirmationsEnabled) {
+                discardConfirmationDialog.open()
+            } else {
+                dialog.reject()
             }
         }
+        onRightActivated: dialog.accept()
     }
 
     MessageDialogMaterial {

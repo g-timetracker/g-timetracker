@@ -32,35 +32,14 @@ Page {
     title: qsTranslate("dialog", "Create directory")
     visible: false
 
-    header: ToolBar {
-        RowLayout {
-            anchors.fill: parent
+    header: ToolBarMaterial {
+        title: dialog.title
+        leftIcon: "images/ic_arrow_back_white_24dp.png"
+        rightText: qsTranslate("dialog", "Create")
+        rightEnabled: dialog.isModified
 
-            ToolButton {
-                text: "back"
-                contentItem: Image {
-                    fillMode: Image.Pad
-                    source: "images/ic_arrow_back_white_24dp.png"
-                }
-
-                onClicked: dialog.close()
-            }
-
-            LabelControl {
-                Layout.fillWidth: true
-                Material.theme: Material.Dark
-                font.pixelSize: 20
-                text: title
-            }
-
-            ToolButton {
-                enabled: dialog.isModified
-                Material.theme: Material.Dark
-                font.pixelSize: 14
-                text: qsTranslate("dialog", "Create")
-                onClicked: dialog.accept()
-            }
-        }
+        onLeftActivated: dialog.close()
+        onRightActivated: dialog.accept()
     }
 
     Flickable {

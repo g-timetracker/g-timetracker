@@ -29,52 +29,24 @@ Page {
     title: qsTranslate("settings", "Sync folder")
     visible: false
 
-    header: ToolBar {
+    header: ToolBarMaterial {
         height: 48 * 2
-        ColumnLayout {
-            anchors.fill: parent
-            spacing: 0
+        title: dialog.title
+        rightText: qsTranslate("dialog", "Select")
 
-            RowLayout {
-                Layout.fillHeight: true
-                Layout.fillWidth: true
-
-                ToolButton {
-                    text: "back"
-                    contentItem: Image {
-                        fillMode: Image.Pad
-                        source: "images/ic_arrow_back_white_24dp.png"
-                    }
-
-                    onClicked: dialog.close()
-                }
-
-                LabelControl {
-                    Layout.fillWidth: true
-                    Material.theme: Material.Dark
-                    font.pixelSize: 20
-                    text: title
-                }
-
-                ToolButton {
-                    Material.theme: Material.Dark
-                    font.pixelSize: 14
-                    text: qsTranslate("dialog", "Select")
-                    onClicked: dialog.accept()
-                }
-            }
+        onLeftActivated: dialog.close()
+        onRightActivated: dialog.accept()
 
             Label {
-                Layout.fillWidth: true
-                Layout.fillHeight: true
-                Material.theme: Material.Dark
-                leftPadding: 52 // TODO: 72
-                rightPadding: 16
-                verticalAlignment: Text.AlignVCenter
-                font.pixelSize: 20
-                elide: Text.ElideLeft
-                text: folderModel.path
-            }
+            width: parent.width
+            height: 48
+            y: parent.height - height
+            leftPadding: 72
+            rightPadding: 16
+            verticalAlignment: Text.AlignVCenter
+            font.pixelSize: 20
+            elide: Text.ElideLeft
+            text: folderModel.path
         }
     }
 

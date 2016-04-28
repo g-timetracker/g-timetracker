@@ -6,7 +6,7 @@ import QtQuick.Controls.Material 2.0
 import TimeLog 1.0
 
 Page {
-    id: settingsDialog
+    id: dialog
 
     function close() {
         TimeTracker.backRequested()
@@ -15,27 +15,10 @@ Page {
     title: qsTranslate("settings", "Sync cache size")
     visible: false
 
-    header: ToolBar {
-        RowLayout {
-            anchors.fill: parent
+    header: ToolBarMaterial {
+        title: dialog.title
 
-            ToolButton {
-                text: "back"
-                contentItem: Image {
-                    fillMode: Image.Pad
-                    source: "images/ic_arrow_back_white_24dp.png"
-                }
-
-                onClicked: settingsDialog.close()
-            }
-
-            LabelControl {
-                Layout.fillWidth: true
-                Material.theme: Material.Dark
-                font.pixelSize: 20
-                text: title
-            }
-        }
+        onLeftActivated: dialog.close()
     }
 
     Flickable {
@@ -50,7 +33,7 @@ Page {
         Item {
             id: settingsItem
 
-            width: settingsDialog.width
+            width: dialog.width
             implicitHeight: container.height + container.anchors.margins * 2
 
             Column {

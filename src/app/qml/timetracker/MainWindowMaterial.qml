@@ -18,48 +18,16 @@ ApplicationWindow {
     Component {
         id: mainToolBar
 
-        ToolBar {
-            RowLayout {
-                anchors.fill: parent
+        ToolBarMaterial {
+            title: stackView.currentItem.title || ""
+            leftIcon: stackView.depth <= 1 ? "images/ic_menu_white_24dp.png"
+                                           : "images/ic_arrow_back_white_24dp.png"
 
-                Loader {
-                    sourceComponent: stackView.depth > 1 ? backButtonComponent : menuButtonComponent
-
-                    Component {
-                        id: menuButtonComponent
-
-                        ToolButton {
-                            text: "menu"
-                            contentItem: Image {
-                                fillMode: Image.Pad
-                                source: "images/ic_menu_white_24dp.png"
-                            }
-
-                            onClicked: drawer.open()
-                        }
-                    }
-
-                    Component {
-                        id: backButtonComponent
-
-                        ToolButton {
-                            text: "back"
-                            contentItem: Image {
-                                fillMode: Image.Pad
-                                source: "images/ic_arrow_back_white_24dp.png"
-                            }
-
-                            onClicked: mainWindow.back()
-                        }
-                    }
-                }
-
-                LabelControl {
-                    Layout.fillWidth: true
-                    Material.theme: Material.Dark
-                    font.pixelSize: 20
-                    opacity: 1
-                    text: stackView.currentItem.title ? stackView.currentItem.title : ""
+            onLeftActivated: {
+                if (stackView.depth <= 1) {
+                    drawer.open()
+                } else {
+                    mainWindow.back()
                 }
             }
 

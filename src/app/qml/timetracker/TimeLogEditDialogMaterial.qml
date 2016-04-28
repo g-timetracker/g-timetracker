@@ -6,7 +6,7 @@ import QtQuick.Controls.Material 2.0
 import TimeLog 1.0
 
 Page {
-    id: editDialog
+    id: dialog
 
     property bool isModified: checkIsModified()
 
@@ -34,10 +34,10 @@ Page {
     }
 
     function accept() {
-        editDialog.close()
+        dialog.close()
 
         if (!delegateEditor.acceptable) {
-            editDialog.error("Empty category")
+            dialog.error("Empty category")
             return
         }
 
@@ -47,7 +47,7 @@ Page {
     }
 
     function reject() {
-        editDialog.close()
+        dialog.close()
 
         delegateItem = null
     }
@@ -61,42 +61,21 @@ Page {
     title: qsTr("Edit entry")
     visible: false
 
-    header: ToolBar {
-        RowLayout {
-            anchors.fill: parent
+    header: ToolBarMaterial {
+        title: dialog.title
+        leftIcon: dialog.isModified ? "images/ic_close_white_24dp.png"
+                                    : "images/ic_arrow_back_white_24dp.png"
+        rightText: qsTr("Save")
+        rightEnabled: dialog.isModified && delegateEditor.acceptable
 
-            ToolButton {
-                text: editDialog.isModified ? "discard" : "back"
-                contentItem: Image {
-                    fillMode: Image.Pad
-                    source: editDialog.isModified ? "images/ic_close_white_24dp.png"
-                                                  : "images/ic_arrow_back_white_24dp.png"
-                }
-
-                onClicked: {
-                    if (editDialog.isModified && Settings.isConfirmationsEnabled) {
-                        discardConfirmationDialog.open()
-                    } else {
-                        editDialog.reject()
-                    }
-                }
-            }
-
-            LabelControl {
-                Layout.fillWidth: true
-                Material.theme: Material.Dark
-                font.pixelSize: 20
-                text: title
-            }
-
-            ToolButton {
-                enabled: editDialog.isModified && delegateEditor.acceptable
-                Material.theme: Material.Dark
-                font.pixelSize: 14
-                text: qsTr("Save")
-                onClicked: editDialog.accept()
+        onLeftActivated: {
+            if (dialog.isModified && Settings.isConfirmationsEnabled) {
+                discardConfirmationDialog.open()
+            } else {
+                dialog.reject()
             }
         }
+        onRightActivated: dialog.accept()
     }
 
     MessageDialogMaterial {
@@ -105,7 +84,7 @@ Page {
         text: qsTr("Discard entry changes?")
         affirmativeText: qsTranslate("dialog", "Discard")
 
-        onAccepted: editDialog.reject()
+        onAccepted: dialog.reject()
     }
 
     Flickable {
@@ -120,7 +99,7 @@ Page {
         TimeLogEntryEditor {
             id: delegateEditor
 
-            width: editDialog.width
+            width: dialog.width
         }
     }
 }

@@ -6,7 +6,7 @@ import QtQuick.Controls.Material 2.0
 import TimeLog 1.0
 
 Page {
-    id: newDialog
+    id: dialog
 
     property bool isModified: checkIsModified()
 
@@ -16,27 +16,27 @@ Page {
 
     function checkIsModified() {
         return (!!delegateEditor.category
-                || delegateEditor.startTime.valueOf() !== newDialog.startTimeBefore.valueOf() - 1000
+                || delegateEditor.startTime.valueOf() !== dialog.startTimeBefore.valueOf() - 1000
                 || !!delegateEditor.comment)
     }
 
     function setData(indexBefore, timeAfter, timeBefore) {
-        newDialog.indexBefore = indexBefore
-        newDialog.startTimeAfter = timeAfter
-        newDialog.startTimeBefore = timeBefore
+        dialog.indexBefore = indexBefore
+        dialog.startTimeAfter = timeAfter
+        dialog.startTimeBefore = timeBefore
     }
 
     function accept() {
-        newDialog.close()
+        dialog.close()
 
         if (!delegateEditor.acceptable) {
-            newDialog.error("Empty category")
+            dialog.error("Empty category")
             return
         }
 
-        newDialog.dataAccepted(TimeTracker.createTimeLogData(delegateEditor.startTime,
-                                                             delegateEditor.category,
-                                                             delegateEditor.comment))
+        dialog.dataAccepted(TimeTracker.createTimeLogData(delegateEditor.startTime,
+                                                          delegateEditor.category,
+                                                          delegateEditor.comment))
     }
 
     function close() {
@@ -49,42 +49,21 @@ Page {
     title: qsTr("New entry")
     visible: false
 
-    header: ToolBar {
-        RowLayout {
-            anchors.fill: parent
+    header: ToolBarMaterial {
+        title: dialog.title
+        leftIcon: dialog.isModified ? "images/ic_close_white_24dp.png"
+                                    : "images/ic_arrow_back_white_24dp.png"
+        rightText: qsTr("Create")
+        rightEnabled: dialog.isModified && delegateEditor.acceptable
 
-            ToolButton {
-                text: newDialog.isModified ? "discard" : "back"
-                contentItem: Image {
-                    fillMode: Image.Pad
-                    source: newDialog.isModified ? "images/ic_close_white_24dp.png"
-                                                 : "images/ic_arrow_back_white_24dp.png"
-                }
-
-                onClicked: {
-                    if (newDialog.isModified && Settings.isConfirmationsEnabled) {
-                        discardConfirmationDialog.open()
-                    } else {
-                        newDialog.close()
-                    }
-                }
-            }
-
-            LabelControl {
-                Layout.fillWidth: true
-                Material.theme: Material.Dark
-                font.pixelSize: 20
-                text: title
-            }
-
-            ToolButton {
-                enabled: newDialog.isModified && delegateEditor.acceptable
-                Material.theme: Material.Dark
-                font.pixelSize: 14
-                text: qsTr("Create")
-                onClicked: newDialog.accept()
+        onLeftActivated: {
+            if (dialog.isModified && Settings.isConfirmationsEnabled) {
+                discardConfirmationDialog.open()
+            } else {
+                dialog.close()
             }
         }
+        onRightActivated: dialog.accept()
     }
 
     MessageDialogMaterial {
@@ -93,7 +72,7 @@ Page {
         text: qsTr("Discard new entry?")
         affirmativeText: qsTranslate("dialog", "Discard")
 
-        onAccepted: newDialog.close()
+        onAccepted: dialog.close()
     }
 
     Flickable {
@@ -108,7 +87,7 @@ Page {
         TimeLogEntryEditor {
             id: delegateEditor
 
-            width: newDialog.width
+            width: dialog.width
         }
     }
 
