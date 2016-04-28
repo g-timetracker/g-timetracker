@@ -1,6 +1,7 @@
 #include <QCoreApplication>
 #include <QStandardPaths>
 #include <QDir>
+#include <QVector>
 
 #include "TimeTracker.h"
 #include "TimeLogHistory.h"
