@@ -1,6 +1,7 @@
 import QtQuick.Controls 2.0
+import QtQuick.Controls.Material 2.0
 
 Label {
     font.pixelSize: 12
-    opacity: 0.6
+    color: Material.hintTextColor
 }
