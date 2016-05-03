@@ -1,11 +1,19 @@
-import QtQuick 2.4
 import QtQuick.Layouts 1.1
+import QtQuick.Controls 2.0
 import TimeLog 1.0
 
-Item {
-    property string title: qsTranslate("main window", "History")
+Page {
+    id: view
+
     property alias beginDate: timeLogFilter.beginDate
     property alias endDate: timeLogFilter.endDate
+
+    title: qsTranslate("main window", "History")
+
+    header: MainToolBarMaterial {
+        title: view.title
+        isBottomItem: view.StackView.index === 0
+    }
 
     TimeLogSearchModel {
         id: timeLogModel

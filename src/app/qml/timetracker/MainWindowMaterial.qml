@@ -15,39 +15,6 @@ ApplicationWindow {
     Material.primary: Material.BlueGrey
     Material.accent: Material.Cyan
 
-    Component {
-        id: mainToolBar
-
-        ToolBarMaterial {
-            title: stackView.currentItem.title || ""
-            leftIcon: stackView.depth <= 1 ? "images/ic_menu_white_24dp.png"
-                                           : "images/ic_arrow_back_white_24dp.png"
-
-            onLeftActivated: {
-                if (stackView.depth <= 1) {
-                    drawer.open()
-                } else {
-                    mainWindow.back()
-                }
-            }
-
-            Rectangle {
-                width: parent.width
-                implicitHeight: progressBar.implicitHeight
-                y: parent.height - height
-                color: "white"
-                visible: TimeTracker.syncer ? TimeTracker.syncer.isRunning : false
-
-                ProgressBar {
-                    id: progressBar
-
-                    width: parent.width
-                    indeterminate: true
-                }
-            }
-        }
-    }
-
     function showRecent() {
         if (stackView.currentItem != recentPage) {
             stackView.replace(null, recentPage)
@@ -184,11 +151,9 @@ ApplicationWindow {
                                             [
                                                 {
                                                     "sourceName": "SettingsMaterial.qml",
-                                                    "wrapToPage": true
                                                 },
                                                 {
                                                     "sourceName": "SyncFolderDialogMaterial.qml",
-                                                    "wrapToPage": false,
                                                     "parameters": {
                                                         "folder": TimeTracker.documentsLocation()
                                                     }
@@ -196,7 +161,7 @@ ApplicationWindow {
                                             ])
                             } else {
                                 mainWindow.showSettings()
-                                stackView.currentItem.content.openSyncFolderDialog()
+                                stackView.currentItem.openSyncFolderDialog()
                             }
                         } else {
                             TimeTracker.syncer.notifyNextSync = true
@@ -281,6 +246,7 @@ ApplicationWindow {
         onShowStatsRequested: showStats(category)
         onShowHistoryRequested: showHistory(begin, end)
         onShowDialogRequested: showDialog(dialog)
+        onOpenNavigationDrawerRequested: drawer.open()
         onBackRequested: back()
     }
 
@@ -302,41 +268,21 @@ ApplicationWindow {
         function pushPages(pages) {
             var stackPages = []
             for (var i = 0; i < pages.length; i++) {
-                if (pages[i]["wrapToPage"] === true) {
-                    stackPages.push(Qt.resolvedUrl("PageMaterial.qml"))
-                    stackPages.push({ "source": pages[i]["sourceName"], "toolBar": mainToolBar })
-                } else {
-                    stackPages.push(Qt.resolvedUrl(pages[i]["sourceName"]))
-                    stackPages.push(pages[i]["parameters"] || {})
-                }
+                stackPages.push(Qt.resolvedUrl(pages[i]["sourceName"]))
+                stackPages.push(pages[i]["parameters"] || {})
             }
 
             stackView.push(stackPages)
-
-            for (var j = pages.length - 1; j >= 0; j--) {
-                if (!pages[j]["parameters"]) {
-                    continue
-                }
-
-                var page = stackView.get(stackView.depth - 1 - (pages.length - 1 - j), StackView.ForceLoad)
-                var parameters = pages[j]["parameters"]
-                if (pages[j]["wrapToPage"] === true) {
-                    for (var key in parameters) {
-                        page.content[key] = parameters[key]
-                    }
-                }
-            }
         }
 
         function pushPage(sourceName, parameters) {
             pushPages([{
                            "sourceName": sourceName,
-                           "parameters": parameters,
-                           "wrapToPage": true
+                           "parameters": parameters
                       }])
         }
 
-        function switchToPage(pageName, sourceName, parameters) {
+        function switchToPage(pageName, sourceName) {
             if (stackView.currentItem.objectName === pageName) {
                 return
             }
@@ -344,16 +290,8 @@ ApplicationWindow {
             var page = stackView.find(function (item, index) {
                 return item.objectName === pageName
             })
-            var isPageExists = !!page
-            page = stackView.replace(null, isPageExists ? page : Qt.resolvedUrl("PageMaterial.qml"),
-                                     isPageExists ? {} : { "objectName": pageName,
-                                                           "source": sourceName,
-                                                           "toolBar": mainToolBar })
-            if (!isPageExists) {
-                for (var key in parameters) {
-                    page.content[key] = parameters[key]
-                }
-            }
+            stackView.replace(null, !!page ? page : Qt.resolvedUrl(sourceName),
+                              !!page ? {} : { "objectName": pageName })
         }
 
         anchors.fill: parent
@@ -367,21 +305,10 @@ ApplicationWindow {
             }
         }
 
-        Page {
+        RecentView {
             id: recentPage
 
-            title: recentView.title
             objectName: "recentPage"
-
-            header: Loader {
-                sourceComponent: mainToolBar
-            }
-
-            RecentView {
-                id: recentView
-
-                anchors.fill: parent
-            }
         }
 
         StackView {

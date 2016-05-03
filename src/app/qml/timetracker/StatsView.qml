@@ -1,12 +1,21 @@
 import QtQuick 2.4
 import QtQuick.Window 2.2
 import QtQuick.Layouts 1.1
+import QtQuick.Controls 2.0
 import TimeLog 1.0
 import "ChartColors.js" as ChartColors
 
-Item {
-    property string title: qsTranslate("main window", "Statistics")
+Page {
+    id: view
+
     property alias category: timeLogFilter.category
+
+    title: qsTranslate("main window", "Statistics")
+
+    header: MainToolBarMaterial {
+        title: view.title
+        isBottomItem: view.StackView.index === 0
+    }
 
     Connections {
         target: TimeTracker

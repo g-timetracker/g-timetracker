@@ -5,10 +5,15 @@ import QtQuick.Controls 2.0
 import QtQuick.Controls.Material 2.0
 import TimeLog 1.0
 
-Item {
+Page {
     id: settingsDialog
 
-    property string title: qsTranslate("main window", "Settings")
+    title: qsTranslate("main window", "Settings")
+
+    header: MainToolBarMaterial {
+        title: settingsDialog.title
+        isBottomItem: settingsDialog.StackView.index === 0
+    }
 
     function close() {
         TimeTracker.backRequested()

@@ -5,8 +5,15 @@ import QtQuick.Layouts 1.1
 import QtQml.Models 2.2
 import TimeLog 1.0
 
-Item {
-    property string title: qsTranslate("main window", "Categories")
+Page {
+    id: view
+
+    title: qsTranslate("main window", "Categories")
+
+    header: MainToolBarMaterial {
+        title: view.title
+        isBottomItem: view.StackView.index === 0
+    }
 
     QtObject {
         id: d

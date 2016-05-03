@@ -1,8 +1,23 @@
-import QtQuick 2.4
+import QtQuick 2.6
+import QtQuick.Controls 2.0
 import TimeLog 1.0
 
-Item {
-    property string title: qsTranslate("main window", "Recent")
+Page {
+    id: view
+
+    title: qsTranslate("main window", "Recent")
+
+    header: MainToolBarMaterial {
+        title: view.title
+        isBottomItem: view.StackView.index === 0
+
+        ProgressBar {
+            width: parent.width
+            y: parent.height - height
+            indeterminate: true
+            visible: TimeTracker.syncer ? TimeTracker.syncer.isRunning : false
+        }
+    }
 
     ReverseProxyModel {
         id: timeLogModel

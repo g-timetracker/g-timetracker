@@ -71,7 +71,6 @@
         <file>qml/timetracker/+desktopStyle/Texts.js</file>
         <file>qml/timetracker/PushButton.qml</file>
         <file>qml/timetracker/+desktopStyle/PushButton.qml</file>
-        <file>qml/timetracker/PageMaterial.qml</file>
         <file>qml/timetracker/ComboBoxControl.qml</file>
         <file>qml/timetracker/+desktopStyle/ComboBoxControl.qml</file>
         <file>qml/timetracker/ComboBoxControlDesktop.qml</file>
@@ -176,5 +175,6 @@
         <file>qml/timetracker/images/ic_create_new_folder_white_24dp@4x.png</file>
         <file>qml/timetracker/MenuItemMaterial.qml</file>
         <file>qml/timetracker/ToolBarMaterial.qml</file>
+        <file>qml/timetracker/MainToolBarMaterial.qml</file>
     </qresource>
 </RCC>

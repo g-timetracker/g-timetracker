@@ -62,6 +62,7 @@ signals:
     void showStatsRequested(const QString &category) const;
     void showHistoryRequested(const QDateTime &begin, const QDateTime &end) const;
     void showDialogRequested(QObject *dialog) const;
+    void openNavigationDrawerRequested() const;
     void backRequested() const;
 
 private slots:
