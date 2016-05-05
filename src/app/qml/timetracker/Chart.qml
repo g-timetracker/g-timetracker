@@ -5,7 +5,8 @@ Canvas {
     id: chart
 
     property var chartData
-    property string units
+    property string unitsName
+    property int unitsValue
     property int padding: 10 * Screen.devicePixelRatio
     property color defaultBarColor: "#000000"
     property color axesColor: "#60000000"
@@ -22,6 +23,10 @@ Canvas {
     property int gridCells: 10
     property int maxBarWidth: chart.width / 10
 
+    function updateChart() {
+        requestPaint()
+    }
+
     QtObject {
         id: d
 
@@ -31,7 +36,9 @@ Canvas {
         property var tickPositions: []
         property real labelsWidth
         property real legendWidth
+        property real tickSize
         property real maxValue
+        property real maxNormalized
 
         function _calcNiceNumber(number) {
             var exponent = Math.floor(Math.log(number) * Math.LOG10E)
@@ -53,8 +60,10 @@ Canvas {
         }
 
         function _calcTickValues() {
-            var tickSize = _calcNiceNumber(chartData.max / gridCells)
-            maxValue = Math.ceil(chartData.max / tickSize) * tickSize
+            var unitsMax = chartData.max / unitsValue
+            tickSize = _calcNiceNumber(unitsMax / gridCells)
+            maxNormalized = Math.ceil(unitsMax / tickSize) * tickSize
+            maxValue = maxNormalized * unitsValue
             var res = []
             for (var i = 0; i < gridCells - 1; i++) {
                 res.push(tickSize * (i+1))
@@ -66,7 +75,7 @@ Canvas {
         function _calcTickPositions() {
             var res = []
             for (var i = 0; i < tickValues.length; i++) {
-                res[i] = chartAreaHeight - Math.round(chartAreaHeight * tickValues[i] / maxValue) + padding + gridWidth / 2
+                res[i] = chartAreaHeight - Math.round(chartAreaHeight * tickValues[i] / maxNormalized) + padding + gridWidth / 2
             }
 
             tickPositions = res
@@ -78,10 +87,12 @@ Canvas {
             ctx.textBaseline = "middle"
             var maxLabelWidth = 0
             for (var i = 0; i < tickValues.length; i++) {
-                var labelText = qsTranslate("duration", chart.units || "", "", tickValues[i])
-                // Qt translator can handle plurals only for integers, so replace rounded value
-                labelText = labelText.replace(Math.floor(tickValues[i]),
-                                              tickValues[i].toLocaleString(Qt.locale(), "f", 1))
+                var labelText = qsTranslate("duration", chart.unitsName || "", "", tickValues[i])
+                if (tickSize < 1.0) {
+                    // Qt translator can handle plurals only for integers, so replace rounded value
+                    labelText = labelText.replace(Math.floor(tickValues[i]),
+                                                  tickValues[i].toLocaleString(Qt.locale(), "f", 1))
+                }
                 maxLabelWidth = Math.max(ctx.measureText(labelText).width, maxLabelWidth)
                 ctx.fillText(labelText, padding, tickPositions[i])
             }

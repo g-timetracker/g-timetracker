@@ -17,6 +17,22 @@ Page {
         isBottomItem: view.StackView.index === 0
     }
 
+    function setChartUnits(data) {
+        if (unitSelector.currentIndex === 0) {
+            if (chart.unitsValue === 3600) {
+                return
+            }
+            chart.unitsValue = 3600
+            chart.unitsName = "%n hr"
+        } else {
+            if (chart.unitsValue === data.unitsValue) {
+                return
+            }
+            chart.unitsValue = data.unitsValue
+            chart.unitsName = data.unitsName
+        }
+    }
+
     Connections {
         target: TimeTracker
         onStatsDataAvailable: {
@@ -25,7 +41,7 @@ Page {
                 return
             }
 
-            chart.units = data.units
+            setChartUnits(data)
             ChartColors.addColors(data.data, "color")
             chart.chartData = data
         }
@@ -47,6 +63,31 @@ Page {
             onBeginDateChanged: requestStats()
             onEndDateChanged: requestStats()
             onCategoryChanged: requestStats()
+        }
+
+        LabelControl {
+            text: qsTr("Units")
+        }
+
+        ComboBoxControl {
+            id: unitSelector
+
+            Layout.fillHeight: false
+            Layout.fillWidth: false
+            model: [
+                qsTranslate("duration", "hours"),
+                qsTranslate("duration", "auto")
+            ]
+
+            onCurrentIndexChanged: {
+                if (!chart.chartData) {
+                    return
+                }
+
+                setChartUnits(chart.chartData)
+
+                chart.updateChart()
+            }
         }
 
         Item {

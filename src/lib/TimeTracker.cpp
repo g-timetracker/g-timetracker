@@ -238,14 +238,15 @@ void TimeTracker::statsDataAvailable(QVector<TimeLogStats> data, QDateTime until
         maxValue = max->durationTime;
     }
     unit = calcTimeUnits(maxValue);
-    result.insert("units", timeUnits.at(unit).abbreviated);
-    result.insert("max", static_cast<float>(maxValue) / timeUnits.at(unit).value);
+    result.insert("unitsName", timeUnits.at(unit).abbreviated);
+    result.insert("unitsValue", timeUnits.at(unit).value);
+    result.insert("max", maxValue);
 
     QVariantList dataset;
     foreach (const TimeLogStats &entry, data) {
         QVariantMap map;
         map.insert("label", entry.category);
-        map.insert("value", static_cast<float>(entry.durationTime) / timeUnits.at(unit).value);
+        map.insert("value", entry.durationTime);
         dataset.append(map);
     }
     result.insert("data", dataset);
