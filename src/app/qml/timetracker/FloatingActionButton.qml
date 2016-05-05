@@ -1,7 +1,7 @@
 import QtQuick 2.4
 import QtQuick.Controls 2.0
 import QtQuick.Controls.Material 2.0
-import QtGraphicalEffects 1.0
+import QtQuick.Controls.Material.impl 2.0
 
 Button {
     id: control
@@ -13,19 +13,19 @@ Button {
         source: iconSource
     }
 
+    Material.elevation: control.down ? 12 : 6
+
     background: Rectangle {
         implicitHeight: 56
         implicitWidth: 56
         radius: height / 2
-        color: control.Material.accentColor
+        color: control.down ? control.Material.highlightedButtonPressColor
+                            : control.visualFocus ? control.Material.highlightedButtonHoverColor
+                                                  : control.Material.highlightedButtonColor
 
         layer.enabled: control.enabled
-        layer.effect: DropShadow {
-            verticalOffset: control.pressed ? 12 : 6
-            radius: control.pressed ? 12 : 6
-            color: control.Material.dropShadowColor
-            samples: control.pressed ? 24 : 12
-            spread: 0.0
+        layer.effect: ElevationEffect {
+            elevation: control.Material.elevation
         }
     }
 }

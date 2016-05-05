@@ -16,30 +16,5 @@ Button {
         elide: Text.ElideRight
     }
 
-    background: Rectangle {
-        implicitWidth: 64
-        implicitHeight: 48
-
-        y: 6
-        width: parent.width
-        height: parent.height - 12
-        radius: 2
-        color: control.down ? control.Material.flatButtonPressColor
-                            : control.visualFocus ? control.Material.flatButtonFocusColor
-                                                  : "transparent"
-
-        Behavior on color {
-            ColorAnimation {
-                duration: 400
-            }
-        }
-
-        Rectangle {
-            width: parent.width
-            height: parent.height
-            radius: parent.radius
-            visible: control.visualFocus
-            color: control.Material.checkBoxUncheckedRippleColor
-        }
-    }
+    Material.background: "transparent"
 }

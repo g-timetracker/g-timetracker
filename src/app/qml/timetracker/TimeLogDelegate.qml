@@ -30,7 +30,7 @@ Rectangle {
     }
 
     implicitHeight: 72
-    color: isCurrent ? Material.flatButtonPressColor : "transparent"
+    color: isCurrent ? Material.buttonPressColor : "transparent"
 
 
     Column {
