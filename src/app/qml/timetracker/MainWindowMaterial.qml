@@ -2,7 +2,6 @@ import QtQuick 2.0
 import QtQuick.Layouts 1.3
 import QtQml.Models 2.2
 import QtQuick.Controls 2.0
-import QtQuick.Controls.Material 2.0
 import TimeLog 1.0
 
 ApplicationWindow {
@@ -11,9 +10,6 @@ ApplicationWindow {
     width: 540
     height: 960
     visible: true
-
-    Material.primary: Material.BlueGrey
-    Material.accent: Material.Cyan
 
     function showRecent() {
         if (stackView.currentItem != recentPage) {

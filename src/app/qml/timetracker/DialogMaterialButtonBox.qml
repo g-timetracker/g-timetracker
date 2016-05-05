@@ -30,8 +30,7 @@ Item {
             Layout.fillWidth: false
             Layout.fillHeight: false
             Layout.alignment: Qt.AlignVCenter
-            textColor: ApplicationWindow.contentItem ? ApplicationWindow.contentItem.Material.accentColor
-                                                     : Material.primaryTextColor // TODO: remove workaround
+            textColor: Material.accentColor
             text: buttonBox.dismissiveText
             visible: !!text
             onClicked: buttonBox.rejected()
@@ -41,8 +40,7 @@ Item {
             Layout.fillWidth: false
             Layout.fillHeight: false
             Layout.alignment: Qt.AlignVCenter
-            textColor: ApplicationWindow.contentItem ? ApplicationWindow.contentItem.Material.accentColor
-                                                     : Material.primaryTextColor // TODO: remove workaround
+            textColor: Material.accentColor
             text: buttonBox.affirmativeText
             visible: !!text
             onClicked: buttonBox.accepted()
