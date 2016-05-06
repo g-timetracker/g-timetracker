@@ -3,6 +3,7 @@ import QtQuick.Window 2.2
 import QtQuick.Layouts 1.3
 import QtQuick.Controls 2.0
 import QtQuick.Controls.Material 2.0
+import TimeLog 1.0
 
 Popup {
     id: dialog
@@ -12,9 +13,10 @@ Popup {
     property bool customTitleBar: false
     property string affirmativeText: qsTranslate("dialog", "OK")
     property string dismissiveText: qsTranslate("dialog", "Cancel")
-    property point position: ApplicationWindow.contentItem.mapToItem(parent,
-                                                                     (ApplicationWindow.window.width - width) / 2,
-                                                                     (ApplicationWindow.window.height - height) / 2)
+    property ApplicationWindow applicationWindow: MetricsMaterial.applicationWindow
+    property point position: applicationWindow.contentItem.mapToItem(parent,
+                                                                     (applicationWindow.width - width) / 2,
+                                                                     (applicationWindow.height - height) / 2)
 
     function accept() {
         accepted()
