@@ -177,5 +177,6 @@
         <file>qml/timetracker/MenuItemMaterial.qml</file>
         <file>qml/timetracker/ToolBarMaterial.qml</file>
         <file>qml/timetracker/MainToolBarMaterial.qml</file>
+        <file>qml/timetracker/MetricsMaterial.qml</file>
     </qresource>
 </RCC>

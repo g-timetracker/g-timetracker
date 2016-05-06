@@ -3,6 +3,7 @@ import QtQuick.Layouts 1.3
 import QtQuick.Controls 2.0
 import QtQuick.Controls.Material 2.0
 import Qt.labs.calendar 1.0
+import TimeLog 1.0
 
 DialogMaterial {
     id: popup
@@ -13,7 +14,7 @@ DialogMaterial {
     property alias maximumDate: calendarModel.to
     property var selectedDate
 
-    property bool isLandscape: ApplicationWindow.window.width > ApplicationWindow.window.height
+    property bool isLandscape: MetricsMaterial.isLandscape
 
     function showPopup(parentControl) {
         popup.open()

@@ -231,6 +231,12 @@ ApplicationWindow {
         when: TimeTracker.syncer
     }
 
+    Binding {
+        target: MetricsMaterial
+        property: "applicationWindow"
+        value: mainWindow
+    }
+
     Connections {
         target: TimeTracker
 
