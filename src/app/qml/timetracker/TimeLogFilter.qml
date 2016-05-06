@@ -5,7 +5,7 @@ Column {
     property alias endDate: datePeriodPicker.endDate
     property alias category: categoryPicker.category
 
-    spacing: 10
+    spacing: 16
 
     DatePeriodPicker {
         id: datePeriodPicker

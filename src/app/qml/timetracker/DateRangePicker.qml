@@ -5,8 +5,6 @@ ItemPositioner {
     property var beginDate: fromField.selectedDate
     property var endDate: new Date(toField.selectedDate.valueOf() + 86399000)
 
-    spacing: 10
-
     LabelControl {
         text: Texts.labelText(qsTr("From"))
     }

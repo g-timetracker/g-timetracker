@@ -25,7 +25,7 @@ Column {
         property int durationTime: Util.calcDuration(startTime, startTimeBefore)
     }
 
-    spacing: 10
+    spacing: 16
 
     CategoryPicker {
         id: categoryPicker

@@ -25,6 +25,7 @@ Page {
 
     ColumnLayout {
         anchors.fill: parent
+        spacing: 16
 
         DatePeriodPicker {
             id: timeLogFilter

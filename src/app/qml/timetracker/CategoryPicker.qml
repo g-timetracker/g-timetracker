@@ -6,7 +6,7 @@ import "Texts.js" as Texts
 ColumnLayout {
     property alias category: categoryModel.category
 
-    spacing: 10
+    spacing: 16
 
     TimeLogCategoryDepthModel {
         id: categoryModel
@@ -18,8 +18,6 @@ ColumnLayout {
         model: categoryModel
 
         ItemPositioner {
-            spacing: 10
-
             LabelControl {
                 Layout.fillWidth: true
                 text: Texts.labelText(index == 0 ? qsTr("Category") : qsTr("Subcategory"))

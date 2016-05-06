@@ -4,8 +4,6 @@ ItemPositioner {
     property var beginDate: dateField.selectedDate
     property var endDate: new Date(dateField.selectedDate.valueOf() + 86399000)
 
-    spacing: 10
-
     ComboBoxControl {
         id: periodSelector
 
