@@ -1,7 +1,8 @@
-import QtQuick 2.4
-import QtQuick.Window 2.2
+import QtQuick 2.6
 import QtQuick.Layouts 1.1
+import QtQuick.Window 2.2
 import QtQuick.Controls 2.0
+import QtQuick.Controls.Material 2.0
 import TimeLog 1.0
 import "ChartColors.js" as ChartColors
 
@@ -15,6 +16,13 @@ Page {
     header: MainToolBarMaterial {
         title: view.title
         isBottomItem: view.StackView.index === 0
+        rightText: "customize"
+        rightContent: Image {
+            fillMode: Image.Pad
+            source: "images/ic_tune_white_24dp.png"
+        }
+
+        onRightActivated: rightDrawer.open()
     }
 
     function setChartUnits(data) {
@@ -51,44 +59,32 @@ Page {
         anchors.fill: parent
         spacing: 16
 
-        TimeLogFilter {
-            id: timeLogFilter
-
-            function requestStats() {
-                TimeTracker.getStats(beginDate, endDate, category)
-            }
-
+        Label {
             Layout.fillHeight: false
             Layout.fillWidth: true
-
-            onBeginDateChanged: requestStats()
-            onEndDateChanged: requestStats()
-            onCategoryChanged: requestStats()
+            topPadding: 16
+            leftPadding: 32
+            rightPadding: 32
+            bottomPadding: 0
+            font.pixelSize: 16
+            color: Material.hintTextColor
+            wrapMode: Text.Wrap
+            text: qsTranslate("search filter", "Selected period: %1\u2013%2")
+                  .arg(timeLogFilter.beginDate.toLocaleDateString(Qt.locale(), Locale.ShortFormat))
+                  .arg(timeLogFilter.endDate.toLocaleDateString(Qt.locale(), Locale.ShortFormat))
         }
 
-        LabelControl {
-            text: qsTr("Units")
-        }
-
-        ComboBoxControl {
-            id: unitSelector
-
+        Label {
             Layout.fillHeight: false
-            Layout.fillWidth: false
-            model: [
-                qsTranslate("duration", "hours"),
-                qsTranslate("duration", "auto")
-            ]
-
-            onCurrentIndexChanged: {
-                if (!chart.chartData) {
-                    return
-                }
-
-                setChartUnits(chart.chartData)
-
-                chart.updateChart()
-            }
+            Layout.fillWidth: true
+            padding: 0
+            leftPadding: 32
+            rightPadding: 32
+            font.pixelSize: 16
+            color: Material.hintTextColor
+            wrapMode: Text.Wrap
+            visible: !!timeLogFilter.category
+            text: qsTranslate("search filter", "Category: \u201C%1\u201D").arg(timeLogFilter.category)
         }
 
         Item {
@@ -104,6 +100,68 @@ Page {
                 antialiasing: true
                 scale: 1.0 / Screen.devicePixelRatio
                 transformOrigin: Item.Center
+            }
+        }
+    }
+
+    Drawer {
+        id: rightDrawer
+
+        height: parent.height + view.header.height
+        implicitWidth: Math.min(drawerItems.implicitWidth, parent.width - 56)
+        edge: Qt.RightEdge
+
+        Flickable {
+            anchors.fill: parent
+            contentWidth: drawerItems.implicitWidth
+            contentHeight: drawerItems.implicitHeight
+            boundsBehavior: Flickable.StopAtBounds
+
+            ScrollBar.vertical: ScrollBar { }
+
+            Column {
+                id: drawerItems
+
+                padding: 16
+                topPadding: 8
+                bottomPadding: 8
+                spacing: 16
+
+                TimeLogFilter {
+                    id: timeLogFilter
+
+                    function requestStats() {
+                        TimeTracker.getStats(beginDate, endDate, category)
+                    }
+
+                    onBeginDateChanged: requestStats()
+                    onEndDateChanged: requestStats()
+                    onCategoryChanged: requestStats()
+                }
+
+                LabelControl {
+                    text: qsTr("Units")
+                }
+
+                ComboBoxControl {
+                    id: unitSelector
+
+                    model: [
+                        qsTranslate("duration", "hours"),
+                        qsTranslate("duration", "auto")
+                    ]
+
+                    onCurrentIndexChanged: {
+                        if (!chart.chartData) {
+                            return
+                        }
+
+                        setChartUnits(chart.chartData)
+
+                        chart.updateChart()
+                    }
+                }
+
             }
         }
     }

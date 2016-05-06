@@ -1,5 +1,7 @@
+import QtQuick 2.6
 import QtQuick.Layouts 1.1
 import QtQuick.Controls 2.0
+import QtQuick.Controls.Material 2.0
 import TimeLog 1.0
 
 Page {
@@ -13,6 +15,13 @@ Page {
     header: MainToolBarMaterial {
         title: view.title
         isBottomItem: view.StackView.index === 0
+        rightText: "customize"
+        rightContent: Image {
+            fillMode: Image.Pad
+            source: "images/ic_tune_white_24dp.png"
+        }
+
+        onRightActivated: rightDrawer.open()
     }
 
     TimeLogSearchModel {
@@ -27,11 +36,19 @@ Page {
         anchors.fill: parent
         spacing: 16
 
-        DatePeriodPicker {
-            id: timeLogFilter
-
+        Label {
             Layout.fillHeight: false
             Layout.fillWidth: true
+            topPadding: 16
+            leftPadding: 32
+            rightPadding: 32
+            bottomPadding: 0
+            font.pixelSize: 16
+            color: Material.hintTextColor
+            wrapMode: Text.Wrap
+            text: qsTranslate("search filter", "Selected period: %1\u2013%2")
+                  .arg(timeLogFilter.beginDate.toLocaleDateString(Qt.locale(), Locale.ShortFormat))
+                  .arg(timeLogFilter.endDate.toLocaleDateString(Qt.locale(), Locale.ShortFormat))
         }
 
         TimeLogView {
@@ -42,6 +59,31 @@ Page {
             onInsert: timeLogModel.insertItem(modelIndex, newData)
             onAppend: timeLogModel.appendItem(newData)
             onRemove: timeLogModel.removeItem(modelIndex)
+        }
+    }
+
+    Drawer {
+        id: rightDrawer
+
+        height: parent.height + view.header.height
+        implicitWidth: Math.min(timeLogFilter.implicitWidth, parent.width - 56)
+        edge: Qt.RightEdge
+
+        Flickable {
+            anchors.fill: parent
+            contentWidth: timeLogFilter.implicitWidth
+            contentHeight: timeLogFilter.implicitHeight
+            boundsBehavior: Flickable.StopAtBounds
+
+            ScrollBar.vertical: ScrollBar { }
+
+            DatePeriodPicker {
+                id: timeLogFilter
+
+                padding: 16
+                topPadding: 8
+                bottomPadding: 8
+            }
         }
     }
 }
