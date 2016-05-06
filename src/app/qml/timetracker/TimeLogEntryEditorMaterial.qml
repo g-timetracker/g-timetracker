@@ -4,7 +4,7 @@ import TimeLog 1.0
 import "Util.js" as Util
 import "Texts.js" as Texts
 
-Column {
+Item {
     id: delegateEditor
 
     property date startTimeAfter: new Date(0)
@@ -19,72 +19,83 @@ Column {
 
     property bool singleColumn: false
 
+    implicitHeight: container.height + container.anchors.margins * 2
+
+    onStartTimeCurrentChanged: {
+        if (timeEditor.startTimeCurrent != startTimeCurrent) {
+            timeEditor.startTimeCurrent = startTimeCurrent
+        }
+    }
+
     QtObject {
         id: d
 
         property int durationTime: Util.calcDuration(startTime, startTimeBefore)
     }
 
-    spacing: 16
+    Column {
+        id: container
 
-    CategoryPicker {
-        id: categoryPicker
-    }
+        anchors.margins: 16
+        anchors.topMargin: 24
+        anchors.top: parent.top
+        anchors.left: parent.left
+        anchors.right: parent.right
+        spacing: 16
 
-    LabelControl {
-        text: Texts.labelText(qsTranslate("entry editor", "Start date"))
-    }
+        CategoryPicker {
+            id: categoryPicker
+        }
 
-    DatePicker {
-        id: calendar
+        LabelControl {
+            text: Texts.labelText(qsTranslate("entry editor", "Start date"))
+        }
 
-        property alias origDate: delegateEditor.startTimeCurrent
+        DatePicker {
+            id: calendar
 
-        minimumDate: new Date(startTimeAfter.valueOf() + 1000)
-        maximumDate: new Date(startTimeBefore.valueOf() - 1000)
+            property alias origDate: delegateEditor.startTimeCurrent
 
-        onOrigDateChanged: selectedDate = origDate
-    }
+            minimumDate: new Date(startTimeAfter.valueOf() + 1000)
+            maximumDate: new Date(startTimeBefore.valueOf() - 1000)
 
-    LabelControl {
-        text: Texts.labelText(qsTranslate("entry editor", "Start time"))
-    }
+            onOrigDateChanged: selectedDate = origDate
+        }
 
-    TimeEditor {
-        id: timeEditor
+        LabelControl {
+            text: Texts.labelText(qsTranslate("entry editor", "Start time"))
+        }
 
-        startDateCurrent: calendar.selectedDate
-        minDateTime: new Date(startTimeAfter.valueOf() + 1000)
-        maxDateTime: new Date(startTimeBefore.valueOf() - 1000)
+        TimeEditor {
+            id: timeEditor
 
-        onStartTimeCurrentChanged: {
-            if (delegateEditor.startTime != startTimeCurrent) {
-                delegateEditor.startTime = startTimeCurrent
+            startDateCurrent: calendar.selectedDate
+            minDateTime: new Date(startTimeAfter.valueOf() + 1000)
+            maxDateTime: new Date(startTimeBefore.valueOf() - 1000)
+
+            onStartTimeCurrentChanged: {
+                if (delegateEditor.startTime != startTimeCurrent) {
+                    delegateEditor.startTime = startTimeCurrent
+                }
             }
         }
-    }
 
-    LabelControl {
-        text: Texts.labelText(qsTranslate("entry editor", "Duration"))
-    }
+        LabelControl {
+            text: Texts.labelText(qsTranslate("entry editor", "Duration"))
+        }
 
-    LabelControl {
-        elide: Text.ElideRight
-        text: TimeTracker.durationText(d.durationTime)
-    }
+        LabelControl {
+            elide: Text.ElideRight
+            text: TimeTracker.durationText(d.durationTime)
+        }
 
-    TextAreaControl {
-        id: commentArea
+        TextAreaControl {
+            id: commentArea
 
-        property alias origComment: delegateEditor.comment
+            property alias origComment: delegateEditor.comment
 
-        width: parent.width
-        placeholderText: Texts.labelText(qsTranslate("entry editor", "Comment"))
-    }
-
-    onStartTimeCurrentChanged: {
-        if (timeEditor.startTimeCurrent != startTimeCurrent) {
-            timeEditor.startTimeCurrent = startTimeCurrent
+            width: parent.width
+            placeholderText: Texts.labelText(qsTranslate("entry editor", "Comment"))
         }
     }
 }
