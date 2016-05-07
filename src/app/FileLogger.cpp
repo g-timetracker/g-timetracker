@@ -26,7 +26,7 @@ void FileLogger::setup()
 {
     QMutexLocker locker(&streamMutex);
 
-    QString path(QString("%1/logs").arg(QStandardPaths::writableLocation(QStandardPaths::AppDataLocation)));
+    QString path(QString("%1/logs").arg(QStandardPaths::writableLocation(QStandardPaths::CacheLocation)));
     QDir().mkpath(path);
     QString name = QString("%1/%2.log").arg(path).arg(QDateTime::currentDateTime().toString(Qt::ISODate));
     logFile = new QFile(name, QCoreApplication::instance());
