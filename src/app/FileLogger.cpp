@@ -28,7 +28,7 @@ void FileLogger::setup()
 
     QString path(QString("%1/logs").arg(QStandardPaths::writableLocation(QStandardPaths::CacheLocation)));
     QDir().mkpath(path);
-    QString name = QString("%1/%2.log").arg(path).arg(QDateTime::currentDateTime().toString(Qt::ISODate));
+    QString name = QString("%1/debug.log").arg(path);
     logFile = new QFile(name, QCoreApplication::instance());
     if (!logFile->open(QIODevice::WriteOnly | QIODevice::Truncate | QIODevice::Text)) {
         qCritical() << "Fail to open log file:" << logFile->errorString() << endl;
