@@ -6,9 +6,11 @@ QT += widgets qml quick sql
 SOURCES += \
     main.cpp \
     FileLogger.cpp \
+    Notifier.cpp
 
 HEADERS += \
     FileLogger.h \
+    Notifier.h
 
 RESOURCES += qml.qrc \
     translations.qrc
@@ -16,6 +18,10 @@ RESOURCES += qml.qrc \
 lupdate_only {
 SOURCES += $$PWD/qml/timetracker/*.qml \
            $$PWD/qml/timetracker/*.js
+}
+
+!android {
+    include($$PWD/../3rdparty/qt-solutions/qtsingleapplication/src/qtsingleapplication.pri)
 }
 
 # Additional import path used to resolve QML modules in Qt Creator's code model

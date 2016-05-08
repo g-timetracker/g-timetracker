@@ -64,6 +64,7 @@ signals:
     void showDialogRequested(QObject *dialog) const;
     void openNavigationDrawerRequested() const;
     void backRequested() const;
+    void activateRequested() const;
 
 private slots:
     void statsDataAvailable(QVector<TimeLogStats> data, QDateTime until) const;

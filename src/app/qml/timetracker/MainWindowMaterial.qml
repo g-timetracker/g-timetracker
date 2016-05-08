@@ -250,6 +250,11 @@ ApplicationWindow {
         onShowDialogRequested: showDialog(dialog)
         onOpenNavigationDrawerRequested: drawer.open()
         onBackRequested: back()
+        onActivateRequested: {
+            mainWindow.show()
+            mainWindow.raise()
+            mainWindow.requestActivate()
+        }
     }
 
     Connections {

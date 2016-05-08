@@ -3,6 +3,11 @@
 #include <QQmlApplicationEngine>
 #include <QtQml>
 #include <QtQml/QQmlContext>
+#include <QPointer>
+
+#ifndef Q_OS_ANDROID
+# include <QtSingleApplication>
+#endif
 
 #include <QLoggingCategory>
 
@@ -18,21 +23,32 @@
 #include "DataImporter.h"
 #include "DataExporter.h"
 #include "DataSyncer.h"
+#include "Notifier.h"
 
 Q_LOGGING_CATEGORY(MAIN_CATEGORY, "main", QtInfoMsg)
+
+QPointer<Notifier> mainNotifier;
 
 static QObject *timeTrackerSingletonTypeProvider(QQmlEngine *engine, QJSEngine *scriptEngine)
 {
     Q_UNUSED(engine)
     Q_UNUSED(scriptEngine)
 
-    return new TimeTracker();
+    TimeTracker *timetracker = new TimeTracker();
+    QObject::connect(mainNotifier, SIGNAL(activateRequested()),
+                     timetracker, SIGNAL(activateRequested()));
+
+    return timetracker;
 }
 
 int main(int argc, char *argv[])
 {
     QApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
+#ifndef Q_OS_ANDROID
+    QtSingleApplication app(argc, argv);
+#else
     QApplication app(argc, argv);
+#endif
     app.setOrganizationName("G-TimeTracker");
     app.setOrganizationDomain("g-timetracker.org");
     app.setApplicationName("G-TimeTracker");
@@ -62,8 +78,31 @@ int main(int argc, char *argv[])
     parser.addOption(dataPathOption);
     QCommandLineOption syncPathOption("syncPath", "Override path to sync folder", "path");
     parser.addOption(syncPathOption);
+    QCommandLineOption multiOption("multi", "Allow start of multiple instances");
+    multiOption.setHidden(true);
+    parser.addOption(multiOption);
 
     parser.process(app);
+
+    Notifier notifier;
+    mainNotifier = &notifier;
+
+#ifndef Q_OS_ANDROID
+    if (!parser.isSet(multiOption)) {
+        if (app.isRunning()) {
+            qCInfo(MAIN_CATEGORY) << "The application is already running";
+            if (parser.isSet(importOption) || parser.isSet(exportOption)) {
+                return EXIT_FAILURE;
+            } else {
+                app.sendMessage(QString());
+                return EXIT_SUCCESS;
+            }
+        } else {
+            QObject::connect(&app, SIGNAL(messageReceived(QString)),
+                             &notifier, SLOT(requestActivate()));
+        }
+    }
+#endif
 
     qRegisterMetaType<TimeLogData>();
     qRegisterMetaType<TimeLogEntry>();
