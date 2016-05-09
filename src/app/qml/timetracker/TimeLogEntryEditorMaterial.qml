@@ -84,7 +84,7 @@ Item {
             text: Texts.labelText(qsTranslate("entry editor", "Duration"))
         }
 
-        LabelControl {
+        Label {
             elide: Text.ElideRight
             text: TimeTracker.durationText(d.durationTime)
         }
