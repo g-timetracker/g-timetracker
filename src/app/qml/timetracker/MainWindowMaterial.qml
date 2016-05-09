@@ -7,8 +7,6 @@ import TimeLog 1.0
 ApplicationWindow {
     id: mainWindow
 
-    width: 540
-    height: 960
     visible: true
 
     function showRecent() {
