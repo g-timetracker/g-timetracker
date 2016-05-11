@@ -15,6 +15,8 @@ HEADERS += \
 RESOURCES += qml.qrc \
     translations.qrc
 
+RC_ICONS += $$PWD/icons/windows/app_icon.ico
+
 lupdate_only {
 SOURCES += $$PWD/qml/timetracker/*.qml \
            $$PWD/qml/timetracker/*.js
