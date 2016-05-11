@@ -1,5 +1,5 @@
 TEMPLATE = app
-TARGET = timetracker
+TARGET = g-timetracker
 
 QT += widgets qml quick sql
 
