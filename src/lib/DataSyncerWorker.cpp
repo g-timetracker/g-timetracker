@@ -163,8 +163,8 @@ DataSyncerWorker::DataSyncerWorker(TimeLogHistory *db, QObject *parent) :
                                                   QVector<TimeLogSyncDataCategory>,
                                                   QVector<TimeLogSyncDataCategory>,
                                                   QVector<TimeLogSyncDataCategory>)));
-    connect(m_db, SIGNAL(dataSynced(QVector<TimeLogSyncDataEntry>,QVector<TimeLogSyncDataEntry>)),
-            this, SLOT(syncDataSynced(QVector<TimeLogSyncDataEntry>,QVector<TimeLogSyncDataEntry>)));
+    connect(m_db, SIGNAL(dataSynced(QDateTime)),
+            this, SLOT(syncDataSynced(QDateTime)));
 }
 
 void DataSyncerWorker::init(const QString &dataPath)
@@ -445,11 +445,9 @@ void DataSyncerWorker::syncCategoryStatsAvailable(QVector<TimeLogSyncDataCategor
     }
 }
 
-void DataSyncerWorker::syncDataSynced(QVector<TimeLogSyncDataEntry> updatedData,
-                                      QVector<TimeLogSyncDataEntry> removedData)
+void DataSyncerWorker::syncDataSynced(const QDateTime &maxSyncDate)
 {
-    Q_UNUSED(updatedData)
-    Q_UNUSED(removedData)
+    Q_UNUSED(maxSyncDate)
 
     if (!m_importState->active() || m_pack /* import from pack */) {
         return;
@@ -855,7 +853,7 @@ void DataSyncerWorker::importFile(const QString &path)
     if (!updatedData.isEmpty() || !removedData.isEmpty() || !categoryData.isEmpty()) {
         m_db->sync(updatedData, removedData, categoryData);
     } else {
-        syncDataSynced(updatedData, removedData);
+        syncDataSynced(QDateTime());
     }
 }
 

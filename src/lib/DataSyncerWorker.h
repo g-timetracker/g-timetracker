@@ -68,8 +68,7 @@ private slots:
                                     QVector<TimeLogSyncDataCategory> addedNew,
                                     QVector<TimeLogSyncDataCategory> updatedOld,
                                     QVector<TimeLogSyncDataCategory> updatedNew) const;
-    void syncDataSynced(QVector<TimeLogSyncDataEntry> updatedData,
-                        QVector<TimeLogSyncDataEntry> removedData);
+    void syncDataSynced(const QDateTime &maxSyncDate);
     void syncFinished();
 
     void packImported(QDateTime latestMTime);

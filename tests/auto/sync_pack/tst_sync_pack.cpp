@@ -51,7 +51,7 @@ void importSyncData(TimeLogHistory *history, DataSyncer *syncer, QTemporaryDir *
 {
     QSignalSpy historyErrorSpy(history, SIGNAL(error(QString)));
     QSignalSpy historyOutdateSpy(history, SIGNAL(dataOutdated()));
-    QSignalSpy historySyncSpy(history, SIGNAL(dataSynced(QVector<TimeLogSyncDataEntry>,QVector<TimeLogSyncDataEntry>)));
+    QSignalSpy historySyncSpy(history, SIGNAL(dataSynced(QDateTime)));
 
     QSignalSpy syncSpy(syncer, SIGNAL(synced()));
     QSignalSpy syncErrorSpy(syncer, SIGNAL(error(QString)));

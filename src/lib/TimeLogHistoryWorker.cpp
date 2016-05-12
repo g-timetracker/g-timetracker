@@ -317,13 +317,16 @@ void TimeLogHistoryWorker::sync(const QVector<TimeLogSyncDataEntry> &updatedData
         return;
     }
 
-    if (!syncCategories(categoryData) || !syncEntries(updatedData, removedData)) {
+    QDateTime maxEntrySyncDate, maxCategorySyncDate;
+
+    if (!syncCategories(categoryData, maxCategorySyncDate)
+        || !syncEntries(updatedData, removedData, maxEntrySyncDate)) {
         rollbackTransaction(db);
         return;
     } else if (!commitTransaction(db)) {
         return;
     } else {
-        emit dataSynced(updatedData, removedData);
+        emit dataSynced(qMax(maxEntrySyncDate, maxCategorySyncDate));
     }
 }
 
@@ -1006,7 +1009,8 @@ bool TimeLogHistoryWorker::editEntries(const QVector<TimeLogEntry> &data, const 
 }
 
 bool TimeLogHistoryWorker::syncEntries(const QVector<TimeLogSyncDataEntry> &updatedData,
-                                       const QVector<TimeLogSyncDataEntry> &removedData)
+                                       const QVector<TimeLogSyncDataEntry> &removedData,
+                                       QDateTime &maxSyncDate)
 {
     QVector<TimeLogSyncDataEntry> removedNew;
     QVector<TimeLogSyncDataEntry> removedOld;
@@ -1098,10 +1102,21 @@ bool TimeLogHistoryWorker::syncEntries(const QVector<TimeLogSyncDataEntry> &upda
         incrementCategoryCount(updatedNew.at(i).entry.category);
     }
 
+    if (!removedNew.isEmpty()) {
+        maxSyncDate = removedNew.constLast().sync.mTime;
+    }
+    if (!insertedNew.isEmpty() && insertedNew.constLast().sync.mTime > maxSyncDate) {
+        maxSyncDate = insertedNew.constLast().sync.mTime;
+    }
+    if (!updatedNew.isEmpty() && updatedNew.constLast().sync.mTime > maxSyncDate) {
+        maxSyncDate = updatedNew.constLast().sync.mTime;
+    }
+
     return true;
 }
 
-bool TimeLogHistoryWorker::syncCategories(const QVector<TimeLogSyncDataCategory> &categoryData)
+bool TimeLogHistoryWorker::syncCategories(const QVector<TimeLogSyncDataCategory> &categoryData,
+                                          QDateTime &maxSyncDate)
 {
     QVector<TimeLogSyncDataCategory> removedNew;
     QVector<TimeLogSyncDataCategory> removedOld;
@@ -1140,6 +1155,16 @@ bool TimeLogHistoryWorker::syncCategories(const QVector<TimeLogSyncDataCategory>
 
     if (!syncCategoryData(removedMerged, addedNew, updatedNew, updatedOld)) {
         return false;
+    }
+
+    if (!removedNew.isEmpty()) {
+        maxSyncDate = removedNew.constLast().sync.mTime;
+    }
+    if (!addedNew.isEmpty() && addedNew.constLast().sync.mTime > maxSyncDate) {
+        maxSyncDate = addedNew.constLast().sync.mTime;
+    }
+    if (!updatedNew.isEmpty() && updatedNew.constLast().sync.mTime > maxSyncDate) {
+        maxSyncDate = updatedNew.constLast().sync.mTime;
     }
 
     return true;

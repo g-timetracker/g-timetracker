@@ -91,8 +91,7 @@ signals:
                                     QVector<TimeLogSyncDataCategory> updatedOld,
                                     QVector<TimeLogSyncDataCategory> updatedNew) const;
     void hashesAvailable(QMap<QDateTime, QByteArray> hashes) const;
-    void dataSynced(QVector<TimeLogSyncDataEntry> updatedData,
-                    QVector<TimeLogSyncDataEntry> removedData);
+    void dataSynced(QDateTime maxSyncDate) const;
     void hashesUpdated() const;
 
     void sizeChanged(qlonglong size) const;
@@ -151,8 +150,8 @@ private:
     bool editEntry(const TimeLogEntry &data, TimeLogHistory::Fields fields);
     bool editEntries(const QVector<TimeLogEntry> &data, const QVector<TimeLogHistory::Fields> &fields);
     bool syncEntries(const QVector<TimeLogSyncDataEntry> &updatedData,
-                     const QVector<TimeLogSyncDataEntry> &removedData);
-    bool syncCategories(const QVector<TimeLogSyncDataCategory> &categoryData);
+                     const QVector<TimeLogSyncDataEntry> &removedData, QDateTime &maxSyncDate);
+    bool syncCategories(const QVector<TimeLogSyncDataCategory> &categoryData, QDateTime &maxSyncDate);
 
     bool insertEntryData(const QVector<TimeLogEntry> &data);
     bool insertEntryData(const TimeLogSyncDataEntry &data);

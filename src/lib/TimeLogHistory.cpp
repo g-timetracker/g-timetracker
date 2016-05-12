@@ -68,8 +68,8 @@ TimeLogHistory::TimeLogHistory(QObject *parent) :
                                                     QVector<TimeLogSyncDataCategory>)));
     connect(m_worker, SIGNAL(hashesAvailable(QMap<QDateTime,QByteArray>)),
             this, SIGNAL(hashesAvailable(QMap<QDateTime,QByteArray>)));
-    connect(m_worker, SIGNAL(dataSynced(QVector<TimeLogSyncDataEntry>,QVector<TimeLogSyncDataEntry>)),
-            this, SIGNAL(dataSynced(QVector<TimeLogSyncDataEntry>,QVector<TimeLogSyncDataEntry>)));
+    connect(m_worker, SIGNAL(dataSynced(QDateTime)),
+            this, SIGNAL(dataSynced(QDateTime)));
     connect(m_worker, SIGNAL(hashesUpdated()),
             this, SIGNAL(hashesUpdated()));
 }

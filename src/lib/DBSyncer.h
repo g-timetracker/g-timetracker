@@ -36,8 +36,7 @@ private slots:
     void sourceHashesAvailable(QMap<QDateTime, QByteArray> hashes);
 
     void destinationHashesAvailable(QMap<QDateTime, QByteArray> hashes);
-    void destinationDataSynced(QVector<TimeLogSyncDataEntry> updatedData,
-                               QVector<TimeLogSyncDataEntry> removedData);
+    void destinationDataSynced(const QDateTime &maxSyncDate);
     void destinationHashesUpdated();
 
     void dbSynced();

@@ -534,7 +534,7 @@ void importSyncData(TimeLogHistory *history,
 {
     QSignalSpy historyErrorSpy(history, SIGNAL(error(QString)));
     QSignalSpy historyOutdateSpy(history, SIGNAL(dataOutdated()));
-    QSignalSpy historySyncSpy(history, SIGNAL(dataSynced(QVector<TimeLogSyncDataEntry>,QVector<TimeLogSyncDataEntry>)));
+    QSignalSpy historySyncSpy(history, SIGNAL(dataSynced(QDateTime)));
 
     int importedSize = 0;
     int totalSize = entryData.size() + categoryData.size();

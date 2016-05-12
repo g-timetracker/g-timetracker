@@ -106,8 +106,7 @@ signals:
                                     QVector<TimeLogSyncDataCategory> updatedOld,
                                     QVector<TimeLogSyncDataCategory> updatedNew) const;
     void hashesAvailable(QMap<QDateTime, QByteArray> hashes) const;
-    void dataSynced(QVector<TimeLogSyncDataEntry> updatedData,
-                    QVector<TimeLogSyncDataEntry> removedData);
+    void dataSynced(const QDateTime &maxSyncDate) const;
     void hashesUpdated() const;
 
     void categoriesChanged(const QSharedPointer<TimeLogCategoryTreeNode> &categories) const;
