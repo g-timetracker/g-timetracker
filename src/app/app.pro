@@ -1,7 +1,11 @@
 TEMPLATE = app
 TARGET = g-timetracker
 
-QT += widgets qml quick sql
+QT += qml quick sql
+
+!android {
+    QT += widgets
+}
 
 SOURCES += \
     main.cpp \

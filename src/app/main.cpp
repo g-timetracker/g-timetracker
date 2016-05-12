@@ -1,4 +1,4 @@
-#include <QApplication>
+#include <QGuiApplication>
 #include <QCommandLineParser>
 #include <QQmlApplicationEngine>
 #include <QtQml>
@@ -43,11 +43,11 @@ static QObject *timeTrackerSingletonTypeProvider(QQmlEngine *engine, QJSEngine *
 
 int main(int argc, char *argv[])
 {
-    QApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
+    QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
 #ifndef Q_OS_ANDROID
     QtSingleApplication app(argc, argv);
 #else
-    QApplication app(argc, argv);
+    QGuiApplication app(argc, argv);
 #endif
     app.setOrganizationName("G-TimeTracker");
     app.setOrganizationDomain("g-timetracker.org");
