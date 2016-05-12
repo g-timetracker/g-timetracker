@@ -1,4 +1,4 @@
-import QtQuick 2.0
+import QtQuick 2.6
 import QtQuick.Layouts 1.3
 import QtQuick.Controls 2.0
 import QtQuick.Controls.Material 2.0
@@ -90,15 +90,54 @@ DialogMaterial {
                     width: calendarList.width
                     height: calendarList.height
 
-                    Label {
-                        topPadding: isLandscape ? 20 : 18
-                        bottomPadding: isLandscape ? 8 : 20
+                    Row {
                         width: parent.width
-                        horizontalAlignment: Text.AlignHCenter
-                        verticalAlignment: Text.AlignVCenter
-                        font: popup.font
-                        color: popup.Material.primaryTextColor
-                        text: monthGrid.title
+                        leftPadding: isLandscape ? 10 : 8
+                        rightPadding: isLandscape ? 10 : 8
+                        spacing: 16
+
+                        ToolButton {
+                            id: previousMonthButton
+
+                            height: 44
+                            width: height
+                            anchors.verticalCenter: parent.verticalCenter
+                            enabled: calendarList.currentIndex > 0
+                            contentItem: IconMaterial {
+                                anchors.verticalCenter: parent.verticalCenter
+                                enabled: previousMonthButton.enabled
+                                source: "images/ic_chevron_left_white_24dp.png"
+                            }
+
+                            onClicked: calendarList.decrementCurrentIndex()
+                        }
+
+                        Label {
+                            topPadding: isLandscape ? 20 : 18
+                            bottomPadding: isLandscape ? 0 : 20
+                            width: parent.width - previousMonthButton.width - nextMonthButton.width - parent.spacing * 2 - parent.leftPadding - parent.rightPadding
+                            horizontalAlignment: Text.AlignHCenter
+                            verticalAlignment: Text.AlignVCenter
+                            font: popup.font
+                            color: popup.Material.primaryTextColor
+                            text: monthGrid.title
+                        }
+
+                        ToolButton {
+                            id: nextMonthButton
+
+                            height: 44
+                            width: height
+                            anchors.verticalCenter: parent.verticalCenter
+                            enabled: calendarList.currentIndex < calendarList.count - 1
+                            contentItem: IconMaterial {
+                                anchors.verticalCenter: parent.verticalCenter
+                                enabled: nextMonthButton.enabled
+                                source: "images/ic_chevron_right_white_24dp.png"
+                            }
+
+                            onClicked: calendarList.incrementCurrentIndex()
+                        }
                     }
 
                     DayOfWeekRow {
