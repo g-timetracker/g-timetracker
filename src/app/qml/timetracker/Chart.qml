@@ -13,7 +13,7 @@ Canvas {
     property color gridColor: "#1E000000"
     property color labelFontColor: "#DD000000"
     property real labelFontSize: 12 * Screen.devicePixelRatio
-    property string labelFontFamily: "sans-serif"
+    property string labelFontFamily: "Roboto"
     property real legendIconSize: padding
     property color legendFontColor: labelFontColor
     property real legendFontSize: labelFontSize

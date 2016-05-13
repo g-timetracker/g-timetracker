@@ -19,6 +19,10 @@ HEADERS += \
 RESOURCES += qml.qrc \
     translations.qrc
 
+!android {
+    RESOURCES += fonts.qrc
+}
+
 RC_ICONS += $$PWD/icons/windows/app_icon.ico
 
 lupdate_only {

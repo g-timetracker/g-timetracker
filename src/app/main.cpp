@@ -6,6 +6,10 @@
 #include <QPointer>
 
 #ifndef Q_OS_ANDROID
+# include <QFontDatabase>
+#endif
+
+#ifndef Q_OS_ANDROID
 # include <QtSingleApplication>
 #endif
 
@@ -28,6 +32,22 @@
 Q_LOGGING_CATEGORY(MAIN_CATEGORY, "main", QtInfoMsg)
 
 QPointer<Notifier> mainNotifier;
+
+#ifndef Q_OS_ANDROID
+void loadFont(const QString &path)
+{
+    QFile file(path);
+    if (!file.open(QIODevice::ReadOnly)) {
+        qCWarning(MAIN_CATEGORY) << "Fail to open font file" << path << file.errorString();
+        return;
+    }
+    QByteArray data = file.readAll();
+    int id = QFontDatabase::addApplicationFontFromData(data);
+    if (id == -1) {
+        qCWarning(MAIN_CATEGORY) << "Fail to load font" << path;
+    }
+}
+#endif
 
 static QObject *timeTrackerSingletonTypeProvider(QQmlEngine *engine, QJSEngine *scriptEngine)
 {
@@ -142,6 +162,11 @@ int main(int argc, char *argv[])
         exporter.start(parser.value(exportOption));
         return app.exec();
     } else {
+#ifndef Q_OS_ANDROID    // Android devices should has Roboto fonts
+        loadFont(":/fonts/Roboto-Regular.ttf");
+        loadFont(":/fonts/Roboto-Medium.ttf");
+#endif
+
         qmlRegisterSingletonType<TimeTracker>("TimeLog", 1, 0, "TimeTracker", timeTrackerSingletonTypeProvider);
         qmlRegisterType<TimeLogModel>("TimeLog", 1, 0, "TimeLogModel");
         qmlRegisterType<TimeLogRecentModel>("TimeLog", 1, 0, "TimeLogRecentModel");
