@@ -7,7 +7,7 @@ Canvas {
     property var chartData
     property string unitsName
     property int unitsValue
-    property int padding: 10 * Screen.devicePixelRatio
+    property int padding: 16 * Screen.devicePixelRatio
     property color defaultBarColor: "#000000"
     property color axesColor: "#60000000"
     property color gridColor: "#1E000000"
