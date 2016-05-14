@@ -1225,7 +1225,7 @@ void tst_DB::populateCategories()
     checkFunction(importSyncData, history, origSyncEntries, origSyncCategories, 1);
 
     TimeLogHistory testHistory;
-    QVERIFY(testHistory.init(dataDir->path(), QString(), isPopulateCategories));
+    QVERIFY(testHistory.init(dataDir->path(), QString(), false, isPopulateCategories));
 
     if (!origEntries.isEmpty() && !origEntries.constFirst().isValid()) {
         origEntries.clear();

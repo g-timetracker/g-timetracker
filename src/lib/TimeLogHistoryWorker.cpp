@@ -56,7 +56,7 @@ TimeLogHistoryWorker::~TimeLogHistoryWorker()
     QSqlDatabase::removeDatabase(m_connectionName);
 }
 
-bool TimeLogHistoryWorker::init(const QString &dataPath, const QString &filePath, bool isPopulateCategories)
+bool TimeLogHistoryWorker::init(const QString &dataPath, const QString &filePath, bool isReadonly, bool isPopulateCategories)
 {
     QString dirPath(QString("%1%2")
                     .arg(!dataPath.isEmpty() ? dataPath
@@ -73,6 +73,9 @@ bool TimeLogHistoryWorker::init(const QString &dataPath, const QString &filePath
     m_connectionName = QString("timelog_%1_%2").arg(qHash(dbPath)).arg(QDateTime::currentMSecsSinceEpoch());
     QSqlDatabase db = QSqlDatabase::addDatabase("QSQLITE", m_connectionName);
     db.setDatabaseName(dbPath);
+    if (isReadonly) {
+        db.setConnectOptions("QSQLITE_OPEN_READONLY");
+    }
 
     if (!db.open()) {
         qCCritical(HISTORY_WORKER_CATEGORY) << "Fail to open db:" << db.lastError().text();
@@ -84,7 +87,7 @@ bool TimeLogHistoryWorker::init(const QString &dataPath, const QString &filePath
     case -1:
         return false;
     case 0: // clean db
-        if (!setSchemaVersion(dbSchemaVersion)) {
+        if (!isReadonly && !setSchemaVersion(dbSchemaVersion)) {
             return false;
         }
         // fall through

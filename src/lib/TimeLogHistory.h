@@ -32,7 +32,7 @@ public:
     explicit TimeLogHistory(QObject *parent = 0);
     virtual ~TimeLogHistory();
 
-    bool init(const QString &dataPath, const QString &filePath = QString(),
+    bool init(const QString &dataPath, const QString &filePath = QString(), bool isReadonly = false,
               bool isPopulateCategories = false);
 
     qlonglong size() const;

@@ -991,7 +991,7 @@ bool DataSyncerWorker::parseFile(const QString &path,
 void DataSyncerWorker::importPack(const QString &path)
 {
     m_pack = new TimeLogHistory(this);
-    if (!m_pack->init(m_internalSyncPath, m_internalSyncDir.relativeFilePath(path))) {
+    if (!m_pack->init(m_internalSyncPath, m_internalSyncDir.relativeFilePath(path), true)) {
         fail(tr("Fail to open pack file %1").arg(path));
         return;
     }
@@ -1036,7 +1036,9 @@ void DataSyncerWorker::exportPack()
     }
 
     m_pack = new TimeLogHistory(this);
-    if (!m_pack->init(m_internalSyncPath, m_internalSyncDir.relativeFilePath(packDir.filePath("pack.pack")))) {
+    if (!m_pack->init(m_internalSyncPath,
+                      m_internalSyncDir.relativeFilePath(packDir.filePath("pack.pack")),
+                      false)) {
         fail(tr("Fail to create pack file"));
         return;
     }

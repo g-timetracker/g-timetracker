@@ -141,7 +141,7 @@ int main(int argc, char *argv[])
 
     if (parser.isSet(importOption)) {
         TimeLogHistory history;
-        if (!history.init(parser.value(dataPathOption), QString(), true)) {
+        if (!history.init(parser.value(dataPathOption), QString(), false, true)) {
             qCCritical(MAIN_CATEGORY) << "Fail to initialize db";
             return EXIT_FAILURE;
         }
@@ -152,7 +152,7 @@ int main(int argc, char *argv[])
         return app.exec();
     } else if (parser.isSet(exportOption)) {
         TimeLogHistory history;
-        if (!history.init(parser.value(dataPathOption))) {
+        if (!history.init(parser.value(dataPathOption), QString(), true)) {
             qCCritical(MAIN_CATEGORY) << "Fail to initialize db";
             return EXIT_FAILURE;
         }

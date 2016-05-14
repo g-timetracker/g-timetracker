@@ -81,13 +81,13 @@ TimeLogHistory::~TimeLogHistory()
     }
 }
 
-bool TimeLogHistory::init(const QString &dataPath, const QString &filePath, bool isPopulateCategories)
+bool TimeLogHistory::init(const QString &dataPath, const QString &filePath, bool isReadonly, bool isPopulateCategories)
 {
     if (m_worker->thread() != thread()) {
         return false;
     }
 
-    if (!m_worker->init(dataPath, filePath, isPopulateCategories)) {
+    if (!m_worker->init(dataPath, filePath, isReadonly, isPopulateCategories)) {
         return false;
     }
 

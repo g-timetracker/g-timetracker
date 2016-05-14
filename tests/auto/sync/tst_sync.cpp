@@ -1075,9 +1075,9 @@ void tst_Sync::populateCategories()
     QSignalSpy categoriesSpy(history2, SIGNAL(categoriesChanged(QSharedPointer<TimeLogCategoryTreeNode>)));
 
     TimeLogHistory testHistory1;
-    QVERIFY(testHistory1.init(dataDir1->path(), QString(), isPopulateCategories1));
+    QVERIFY(testHistory1.init(dataDir1->path(), QString(), false, isPopulateCategories1));
     TimeLogHistory testHistory2;
-    QVERIFY(testHistory2.init(dataDir2->path(), QString(), isPopulateCategories2));
+    QVERIFY(testHistory2.init(dataDir2->path(), QString(), false, isPopulateCategories2));
 
     syncer1->sync();
     QVERIFY(syncSpy1.wait());

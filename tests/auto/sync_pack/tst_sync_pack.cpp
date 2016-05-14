@@ -667,9 +667,9 @@ void tst_SyncPack::populateCategories()
     QSignalSpy historyOutdateSpy2(history2, SIGNAL(dataOutdated()));
 
     TimeLogHistory testHistory1;
-    QVERIFY(testHistory1.init(dataDir1->path(), QString(), isPopulateCategories1));
+    QVERIFY(testHistory1.init(dataDir1->path(), QString(), false, isPopulateCategories1));
     TimeLogHistory testHistory2;
-    QVERIFY(testHistory2.init(dataDir2->path(), QString(), isPopulateCategories2));
+    QVERIFY(testHistory2.init(dataDir2->path(), QString(), false, isPopulateCategories2));
 
     QFETCH(QVector<TimeLogSyncDataCategory>, newCategories);
     checkFunction(importSyncData, history1, QVector<TimeLogSyncDataEntry>(), newCategories, 1);
