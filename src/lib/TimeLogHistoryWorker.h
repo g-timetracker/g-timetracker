@@ -138,6 +138,8 @@ private:
     QSqlQuery *m_entryQuery;
 
     bool prepareAndExecQuery(QSqlQuery &query, const QString &queryString) const;
+    qlonglong getSchemaVersion() const;
+    bool setSchemaVersion(qint32 schemaVersion);
     bool setupTable();
     bool setupTriggers();
     void setSize(qlonglong size);

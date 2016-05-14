@@ -14,6 +14,8 @@
 
 Q_LOGGING_CATEGORY(HISTORY_WORKER_CATEGORY, "TimeLogHistoryWorker", QtInfoMsg)
 
+const qint32 dbSchemaVersion = 1;
+
 const QString categorySplitPattern("\\s*>\\s*");
 
 const int maxUndoSize(10);
@@ -74,6 +76,22 @@ bool TimeLogHistoryWorker::init(const QString &dataPath, const QString &filePath
 
     if (!db.open()) {
         qCCritical(HISTORY_WORKER_CATEGORY) << "Fail to open db:" << db.lastError().text();
+        return false;
+    }
+
+    qlonglong schemaVersion = getSchemaVersion();
+    switch (schemaVersion) {
+    case -1:
+        return false;
+    case 0: // clean db
+        if (!setSchemaVersion(dbSchemaVersion)) {
+            return false;
+        }
+        // fall through
+    case dbSchemaVersion:
+        break;
+    default:
+        qCCritical(HISTORY_WORKER_CATEGORY) << "Unsupported DB schema version:" << schemaVersion;
         return false;
     }
 
@@ -644,6 +662,31 @@ bool TimeLogHistoryWorker::prepareAndExecQuery(QSqlQuery &query, const QString &
     }
 
     return true;
+}
+
+qlonglong TimeLogHistoryWorker::getSchemaVersion() const
+{
+    QSqlDatabase db = QSqlDatabase::database(m_connectionName);
+    QSqlQuery query(db);
+    QString queryString("PRAGMA user_version;");
+    if (!prepareAndExecQuery(query, queryString)) {
+        return -1;
+    }
+
+    if (!query.next()) {
+        return 0;
+    }
+
+    return query.value(0).toLongLong();
+}
+
+bool TimeLogHistoryWorker::setSchemaVersion(qint32 schemaVersion)
+{
+    QSqlDatabase db = QSqlDatabase::database(m_connectionName);
+    QSqlQuery query(db);
+    QString queryString(QString("PRAGMA user_version = %1;").arg(QString().setNum(schemaVersion)));
+
+    return prepareAndExecQuery(query, queryString);
 }
 
 bool TimeLogHistoryWorker::setupTable()
