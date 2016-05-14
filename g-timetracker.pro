@@ -1,7 +1,10 @@
 TEMPLATE = subdirs
 
 SUBDIRS += \
-    src \
-    tests
+    src
 
-tests.depends = src
+CONFIG(debug, debug|release) {
+    SUBDIRS += tests
+
+    tests.depends = src
+}
