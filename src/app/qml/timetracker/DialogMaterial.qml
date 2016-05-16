@@ -15,8 +15,8 @@ Popup {
     property string dismissiveText: qsTranslate("dialog", "Cancel")
     property ApplicationWindow applicationWindow: MetricsMaterial.applicationWindow
     property point position: applicationWindow.contentItem.mapToItem(parent,
-                                                                     (applicationWindow.width - width) / 2,
-                                                                     (applicationWindow.height - height) / 2)
+                                                                     (applicationWindow.width - implicitWidth) / 2,
+                                                                     (applicationWindow.height - implicitHeight) / 2)
 
     function accept() {
         accepted()
