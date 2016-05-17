@@ -323,4 +323,10 @@ ApplicationWindow {
             initialItem: recentPage
         }
     }
+
+    Component.onCompleted: {
+        if (!Settings.lastVersion) {    // First start
+            Settings.lastVersion = Qt.application.version
+        }
+    }
 }

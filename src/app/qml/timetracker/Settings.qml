@@ -6,6 +6,7 @@ Item {
     id: settings
 
     property bool isConfirmationsEnabled: true
+    property string lastVersion
     property bool isAutoSync: true
     property int syncCacheSize: 10
     property int syncCacheTimeout: 3600
@@ -14,6 +15,7 @@ Item {
 
     Settings {
         property alias confirmationsEnabled: settings.isConfirmationsEnabled
+        property alias lastVersion: settings.lastVersion
 
         category: "main"
     }
