@@ -48,6 +48,7 @@ Page {
         begin: timeLogFilter.beginDate
         end: timeLogFilter.endDate
         category: timeLogFilter.category
+        withSubcategories: subcategoriesFilter.checked
     }
 
     ColumnLayout {
@@ -125,23 +126,44 @@ Page {
         id: rightDrawer
 
         height: parent.height + view.header.height
-        implicitWidth: Math.min(timeLogFilter.implicitWidth, parent.width - 56)
+        implicitWidth: Math.min(searchSettings.implicitWidth, parent.width - 56)
         edge: Qt.RightEdge
 
         Flickable {
             anchors.fill: parent
-            contentWidth: timeLogFilter.implicitWidth
-            contentHeight: timeLogFilter.implicitHeight
+            contentWidth: searchSettings.implicitWidth
+            contentHeight: searchSettings.implicitHeight
             boundsBehavior: Flickable.StopAtBounds
 
             ScrollBar.vertical: ScrollBar { }
 
-            TimeLogFilter {
-                id: timeLogFilter
+            Column {
+                id: searchSettings
 
                 padding: 16
                 topPadding: 8
                 bottomPadding: 8
+                spacing: 8
+
+                TimeLogFilter {
+                    id: timeLogFilter
+                }
+
+                CheckBox {
+                    id: subcategoriesFilter
+
+                    leftPadding: 0
+                    rightPadding: 0
+                    checked: true
+                    enabled: !!timeLogFilter.category
+                    text: qsTr("With subcategories")
+
+                    onEnabledChanged: {
+                        if (!enabled && checked) {
+                            checked = false
+                        }
+                    }
+                }
             }
         }
     }

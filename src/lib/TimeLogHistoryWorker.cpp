@@ -451,7 +451,8 @@ void TimeLogHistoryWorker::undo()
     emit undoCountChanged(m_undoStack.size());
 }
 
-void TimeLogHistoryWorker::getHistoryBetween(qlonglong id, const QDateTime &begin, const QDateTime &end, const QString &category) const
+void TimeLogHistoryWorker::getHistoryBetween(qlonglong id, const QDateTime &begin, const QDateTime &end,
+                                             const QString &category, bool withSubcategories) const
 {
     Q_ASSERT(m_isInitialized);
 
@@ -459,7 +460,10 @@ void TimeLogHistoryWorker::getHistoryBetween(qlonglong id, const QDateTime &begi
     QSqlQuery query(db);
     QString queryString = QString("%1 WHERE (start BETWEEN ? AND ?) %2 ORDER BY start ASC")
                                   .arg(selectFields)
-                                  .arg(category.isEmpty() ? "" : "AND category=?");
+                                  .arg(category.isEmpty() ? ""
+                                                          : QString("AND category %1")
+                                                            .arg(withSubcategories ? "LIKE ? || '%'"
+                                                                                   : "=?"));
     if (!query.prepare(queryString)) {
         qCCritical(HISTORY_WORKER_CATEGORY) << "Fail to prepare query:" << query.lastError().text()
                                             << query.lastQuery();

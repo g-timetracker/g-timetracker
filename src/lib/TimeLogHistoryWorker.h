@@ -60,7 +60,8 @@ public slots:
     void getHistoryBetween(qlonglong id,
                            const QDateTime &begin = QDateTime::fromTime_t(0, Qt::UTC),
                            const QDateTime &end = QDateTime::currentDateTimeUtc(),
-                           const QString &category = QString()) const;
+                           const QString &category = QString(),
+                           bool withSubcategories = false) const;
     void getHistoryAfter(qlonglong id, const uint limit,
                          const QDateTime &from = QDateTime::fromTime_t(0, Qt::UTC)) const;
     void getHistoryBefore(qlonglong id, const uint limit,

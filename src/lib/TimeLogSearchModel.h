@@ -27,6 +27,7 @@ class TimeLogSearchModel : public TimeLogModel
     Q_PROPERTY(QDateTime begin MEMBER m_begin NOTIFY beginChanged)
     Q_PROPERTY(QDateTime end MEMBER m_end NOTIFY endChanged)
     Q_PROPERTY(QString category MEMBER m_category NOTIFY categoryChanged)
+    Q_PROPERTY(bool withSubcategories MEMBER m_withSubcategories NOTIFY withSubcategoruesChanged)
     typedef TimeLogModel SUPER;
 public:
     explicit TimeLogSearchModel(QObject *parent = 0);
@@ -35,6 +36,7 @@ signals:
     void beginChanged(const QDateTime &begin);
     void endChanged(const QDateTime &end);
     void categoryChanged(const QString &category);
+    void withSubcategoruesChanged(bool withSubcategories);
 
 private slots:
     void updateData();
@@ -46,6 +48,7 @@ private:
     QDateTime m_begin;
     QDateTime m_end;
     QString m_category;
+    bool m_withSubcategories;
 };
 
 #endif // TIMELOGSEARCHMODEL_H

@@ -304,10 +304,15 @@
 <context>
     <name>SearchView</name>
     <message>
-        <location filename="../qml/timetracker/SearchView.qml" line="96"/>
-        <location filename="../qml/timetracker/SearchView.qml" line="102"/>
+        <location filename="../qml/timetracker/SearchView.qml" line="97"/>
+        <location filename="../qml/timetracker/SearchView.qml" line="103"/>
         <source>Show in history</source>
         <translation>Показать в истории</translation>
+    </message>
+    <message>
+        <location filename="../qml/timetracker/SearchView.qml" line="157"/>
+        <source>With subcategories</source>
+        <translation>С подкатегориями</translation>
     </message>
 </context>
 <context>
@@ -359,61 +364,61 @@
         <translation>Нет такой категории: %1</translation>
     </message>
     <message>
-        <location filename="../../lib/TimeLogHistoryWorker.cpp" line="466"/>
-        <location filename="../../lib/TimeLogHistoryWorker.cpp" line="489"/>
-        <location filename="../../lib/TimeLogHistoryWorker.cpp" line="509"/>
-        <location filename="../../lib/TimeLogHistoryWorker.cpp" line="529"/>
-        <location filename="../../lib/TimeLogHistoryWorker.cpp" line="585"/>
-        <location filename="../../lib/TimeLogHistoryWorker.cpp" line="634"/>
-        <location filename="../../lib/TimeLogHistoryWorker.cpp" line="643"/>
-        <location filename="../../lib/TimeLogHistoryWorker.cpp" line="1271"/>
-        <location filename="../../lib/TimeLogHistoryWorker.cpp" line="1312"/>
-        <location filename="../../lib/TimeLogHistoryWorker.cpp" line="1360"/>
-        <location filename="../../lib/TimeLogHistoryWorker.cpp" line="1379"/>
-        <location filename="../../lib/TimeLogHistoryWorker.cpp" line="1394"/>
-        <location filename="../../lib/TimeLogHistoryWorker.cpp" line="1402"/>
-        <location filename="../../lib/TimeLogHistoryWorker.cpp" line="1418"/>
-        <location filename="../../lib/TimeLogHistoryWorker.cpp" line="1428"/>
-        <location filename="../../lib/TimeLogHistoryWorker.cpp" line="1446"/>
-        <location filename="../../lib/TimeLogHistoryWorker.cpp" line="1458"/>
-        <location filename="../../lib/TimeLogHistoryWorker.cpp" line="1489"/>
-        <location filename="../../lib/TimeLogHistoryWorker.cpp" line="1499"/>
-        <location filename="../../lib/TimeLogHistoryWorker.cpp" line="1537"/>
-        <location filename="../../lib/TimeLogHistoryWorker.cpp" line="1549"/>
-        <location filename="../../lib/TimeLogHistoryWorker.cpp" line="1641"/>
-        <location filename="../../lib/TimeLogHistoryWorker.cpp" line="1650"/>
-        <location filename="../../lib/TimeLogHistoryWorker.cpp" line="1665"/>
-        <location filename="../../lib/TimeLogHistoryWorker.cpp" line="1673"/>
-        <location filename="../../lib/TimeLogHistoryWorker.cpp" line="1687"/>
-        <location filename="../../lib/TimeLogHistoryWorker.cpp" line="1715"/>
-        <location filename="../../lib/TimeLogHistoryWorker.cpp" line="1751"/>
-        <location filename="../../lib/TimeLogHistoryWorker.cpp" line="1771"/>
-        <location filename="../../lib/TimeLogHistoryWorker.cpp" line="1813"/>
-        <location filename="../../lib/TimeLogHistoryWorker.cpp" line="1833"/>
-        <location filename="../../lib/TimeLogHistoryWorker.cpp" line="1880"/>
-        <location filename="../../lib/TimeLogHistoryWorker.cpp" line="1905"/>
-        <location filename="../../lib/TimeLogHistoryWorker.cpp" line="1930"/>
-        <location filename="../../lib/TimeLogHistoryWorker.cpp" line="1958"/>
-        <location filename="../../lib/TimeLogHistoryWorker.cpp" line="1983"/>
-        <location filename="../../lib/TimeLogHistoryWorker.cpp" line="1992"/>
-        <location filename="../../lib/TimeLogHistoryWorker.cpp" line="2013"/>
-        <location filename="../../lib/TimeLogHistoryWorker.cpp" line="2023"/>
-        <location filename="../../lib/TimeLogHistoryWorker.cpp" line="2053"/>
-        <location filename="../../lib/TimeLogHistoryWorker.cpp" line="2089"/>
-        <location filename="../../lib/TimeLogHistoryWorker.cpp" line="2133"/>
-        <location filename="../../lib/TimeLogHistoryWorker.cpp" line="2168"/>
-        <location filename="../../lib/TimeLogHistoryWorker.cpp" line="2179"/>
-        <location filename="../../lib/TimeLogHistoryWorker.cpp" line="2191"/>
-        <location filename="../../lib/TimeLogHistoryWorker.cpp" line="2221"/>
-        <location filename="../../lib/TimeLogHistoryWorker.cpp" line="2345"/>
-        <location filename="../../lib/TimeLogHistoryWorker.cpp" line="2354"/>
+        <location filename="../../lib/TimeLogHistoryWorker.cpp" line="470"/>
+        <location filename="../../lib/TimeLogHistoryWorker.cpp" line="493"/>
+        <location filename="../../lib/TimeLogHistoryWorker.cpp" line="513"/>
+        <location filename="../../lib/TimeLogHistoryWorker.cpp" line="533"/>
+        <location filename="../../lib/TimeLogHistoryWorker.cpp" line="589"/>
+        <location filename="../../lib/TimeLogHistoryWorker.cpp" line="638"/>
+        <location filename="../../lib/TimeLogHistoryWorker.cpp" line="647"/>
+        <location filename="../../lib/TimeLogHistoryWorker.cpp" line="1275"/>
+        <location filename="../../lib/TimeLogHistoryWorker.cpp" line="1316"/>
+        <location filename="../../lib/TimeLogHistoryWorker.cpp" line="1364"/>
+        <location filename="../../lib/TimeLogHistoryWorker.cpp" line="1383"/>
+        <location filename="../../lib/TimeLogHistoryWorker.cpp" line="1398"/>
+        <location filename="../../lib/TimeLogHistoryWorker.cpp" line="1406"/>
+        <location filename="../../lib/TimeLogHistoryWorker.cpp" line="1422"/>
+        <location filename="../../lib/TimeLogHistoryWorker.cpp" line="1432"/>
+        <location filename="../../lib/TimeLogHistoryWorker.cpp" line="1450"/>
+        <location filename="../../lib/TimeLogHistoryWorker.cpp" line="1462"/>
+        <location filename="../../lib/TimeLogHistoryWorker.cpp" line="1493"/>
+        <location filename="../../lib/TimeLogHistoryWorker.cpp" line="1503"/>
+        <location filename="../../lib/TimeLogHistoryWorker.cpp" line="1541"/>
+        <location filename="../../lib/TimeLogHistoryWorker.cpp" line="1553"/>
+        <location filename="../../lib/TimeLogHistoryWorker.cpp" line="1645"/>
+        <location filename="../../lib/TimeLogHistoryWorker.cpp" line="1654"/>
+        <location filename="../../lib/TimeLogHistoryWorker.cpp" line="1669"/>
+        <location filename="../../lib/TimeLogHistoryWorker.cpp" line="1677"/>
+        <location filename="../../lib/TimeLogHistoryWorker.cpp" line="1691"/>
+        <location filename="../../lib/TimeLogHistoryWorker.cpp" line="1719"/>
+        <location filename="../../lib/TimeLogHistoryWorker.cpp" line="1755"/>
+        <location filename="../../lib/TimeLogHistoryWorker.cpp" line="1775"/>
+        <location filename="../../lib/TimeLogHistoryWorker.cpp" line="1817"/>
+        <location filename="../../lib/TimeLogHistoryWorker.cpp" line="1837"/>
+        <location filename="../../lib/TimeLogHistoryWorker.cpp" line="1884"/>
+        <location filename="../../lib/TimeLogHistoryWorker.cpp" line="1909"/>
+        <location filename="../../lib/TimeLogHistoryWorker.cpp" line="1934"/>
+        <location filename="../../lib/TimeLogHistoryWorker.cpp" line="1962"/>
+        <location filename="../../lib/TimeLogHistoryWorker.cpp" line="1987"/>
+        <location filename="../../lib/TimeLogHistoryWorker.cpp" line="1996"/>
+        <location filename="../../lib/TimeLogHistoryWorker.cpp" line="2017"/>
+        <location filename="../../lib/TimeLogHistoryWorker.cpp" line="2027"/>
+        <location filename="../../lib/TimeLogHistoryWorker.cpp" line="2057"/>
+        <location filename="../../lib/TimeLogHistoryWorker.cpp" line="2093"/>
+        <location filename="../../lib/TimeLogHistoryWorker.cpp" line="2137"/>
+        <location filename="../../lib/TimeLogHistoryWorker.cpp" line="2172"/>
+        <location filename="../../lib/TimeLogHistoryWorker.cpp" line="2183"/>
+        <location filename="../../lib/TimeLogHistoryWorker.cpp" line="2195"/>
+        <location filename="../../lib/TimeLogHistoryWorker.cpp" line="2225"/>
+        <location filename="../../lib/TimeLogHistoryWorker.cpp" line="2349"/>
+        <location filename="../../lib/TimeLogHistoryWorker.cpp" line="2358"/>
         <source>DB error: %1</source>
         <translation>Ошибка БД: %1</translation>
     </message>
     <message>
-        <location filename="../../lib/TimeLogHistoryWorker.cpp" line="550"/>
-        <location filename="../../lib/TimeLogHistoryWorker.cpp" line="1851"/>
-        <location filename="../../lib/TimeLogHistoryWorker.cpp" line="2249"/>
+        <location filename="../../lib/TimeLogHistoryWorker.cpp" line="554"/>
+        <location filename="../../lib/TimeLogHistoryWorker.cpp" line="1855"/>
+        <location filename="../../lib/TimeLogHistoryWorker.cpp" line="2253"/>
         <source>Fail to parse category data: %1</source>
         <translation>Не удалось разобрать данные категории: %1</translation>
     </message>
@@ -1033,14 +1038,14 @@
 <context>
     <name>search filter</name>
     <message>
-        <location filename="../qml/timetracker/SearchView.qml" line="82"/>
+        <location filename="../qml/timetracker/SearchView.qml" line="83"/>
         <location filename="../qml/timetracker/StatsView.qml" line="105"/>
         <source>Category: “%1”</source>
         <translation>Категория: “%1”</translation>
     </message>
     <message>
         <location filename="../qml/timetracker/HistoryView.qml" line="67"/>
-        <location filename="../qml/timetracker/SearchView.qml" line="67"/>
+        <location filename="../qml/timetracker/SearchView.qml" line="68"/>
         <location filename="../qml/timetracker/StatsView.qml" line="90"/>
         <source>Selected period: %1–%2</source>
         <translation>Выбранный период: %1–%2</translation>

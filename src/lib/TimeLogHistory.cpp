@@ -189,10 +189,12 @@ void TimeLogHistory::undo()
     QMetaObject::invokeMethod(m_worker, "undo", Qt::AutoConnection);
 }
 
-void TimeLogHistory::getHistoryBetween(qlonglong id, const QDateTime &begin, const QDateTime &end, const QString &category) const
+void TimeLogHistory::getHistoryBetween(qlonglong id, const QDateTime &begin, const QDateTime &end,
+                                       const QString &category, bool withSubcategories) const
 {
     QMetaObject::invokeMethod(m_worker, "getHistoryBetween", Qt::AutoConnection, Q_ARG(qlonglong, id),
-                              Q_ARG(QDateTime, begin), Q_ARG(QDateTime, end), Q_ARG(QString, category));
+                              Q_ARG(QDateTime, begin), Q_ARG(QDateTime, end), Q_ARG(QString, category),
+                              Q_ARG(bool, withSubcategories));
 }
 
 void TimeLogHistory::getHistoryAfter(qlonglong id, const uint limit, const QDateTime &from) const

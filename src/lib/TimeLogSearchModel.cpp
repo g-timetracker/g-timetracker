@@ -29,6 +29,8 @@ TimeLogSearchModel::TimeLogSearchModel(QObject *parent) :
             this, SLOT(updateData()));
     connect(this, SIGNAL(categoryChanged(QString)),
             this, SLOT(updateData()));
+    connect(this, SIGNAL(withSubcategoruesChanged(bool)),
+            this, SLOT(updateData()));
 }
 
 void TimeLogSearchModel::updateData()
@@ -44,7 +46,7 @@ void TimeLogSearchModel::updateData()
     clear();
     qlonglong id = QDateTime::currentMSecsSinceEpoch();
     m_pendingRequests.append(id);
-    m_history->getHistoryBetween(id, m_begin, m_end, m_category);
+    m_history->getHistoryBetween(id, m_begin, m_end, m_category, m_withSubcategories);
 }
 
 void TimeLogSearchModel::processDataInsert(TimeLogEntry data)
