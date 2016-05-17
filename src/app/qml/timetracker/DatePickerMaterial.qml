@@ -20,6 +20,7 @@ import QtQuick 2.0
 import QtQuick.Controls 1.4 as QQC1 // FIXME: crashes without this
 import QtQuick.Controls 2.0
 import QtQuick.Controls.Material 2.0
+import TimeLog 1.0
 
 TextField {
     id: datePicker
@@ -28,7 +29,7 @@ TextField {
     property alias maximumDate: popup.maximumDate
     property alias selectedDate: popup.selectedDate
 
-    implicitWidth: 180
+    implicitWidth: MetricsMaterial.dropdownWidth
     rightPadding: icon.width + 16
     readOnly: true
     text: Qt.formatDate(selectedDate, "ddd, MMM d yyyy")

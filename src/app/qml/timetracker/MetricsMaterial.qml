@@ -24,4 +24,5 @@ QtObject {
     property ApplicationWindow applicationWindow: null
     property bool isLandscape: !!applicationWindow
                                && applicationWindow.width > applicationWindow.height
+    property int dropdownWidth: 56 * 3
 }
