@@ -32,9 +32,9 @@ Popup {
     property string affirmativeText: qsTranslate("dialog", "OK")
     property string dismissiveText: qsTranslate("dialog", "Cancel")
     property ApplicationWindow applicationWindow: MetricsMaterial.applicationWindow
-    property point position: applicationWindow.contentItem.mapToItem(parent,
-                                                                     (applicationWindow.width - implicitWidth) / 2,
-                                                                     (applicationWindow.height - implicitHeight) / 2)
+    property point position: parent.mapFromItem(null,
+                                                (applicationWindow.width - implicitWidth) / 2 + visible - visible,  // TODO: remove workaround
+                                                (applicationWindow.height - implicitHeight) / 2)
 
     function accept() {
         accepted()
