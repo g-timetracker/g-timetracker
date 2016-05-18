@@ -41,6 +41,7 @@
         <file>qml/timetracker/HistoryView.qml</file>
         <file>qml/timetracker/DatePeriodPicker.qml</file>
         <file>qml/timetracker/DateDayPicker.qml</file>
+        <file>qml/timetracker/DateWeekPicker.qml</file>
         <file>qml/timetracker/DateMonthPicker.qml</file>
         <file>qml/timetracker/DateYearPicker.qml</file>
         <file>qml/timetracker/DateRangePicker.qml</file>

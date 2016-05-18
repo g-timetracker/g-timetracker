@@ -63,12 +63,12 @@
 <context>
     <name>CategoryPicker</name>
     <message>
-        <location filename="../qml/timetracker/CategoryPicker.qml" line="42"/>
+        <location filename="../qml/timetracker/CategoryPicker.qml" line="41"/>
         <source>Category</source>
         <translation>Категория</translation>
     </message>
     <message>
-        <location filename="../qml/timetracker/CategoryPicker.qml" line="42"/>
+        <location filename="../qml/timetracker/CategoryPicker.qml" line="41"/>
         <source>Subcategory</source>
         <translation>Подкатегория</translation>
     </message>
@@ -238,21 +238,26 @@
     </message>
     <message>
         <location filename="../qml/timetracker/DatePeriodPicker.qml" line="32"/>
+        <source>week</source>
+        <translation>неделя</translation>
+    </message>
+    <message>
+        <location filename="../qml/timetracker/DatePeriodPicker.qml" line="33"/>
         <source>month</source>
         <translation>месяц</translation>
     </message>
     <message>
-        <location filename="../qml/timetracker/DatePeriodPicker.qml" line="33"/>
+        <location filename="../qml/timetracker/DatePeriodPicker.qml" line="34"/>
         <source>year</source>
         <translation>год</translation>
     </message>
     <message>
-        <location filename="../qml/timetracker/DatePeriodPicker.qml" line="35"/>
+        <location filename="../qml/timetracker/DatePeriodPicker.qml" line="36"/>
         <source>select</source>
         <translation>выбрать</translation>
     </message>
     <message>
-        <location filename="../qml/timetracker/DatePeriodPicker.qml" line="34"/>
+        <location filename="../qml/timetracker/DatePeriodPicker.qml" line="35"/>
         <source>all</source>
         <translation>все</translation>
     </message>
@@ -268,6 +273,24 @@
         <location filename="../qml/timetracker/DateRangePicker.qml" line="39"/>
         <source>To</source>
         <translation>По</translation>
+    </message>
+</context>
+<context>
+    <name>DateWeekPicker</name>
+    <message>
+        <location filename="../qml/timetracker/DateWeekPicker.qml" line="34"/>
+        <source>current</source>
+        <translation>текущая</translation>
+    </message>
+    <message>
+        <location filename="../qml/timetracker/DateWeekPicker.qml" line="35"/>
+        <source>previous</source>
+        <translation>предыдущая</translation>
+    </message>
+    <message>
+        <location filename="../qml/timetracker/DateWeekPicker.qml" line="38"/>
+        <source>week %1</source>
+        <translation>неделя %1</translation>
     </message>
 </context>
 <context>
@@ -310,7 +333,7 @@
         <translation>Показать в истории</translation>
     </message>
     <message>
-        <location filename="../qml/timetracker/SearchView.qml" line="157"/>
+        <location filename="../qml/timetracker/SearchView.qml" line="158"/>
         <source>With subcategories</source>
         <translation>С подкатегориями</translation>
     </message>
@@ -502,7 +525,7 @@
 <context>
     <name>TimeTracker</name>
     <message>
-        <location filename="../../lib/TimeTracker.cpp" line="112"/>
+        <location filename="../../lib/TimeTracker.cpp" line="115"/>
         <source>Fail to initialize DB</source>
         <translation>Не удалось инициализировать БД</translation>
     </message>
@@ -783,8 +806,8 @@
 <context>
     <name>duration</name>
     <message numerus="yes">
-        <location filename="../../lib/TimeTracker.cpp" line="45"/>
-        <location filename="../../lib/TimeTracker.cpp" line="57"/>
+        <location filename="../../lib/TimeTracker.cpp" line="48"/>
+        <location filename="../../lib/TimeTracker.cpp" line="60"/>
         <source>%n second(s)</source>
         <translation>
             <numerusform>%n секунда</numerusform>
@@ -793,7 +816,7 @@
         </translation>
     </message>
     <message numerus="yes">
-        <location filename="../../lib/TimeTracker.cpp" line="59"/>
+        <location filename="../../lib/TimeTracker.cpp" line="62"/>
         <source>%n minute(s)</source>
         <translation>
             <numerusform>%n минута</numerusform>
@@ -802,7 +825,7 @@
         </translation>
     </message>
     <message numerus="yes">
-        <location filename="../../lib/TimeTracker.cpp" line="61"/>
+        <location filename="../../lib/TimeTracker.cpp" line="64"/>
         <source>%n hour(s)</source>
         <translation>
             <numerusform>%n час</numerusform>
@@ -811,7 +834,7 @@
         </translation>
     </message>
     <message numerus="yes">
-        <location filename="../../lib/TimeTracker.cpp" line="62"/>
+        <location filename="../../lib/TimeTracker.cpp" line="65"/>
         <source>%n hr</source>
         <translation>
             <numerusform>%n ч</numerusform>
@@ -820,7 +843,7 @@
         </translation>
     </message>
     <message numerus="yes">
-        <location filename="../../lib/TimeTracker.cpp" line="63"/>
+        <location filename="../../lib/TimeTracker.cpp" line="66"/>
         <source>%n day(s)</source>
         <translation>
             <numerusform>%n день</numerusform>
@@ -829,7 +852,7 @@
         </translation>
     </message>
     <message numerus="yes">
-        <location filename="../../lib/TimeTracker.cpp" line="65"/>
+        <location filename="../../lib/TimeTracker.cpp" line="68"/>
         <source>%n week(s)</source>
         <translation>
             <numerusform>%n неделя</numerusform>
@@ -838,7 +861,7 @@
         </translation>
     </message>
     <message numerus="yes">
-        <location filename="../../lib/TimeTracker.cpp" line="66"/>
+        <location filename="../../lib/TimeTracker.cpp" line="69"/>
         <source>%n wk</source>
         <translation>
             <numerusform>%n нед</numerusform>
@@ -847,7 +870,7 @@
         </translation>
     </message>
     <message numerus="yes">
-        <location filename="../../lib/TimeTracker.cpp" line="67"/>
+        <location filename="../../lib/TimeTracker.cpp" line="70"/>
         <source>%n month(s)</source>
         <translation>
             <numerusform>%n месяц</numerusform>
@@ -856,7 +879,7 @@
         </translation>
     </message>
     <message numerus="yes">
-        <location filename="../../lib/TimeTracker.cpp" line="68"/>
+        <location filename="../../lib/TimeTracker.cpp" line="71"/>
         <source>%n mo</source>
         <translation>
             <numerusform>%n мес</numerusform>
@@ -865,7 +888,7 @@
         </translation>
     </message>
     <message numerus="yes">
-        <location filename="../../lib/TimeTracker.cpp" line="69"/>
+        <location filename="../../lib/TimeTracker.cpp" line="72"/>
         <source>%n year(s)</source>
         <translation>
             <numerusform>%n год</numerusform>
@@ -874,8 +897,8 @@
         </translation>
     </message>
     <message numerus="yes">
-        <location filename="../../lib/TimeTracker.cpp" line="46"/>
-        <location filename="../../lib/TimeTracker.cpp" line="58"/>
+        <location filename="../../lib/TimeTracker.cpp" line="49"/>
+        <location filename="../../lib/TimeTracker.cpp" line="61"/>
         <source>%n s</source>
         <translation>
             <numerusform>%n с</numerusform>
@@ -884,7 +907,7 @@
         </translation>
     </message>
     <message numerus="yes">
-        <location filename="../../lib/TimeTracker.cpp" line="60"/>
+        <location filename="../../lib/TimeTracker.cpp" line="63"/>
         <source>%n min</source>
         <translation>
             <numerusform>%n мин</numerusform>
@@ -893,7 +916,7 @@
         </translation>
     </message>
     <message numerus="yes">
-        <location filename="../../lib/TimeTracker.cpp" line="64"/>
+        <location filename="../../lib/TimeTracker.cpp" line="67"/>
         <source>%n d</source>
         <translation>
             <numerusform>%n д</numerusform>
@@ -902,7 +925,7 @@
         </translation>
     </message>
     <message numerus="yes">
-        <location filename="../../lib/TimeTracker.cpp" line="70"/>
+        <location filename="../../lib/TimeTracker.cpp" line="73"/>
         <source>%n yr</source>
         <translation>
             <numerusform>%n г</numerusform>

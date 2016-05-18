@@ -29,6 +29,7 @@ ItemPositioner {
 
         model: [
             qsTr("day"),
+            qsTr("week"),
             qsTr("month"),
             qsTr("year"),
             qsTr("all"),
@@ -58,10 +59,32 @@ ItemPositioner {
         }
     }
 
+    DateWeekPicker {
+        id: dateWeekPicker
+
+        property bool isCurrent: periodSelector.currentIndex == 1
+
+        visible: isCurrent
+
+        Binding {
+            target: datePeriodPicker
+            property: "beginDate"
+            value: dateWeekPicker.beginDate
+            when: dateWeekPicker.isCurrent
+        }
+
+        Binding {
+            target: datePeriodPicker
+            property: "endDate"
+            value: dateWeekPicker.endDate
+            when: dateWeekPicker.isCurrent
+        }
+    }
+
     DateMonthPicker {
         id: dateMonthPicker
 
-        property bool isCurrent: periodSelector.currentIndex == 1
+        property bool isCurrent: periodSelector.currentIndex == 2
 
         visible: isCurrent
 
@@ -83,7 +106,7 @@ ItemPositioner {
     DateYearPicker {
         id: dateYearPicker
 
-        property bool isCurrent: periodSelector.currentIndex == 2
+        property bool isCurrent: periodSelector.currentIndex == 3
 
         visible: isCurrent
 
@@ -105,7 +128,7 @@ ItemPositioner {
     Item {
         id: dateAllPicker
 
-        property bool isCurrent: periodSelector.currentIndex == 3
+        property bool isCurrent: periodSelector.currentIndex == 4
 
         visible: isCurrent
 
@@ -127,7 +150,7 @@ ItemPositioner {
     DateRangePicker {
         id: dateRangePicker
 
-        property bool isCurrent: periodSelector.currentIndex == 4
+        property bool isCurrent: periodSelector.currentIndex == 5
 
         visible: isCurrent
 

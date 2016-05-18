@@ -20,6 +20,7 @@
 #include <QStandardPaths>
 #include <QDir>
 #include <QVector>
+#include <QLocale>
 
 #include "TimeTracker.h"
 #include "TimeLogHistory.h"
@@ -205,6 +206,27 @@ QString TimeTracker::rangeText(const QDateTime &from, const QDateTime &to)
         return QString(from.toString(Qt::DefaultLocaleShortDate) + " \u2013 "
                        + to.toString(Qt::DefaultLocaleShortDate));
     }
+}
+
+QVariantList TimeTracker::weeksModel()
+{
+    QVariantList result;
+
+    QDate start(QDate::currentDate());
+    start = start.addDays(-(start.dayOfWeek() + 7 - QLocale().firstDayOfWeek()) % 7);
+    QDate end = start.addYears(-1);
+
+    QDate d(start.addDays(7));
+    do {
+        QVariantMap weekData;
+        weekData.insert("to", d);
+        d = d.addDays(-7);
+        weekData.insert("from", d);
+        weekData.insert("number", d.weekNumber());
+        result.append(weekData);
+    } while (d >= end);
+
+    return result;
 }
 
 QUrl TimeTracker::documentsLocation()
