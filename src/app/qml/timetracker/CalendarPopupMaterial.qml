@@ -121,9 +121,9 @@ DialogMaterial {
                             ToolButton {
                                 id: previousMonthButton
 
-                                height: 44
+                                height: 40
+                                y: 6
                                 width: height
-                                anchors.verticalCenter: parent.verticalCenter
                                 enabled: calendarList.currentIndex > 0
                                 contentItem: IconMaterial {
                                     anchors.verticalCenter: parent.verticalCenter
@@ -148,9 +148,9 @@ DialogMaterial {
                             ToolButton {
                                 id: nextMonthButton
 
-                                height: 44
+                                height: 40
+                                y: 6
                                 width: height
-                                anchors.verticalCenter: parent.verticalCenter
                                 enabled: calendarList.currentIndex < calendarList.count - 1
                                 contentItem: IconMaterial {
                                     anchors.verticalCenter: parent.verticalCenter
@@ -170,7 +170,7 @@ DialogMaterial {
                             font: popup.font
                             delegate: Label {
                                 padding: 0
-                                bottomPadding: isLandscape ? 4 : 10
+                                bottomPadding: isLandscape ? 0 : 8
                                 width: isLandscape ? 46 : 44
                                 horizontalAlignment: Text.AlignHCenter
                                 verticalAlignment: Text.AlignVCenter
@@ -187,15 +187,14 @@ DialogMaterial {
                             month: model.month
                             year: model.year
                             font: popup.font
-                            spacing: isLandscape ? 20 : 0
+                            spacing: 0
                             padding: 0
-                            topPadding: isLandscape ? 0 : 6
                             locale: popup.locale
                             delegate: Label {
                                 property bool isSelected: model.date.valueOf() === calendarList.selectedDate.valueOf()
 
-                                height: isLandscape ? 12 : 40
-                                width: isLandscape ? 26 : 44
+                                height: isLandscape ? 32 : 40
+                                width: isLandscape ? 46 : 44
                                 horizontalAlignment: Text.AlignHCenter
                                 verticalAlignment: Text.AlignVCenter
                                 font.pixelSize: 12
