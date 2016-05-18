@@ -49,7 +49,7 @@ Popup {
     signal accepted()
     signal rejected()
 
-    closePolicy: Popup.CloseOnEscape | Popup.CloseOnReleaseOutside
+    focus: true
     modal: false
     padding: 0
     margins: 16
