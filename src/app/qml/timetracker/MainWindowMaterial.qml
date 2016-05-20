@@ -143,16 +143,6 @@ ApplicationWindow {
                 ItemDelegateMaterial {
                     Layout.fillWidth: true
                     Layout.minimumWidth: implicitWidth
-                    text: qsTranslate("main window", "Search")
-                    iconItem.source: "images/ic_search_white_24dp.png"
-                    onClicked: {
-                        drawer.close()
-                        mainWindow.showSearch()
-                    }
-                }
-                ItemDelegateMaterial {
-                    Layout.fillWidth: true
-                    Layout.minimumWidth: implicitWidth
                     text: qsTranslate("main window", "Statistics")
                     iconItem.source: "images/ic_show_chart_white_24dp.png"
                     onClicked: {
@@ -163,11 +153,11 @@ ApplicationWindow {
                 ItemDelegateMaterial {
                     Layout.fillWidth: true
                     Layout.minimumWidth: implicitWidth
-                    text: qsTranslate("main window", "Categories")
-                    iconItem.source: "images/ic_folder_white_24dp.png"
+                    text: qsTranslate("main window", "Search")
+                    iconItem.source: "images/ic_search_white_24dp.png"
                     onClicked: {
                         drawer.close()
-                        mainWindow.showCategories()
+                        mainWindow.showSearch()
                     }
                 }
                 ItemDelegateMaterial {
@@ -178,6 +168,16 @@ ApplicationWindow {
                     onClicked: {
                         drawer.close()
                         mainWindow.showHistory()
+                    }
+                }
+                ItemDelegateMaterial {
+                    Layout.fillWidth: true
+                    Layout.minimumWidth: implicitWidth
+                    text: qsTranslate("main window", "Categories")
+                    iconItem.source: "images/ic_folder_white_24dp.png"
+                    onClicked: {
+                        drawer.close()
+                        mainWindow.showCategories()
                     }
                 }
                 ItemDelegateMaterial {
