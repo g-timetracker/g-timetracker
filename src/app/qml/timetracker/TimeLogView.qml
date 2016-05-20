@@ -27,6 +27,7 @@ Item {
     id: timeLogView
 
     property alias model: delegateModel.model
+    property alias count: listView.count
     property alias currentItem: listView.currentItem
     property bool reverse: false
     property bool lazyDialogs: true

@@ -18,6 +18,7 @@
 
 import QtQuick 2.6
 import QtQuick.Controls 2.0
+import QtQuick.Controls.Material 2.0
 import TimeLog 1.0
 
 Page {
@@ -56,6 +57,22 @@ Page {
         onInsert: timeLogModel.insertItem(modelIndex, newData)
         onAppend: timeLogModel.appendItem(newData)
         onRemove: timeLogModel.removeItem(modelIndex)
+    }
+
+    Loader {
+        anchors.margins: 32
+        anchors.fill: parent
+        active: timeLogView.count === 0
+        sourceComponent: Component {
+            Label {
+                horizontalAlignment: Text.AlignHCenter
+                verticalAlignment: Text.AlignVCenter
+                font.pixelSize: 34
+                wrapMode: Text.Wrap
+                color: view.Material.hintTextColor
+                text: qsTr("Click on the \u201C+\u201D button to create a new record and start tracking your time")
+            }
+        }
     }
 
     FloatingActionButton {
