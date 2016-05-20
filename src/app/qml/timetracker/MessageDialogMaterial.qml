@@ -16,19 +16,36 @@
  ** along with this program.  If not, see <http://www.gnu.org/licenses/>.
  **/
 
+import QtQuick 2.6
+import QtQuick.Layouts 1.3
 import QtQuick.Controls 2.0
 import QtQuick.Controls.Material 2.0
 
 DialogMaterial {
+    id: dialog
+
     property alias text: label.text
+
+    signal linkActivated(string link)
 
     Label {
         id: label
 
+        Layout.fillWidth: true
+        Layout.fillHeight: true
         leftPadding: 24
         rightPadding: 24
         bottomPadding: 24
         font.pixelSize: 16
+        wrapMode: Text.Wrap
         color: Material.secondaryTextColor
+
+        onLinkActivated: dialog.linkActivated(link)
+
+        MouseArea {
+            anchors.fill: parent
+            cursorShape: label.hoveredLink ? Qt.PointingHandCursor : Qt.ArrowCursor
+            acceptedButtons: Qt.NoButton
+        }
     }
 }

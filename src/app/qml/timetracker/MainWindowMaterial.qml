@@ -69,6 +69,11 @@ ApplicationWindow {
         stackView.push(dialog)
     }
 
+    function showMessage(message) {
+        messageDialog.text = message
+        messageDialog.open()
+    }
+
     function back() {
         if (stackView.depth > 1) {
             stackView.pop()
@@ -256,10 +261,7 @@ ApplicationWindow {
     Connections {
         target: TimeTracker
 
-        onError: {
-            messageDialog.text = errorText
-            messageDialog.open()
-        }
+        onError: mainWindow.showMessage(errorText)
         onShowSearchRequested: showSearch(category)
         onShowStatsRequested: showStats(category)
         onShowHistoryRequested: showHistory(begin, end)
@@ -275,14 +277,13 @@ ApplicationWindow {
 
     Connections {
         target: TimeTracker.syncer
-        onSynced: {
-            messageDialog.text = qsTranslate("main window", "Synced")
-            messageDialog.open()
-        }
+        onSynced: mainWindow.showMessage(qsTranslate("main window", "Synced"))
     }
 
     AlertDialog {
         id: messageDialog
+
+        onLinkActivated: Qt.openUrlExternally(link)
     }
 
     Item {

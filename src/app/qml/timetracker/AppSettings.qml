@@ -24,6 +24,7 @@ Item {
     id: settings
 
     property bool isConfirmationsEnabled: true
+    property bool isCheckForUpdates: true
     property string lastVersion
     property bool isAutoSync: true
     property int syncCacheSize: 10
@@ -33,6 +34,7 @@ Item {
 
     Settings {
         property alias confirmationsEnabled: settings.isConfirmationsEnabled
+        property alias checkForUpdates: settings.isCheckForUpdates
         property alias lastVersion: settings.lastVersion
 
         category: "main"

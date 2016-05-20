@@ -46,6 +46,9 @@
 #include "DataExporter.h"
 #include "DataSyncer.h"
 #include "Notifier.h"
+#ifndef Q_OS_ANDROID
+# include "Updater.h"
+#endif
 
 Q_LOGGING_CATEGORY(MAIN_CATEGORY, "main", QtInfoMsg)
 
@@ -193,6 +196,9 @@ int main(int argc, char *argv[])
         qmlRegisterType<TimeLogCategoryTreeModel>("TimeLog", 1, 0, "TimeLogCategoryTreeModel");
         qmlRegisterType<TimeLogCategoryDepthModel>("TimeLog", 1, 0, "TimeLogCategoryDepthModel");
         qmlRegisterUncreatableType<DataSyncer>("TimeLog", 1, 0, "DataSyncer", "This is a DataSyncer object");
+#ifndef Q_OS_ANDROID
+        qmlRegisterType<Updater>("TimeLog", 1, 0, "Updater");
+#endif
         qmlRegisterSingletonType(QUrl("qrc:/qml/timetracker/AppSettings.qml"), "TimeLog", 1, 0, "AppSettings");
         qmlRegisterSingletonType(QUrl("qrc:/qml/timetracker/PlatformMaterial.qml"), "TimeLog", 1, 0, "PlatformMaterial");
 

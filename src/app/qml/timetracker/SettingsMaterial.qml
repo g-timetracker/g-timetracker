@@ -58,6 +58,16 @@ Page {
             SettingsSwitchDelegate {
                 width: parent.width
                 isLastItem: Positioner.isLastItem
+                text: qsTranslate("settings", "Check for updates")
+                visible: PlatformMaterial.isDesktop
+
+                checked: AppSettings.isCheckForUpdates
+                onCheckedChanged: AppSettings.isCheckForUpdates = checked
+            }
+
+            SettingsSwitchDelegate {
+                width: parent.width
+                isLastItem: Positioner.isLastItem
                 text: qsTranslate("settings", "Confirmations")
 
                 checked: AppSettings.isConfirmationsEnabled

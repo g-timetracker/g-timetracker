@@ -16,28 +16,40 @@
  ** along with this program.  If not, see <http://www.gnu.org/licenses/>.
  **/
 
-import Qt.labs.settings 1.0
-import TimeLog 1.0
+#ifndef UPDATER_H
+#define UPDATER_H
 
-MainWindowMaterial {
-    id: window
+#include <QObject>
 
-    minimumWidth: 600
-    minimumHeight: 360
+class QTimer;
+class QNetworkAccessManager;
+class QNetworkReply;
 
-    Settings {
-        property alias x: window.x
-        property alias y: window.y
-        property alias width: window.width
-        property alias height: window.height
+class Updater : public QObject
+{
+    Q_OBJECT
+    Q_PROPERTY(bool check MEMBER m_check WRITE setCheck NOTIFY checkChanged)
+public:
+    explicit Updater(QObject *parent = 0);
 
-        category: "window"
-    }
+    void setCheck(bool check);
 
-    Updater {
-        check: AppSettings.isCheckForUpdates && window.visible
-        onUpdateAvailable: window.showMessage(qsTranslate("main window",
-                                                          "New version %1 available! <a href='%2'>Release page.</a>")
-                                              .arg(version).arg(link.toString()))
-    }
-}
+signals:
+    void checkChanged(bool newCheck) const;
+    void updateAvailable(const QString &version, const QUrl &link) const;
+
+public slots:
+    void checkForUpdates();
+
+private slots:
+    void requestFinished(QNetworkReply *reply);
+
+private:
+    bool parseUpdateData(const QByteArray &updateData);
+
+    bool m_check;
+    QTimer *m_checkTimer;
+    QNetworkAccessManager *m_networkManager;
+};
+
+#endif // UPDATER_H

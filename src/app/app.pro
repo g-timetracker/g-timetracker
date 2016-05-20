@@ -5,6 +5,7 @@ QT += qml quick sql
 
 !android {
     QT += widgets
+    QT += network
 }
 
 SOURCES += \
@@ -15,6 +16,11 @@ SOURCES += \
 HEADERS += \
     FileLogger.h \
     Notifier.h
+
+!android {
+    SOURCES += Updater.cpp
+    HEADERS += Updater.h
+}
 
 RESOURCES += qml.qrc \
     translations.qrc
