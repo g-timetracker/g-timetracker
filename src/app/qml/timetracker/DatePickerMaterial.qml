@@ -29,7 +29,7 @@ TextField {
     property alias maximumDate: popup.maximumDate
     property alias selectedDate: popup.selectedDate
 
-    implicitWidth: MetricsMaterial.dropdownWidth
+    implicitWidth: PlatformMaterial.dropdownWidth
     rightPadding: icon.width + 16
     readOnly: true
     text: Qt.formatDate(selectedDate, "ddd, MMM d yyyy")

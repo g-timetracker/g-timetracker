@@ -158,7 +158,7 @@ ApplicationWindow {
                         drawer.close()
 
                         if (!TimeTracker.syncer.syncPath.toString()) {
-                            if (!MetricsMaterial.isDesktop) {
+                            if (!PlatformMaterial.isDesktop) {
                                 mainView.pushPages(
                                             [
                                                 {
@@ -248,7 +248,7 @@ ApplicationWindow {
     }
 
     Binding {
-        target: MetricsMaterial
+        target: PlatformMaterial
         property: "applicationWindow"
         value: mainWindow
     }

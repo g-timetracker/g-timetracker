@@ -32,7 +32,7 @@ DialogMaterial {
     property alias maximumDate: calendarModel.to
     property var selectedDate
 
-    property bool isLandscape: MetricsMaterial.isLandscape
+    property bool isLandscape: PlatformMaterial.isLandscape
 
     function showPopup(parentControl) {
         popup.open()

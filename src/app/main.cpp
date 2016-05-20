@@ -194,7 +194,7 @@ int main(int argc, char *argv[])
         qmlRegisterType<TimeLogCategoryDepthModel>("TimeLog", 1, 0, "TimeLogCategoryDepthModel");
         qmlRegisterUncreatableType<DataSyncer>("TimeLog", 1, 0, "DataSyncer", "This is a DataSyncer object");
         qmlRegisterSingletonType(QUrl("qrc:/qml/timetracker/AppSettings.qml"), "TimeLog", 1, 0, "AppSettings");
-        qmlRegisterSingletonType(QUrl("qrc:/qml/timetracker/MetricsMaterial.qml"), "TimeLog", 1, 0, "MetricsMaterial");
+        qmlRegisterSingletonType(QUrl("qrc:/qml/timetracker/PlatformMaterial.qml"), "TimeLog", 1, 0, "PlatformMaterial");
 
         QQmlApplicationEngine engine;
 //        QQmlFileSelector::get(&engine)->setExtraSelectors(QStringList() << "desktopStyle");

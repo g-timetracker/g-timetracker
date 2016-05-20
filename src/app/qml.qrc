@@ -178,7 +178,7 @@
         <file>qml/timetracker/MenuItemMaterial.qml</file>
         <file>qml/timetracker/ToolBarMaterial.qml</file>
         <file>qml/timetracker/MainToolBarMaterial.qml</file>
-        <file>qml/timetracker/MetricsMaterial.qml</file>
+        <file>qml/timetracker/PlatformMaterial.qml</file>
         <file>qml/timetracker/images/ic_tune_white_24dp.png</file>
         <file>qml/timetracker/images/ic_tune_white_24dp@2x.png</file>
         <file>qml/timetracker/images/ic_tune_white_24dp@3x.png</file>

@@ -20,5 +20,5 @@ import QtQuick.Controls 2.0
 import TimeLog 1.0
 
 ComboBox {
-    implicitWidth: MetricsMaterial.dropdownWidth
+    implicitWidth: PlatformMaterial.dropdownWidth
 }
