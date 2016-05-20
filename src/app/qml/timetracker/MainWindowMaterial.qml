@@ -26,6 +26,7 @@ ApplicationWindow {
     id: mainWindow
 
     visible: true
+    title: Qt.application.name
 
     function showRecent() {
         if (stackView.currentItem != recentPage) {
