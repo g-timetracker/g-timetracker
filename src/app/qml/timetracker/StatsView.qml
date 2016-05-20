@@ -39,6 +39,9 @@ Page {
             fillMode: Image.Pad
             source: "images/ic_tune_white_24dp.png"
         }
+        rightButtonsModel: [
+            rightButton
+        ]
 
         onRightActivated: rightDrawer.open()
     }

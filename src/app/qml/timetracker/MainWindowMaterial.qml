@@ -74,6 +74,31 @@ ApplicationWindow {
         messageDialog.open()
     }
 
+    function sync() {
+        if (!TimeTracker.syncer.syncPath.toString()) {
+            if (!PlatformMaterial.isDesktop) {
+                mainView.pushPages(
+                            [
+                                {
+                                    "sourceName": "SettingsMaterial.qml",
+                                },
+                                {
+                                    "sourceName": "SyncFolderDialogMaterial.qml",
+                                    "parameters": {
+                                        "folder": TimeTracker.documentsLocation()
+                                    }
+                                }
+                            ])
+            } else {
+                mainWindow.showSettings()
+                stackView.currentItem.openSyncFolderDialog()
+            }
+        } else {
+            TimeTracker.syncer.notifyNextSync = true
+            TimeTracker.syncer.sync(AppSettings.syncPath)
+        }
+    }
+
     function back() {
         if (stackView.depth > 1) {
             stackView.pop()
@@ -157,49 +182,6 @@ ApplicationWindow {
                 ItemDelegateMaterial {
                     Layout.fillWidth: true
                     Layout.minimumWidth: implicitWidth
-                    text: qsTranslate("main window", "Sync")
-                    iconItem.source: "images/ic_sync_white_24dp.png"
-                    onClicked: {
-                        drawer.close()
-
-                        if (!TimeTracker.syncer.syncPath.toString()) {
-                            if (!PlatformMaterial.isDesktop) {
-                                mainView.pushPages(
-                                            [
-                                                {
-                                                    "sourceName": "SettingsMaterial.qml",
-                                                },
-                                                {
-                                                    "sourceName": "SyncFolderDialogMaterial.qml",
-                                                    "parameters": {
-                                                        "folder": TimeTracker.documentsLocation()
-                                                    }
-                                                }
-                                            ])
-                            } else {
-                                mainWindow.showSettings()
-                                stackView.currentItem.openSyncFolderDialog()
-                            }
-                        } else {
-                            TimeTracker.syncer.notifyNextSync = true
-                            TimeTracker.syncer.sync(AppSettings.syncPath)
-                        }
-                    }
-                }
-                ItemDelegateMaterial {
-                    Layout.fillWidth: true
-                    Layout.minimumWidth: implicitWidth
-                    text: qsTranslate("main window", "Undo")
-                    iconItem.source: "images/ic_undo_white_24dp.png"
-                    enabled: TimeTracker.undoCount
-                    onClicked: {
-                        drawer.close()
-                        TimeTracker.undo()
-                    }
-                }
-                ItemDelegateMaterial {
-                    Layout.fillWidth: true
-                    Layout.minimumWidth: implicitWidth
                     text: qsTranslate("main window", "Settings")
                     iconItem.source: "images/ic_settings_white_24dp.png"
                     onClicked: {
@@ -266,6 +248,7 @@ ApplicationWindow {
         onShowStatsRequested: showStats(category)
         onShowHistoryRequested: showHistory(begin, end)
         onShowDialogRequested: showDialog(dialog)
+        onSyncRequested: mainWindow.sync()
         onOpenNavigationDrawerRequested: drawer.open()
         onBackRequested: back()
         onActivateRequested: {

@@ -31,6 +31,9 @@ Page {
     header: MainToolBarMaterial {
         title: settingsDialog.title
         isBottomItem: settingsDialog.StackView.index === 0
+        rightButtonsModel: [
+            rightButton
+        ]
     }
 
     function close() {

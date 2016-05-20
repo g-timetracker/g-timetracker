@@ -29,6 +29,14 @@ ToolBar {
     property alias rightText: rightButton.text
     property alias rightContent: rightButton.contentItem
     property alias rightEnabled: rightButton.enabled
+    property alias rightButtonsModel: rightButtons.children
+    property ToolButton rightButton: ToolButton {
+        id: rightButton
+
+        font.pixelSize: 14
+        visible: !!text
+        onClicked: toolBar.rightActivated()
+    }
 
     signal leftActivated()
     signal rightActivated()
@@ -36,9 +44,7 @@ ToolBar {
     Material.theme: Material.Dark
 
     ToolButton {
-        Layout.fillWidth: false
-        leftPadding: 16
-        rightPadding: 16
+        x: 16 - leftPadding
         contentItem: Image {
             id: leftIconImage
 
@@ -59,20 +65,24 @@ ToolBar {
 
             Layout.fillWidth: true
             leftPadding: 72
-            rightPadding: rightButton.visible ? 0 : 16
+            rightPadding: rightButtons.visible ? 0 : 16
             font.pixelSize: 20
             font.weight: Font.Medium
             elide: Text.ElideRight
         }
 
-        ToolButton {
-            id: rightButton
+        Row {
+            id: rightButtons
 
-            leftPadding: 16
-            rightPadding: 16
-            font.pixelSize: 14
-            visible: !!text
-            onClicked: toolBar.rightActivated()
+            Layout.fillWidth: false
+            Layout.alignment: Qt.AlignVCenter
+            leftPadding: 4
+            rightPadding: 4
+            visible: implicitWidth > leftPadding + rightPadding
+
+            children: [
+                rightButton
+            ]
         }
     }
 }

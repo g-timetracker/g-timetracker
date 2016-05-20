@@ -16,13 +16,46 @@
  ** along with this program.  If not, see <http://www.gnu.org/licenses/>.
  **/
 
+import QtQuick 2.6
 import QtQuick.Controls 2.0
 import TimeLog 1.0
 
 ToolBarMaterial {
     property bool isBottomItem: true
+    property ToolButton menuButton: ToolButton {
+        id: menuButton
+
+        font.pixelSize: 14
+        contentItem: Image {
+            fillMode: Image.Pad
+            source: "images/ic_more_vert_white_24dp.png"
+
+        }
+        onClicked: menu.open()
+
+        Menu {
+            id: menu
+
+            MenuItemMaterial {
+                text: qsTranslate("main window", "Undo")
+                iconItem.source: "images/ic_undo_white_24dp.png"
+                enabled: TimeTracker.undoCount
+                onTriggered: TimeTracker.undo()
+            }
+            MenuItemMaterial {
+                text: qsTranslate("main window", "Sync")
+                iconItem.source: "images/ic_sync_white_24dp.png"
+                onTriggered: TimeTracker.syncRequested()
+            }
+        }
+
+    }
 
     leftIcon: isBottomItem ? "images/ic_menu_white_24dp.png" : "images/ic_arrow_back_white_24dp.png"
+    rightButtonsModel: [
+        rightButton,
+        menuButton
+    ]
 
     onLeftActivated: {
         if (isBottomItem) {
