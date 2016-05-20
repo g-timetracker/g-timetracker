@@ -158,7 +158,7 @@ ApplicationWindow {
                         drawer.close()
 
                         if (!TimeTracker.syncer.syncPath.toString()) {
-                            if (Qt.platform.os === "android") {
+                            if (!MetricsMaterial.isDesktop) {
                                 mainView.pushPages(
                                             [
                                                 {

@@ -280,7 +280,7 @@ Item {
                         listView.currentIndex = index
                         if (mouse.button === Qt.RightButton) {
                             itemMenu.popup()
-                        } else if (Qt.platform.os !== "android") {  // Double-clicks are only for desktop
+                        } else if (MetricsMaterial.isDesktop) {  // Double-clicks are only for desktop
                             singleClickTimer.start()
                         } else {
                             bottomSheet.open()

@@ -21,6 +21,7 @@ import QtQml 2.2
 import QtQuick.Controls 2.0
 
 QtObject {
+    property bool isDesktop: Qt.platform.os !== "android"
     property ApplicationWindow applicationWindow: null
     property bool isLandscape: !!applicationWindow
                                && applicationWindow.width > applicationWindow.height
