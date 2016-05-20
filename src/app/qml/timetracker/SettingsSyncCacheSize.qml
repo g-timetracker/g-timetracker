@@ -66,8 +66,8 @@ Page {
                 SpinBox {
                     anchors.horizontalCenter: parent.horizontalCenter
                     editable: true
-                    value: Settings.syncCacheSize
-                    onValueChanged: Settings.syncCacheSize = value
+                    value: AppSettings.syncCacheSize
+                    onValueChanged: AppSettings.syncCacheSize = value
                 }
 
                 Label {

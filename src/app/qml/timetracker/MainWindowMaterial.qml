@@ -177,7 +177,7 @@ ApplicationWindow {
                             }
                         } else {
                             TimeTracker.syncer.notifyNextSync = true
-                            TimeTracker.syncer.sync(Settings.syncPath)
+                            TimeTracker.syncer.sync(AppSettings.syncPath)
                         }
                     }
                 }
@@ -209,13 +209,13 @@ ApplicationWindow {
     Binding {
         target: TimeTracker
         property: "dataPath"
-        value: TimeLogDataPath ? TimeLogDataPath : Settings.dataPath
+        value: TimeLogDataPath ? TimeLogDataPath : AppSettings.dataPath
     }
 
     Binding {
         target: TimeTracker.syncer
         property: "syncPath"
-        value: TimeLogSyncPath ? TimeLogSyncPath : Settings.syncPath
+        value: TimeLogSyncPath ? TimeLogSyncPath : AppSettings.syncPath
         when: TimeTracker.syncer
     }
 
@@ -229,21 +229,21 @@ ApplicationWindow {
     Binding {
         target: TimeTracker.syncer
         property: "autoSync"
-        value: Settings.isAutoSync
+        value: AppSettings.isAutoSync
         when: TimeTracker.syncer
     }
 
     Binding {
         target: TimeTracker.syncer
         property: "syncCacheSize"
-        value: Settings.syncCacheSize
+        value: AppSettings.syncCacheSize
         when: TimeTracker.syncer
     }
 
     Binding {
         target: TimeTracker.syncer
         property: "syncCacheTimeout"
-        value: Settings.syncCacheTimeout
+        value: AppSettings.syncCacheTimeout
         when: TimeTracker.syncer
     }
 
@@ -343,8 +343,8 @@ ApplicationWindow {
     }
 
     Component.onCompleted: {
-        if (!Settings.lastVersion) {    // First start
-            Settings.lastVersion = Qt.application.version
+        if (!AppSettings.lastVersion) {    // First start
+            AppSettings.lastVersion = Qt.application.version
         }
     }
 }

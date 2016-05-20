@@ -49,7 +49,7 @@ Page {
         }
 
         function remove() {
-            if (Settings.isConfirmationsEnabled) {
+            if (AppSettings.isConfirmationsEnabled) {
                 removeConfirmationDialog.open()
             } else {
                 categoryModel.removeItem(treeView.currentItem.fullName)

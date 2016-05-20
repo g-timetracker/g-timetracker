@@ -60,8 +60,8 @@ Page {
                 isLastItem: Positioner.isLastItem
                 text: qsTranslate("settings", "Confirmations")
 
-                checked: Settings.isConfirmationsEnabled
-                onCheckedChanged: Settings.isConfirmationsEnabled = checked
+                checked: AppSettings.isConfirmationsEnabled
+                onCheckedChanged: AppSettings.isConfirmationsEnabled = checked
             }
 
             Label {
@@ -90,32 +90,32 @@ Page {
                 isLastItem: Positioner.isLastItem
                 text: qsTranslate("settings", "Auto sync")
 
-                checked: Settings.isAutoSync
-                onCheckedChanged: Settings.isAutoSync = checked
+                checked: AppSettings.isAutoSync
+                onCheckedChanged: AppSettings.isAutoSync = checked
             }
 
             SettingsAdvancedDelegate {
                 width: parent.width
-                enabled: Settings.isAutoSync
+                enabled: AppSettings.isAutoSync
                 isLastItem: Positioner.isLastItem
                 text: qsTranslate("settings", "Sync cache size")
-                additionalText: Settings.syncCacheSize ? qsTranslate("settings", "%n record(s)",
-                                                                     "current sync cache size",
-                                                                     Settings.syncCacheSize)
-                                                       : qsTranslate("settings", "Disabled")
+                additionalText: AppSettings.syncCacheSize ? qsTranslate("settings", "%n record(s)",
+                                                                        "current sync cache size",
+                                                                        AppSettings.syncCacheSize)
+                                                          : qsTranslate("settings", "Disabled")
 
                 onClicked: TimeTracker.showDialogRequested(syncCacheSizeDialog)
             }
 
             SettingsAdvancedDelegate {
                 width: parent.width
-                enabled: Settings.isAutoSync
+                enabled: AppSettings.isAutoSync
                 isLastItem: Positioner.isLastItem
                 text: qsTranslate("settings", "Sync timeout")
-                additionalText: Settings.syncCacheTimeout ? qsTranslate("settings", "%n second(s)",
-                                                                        "current sync cache timeout",
-                                                                        Settings.syncCacheTimeout)
-                                                          : qsTranslate("settings", "Disabled")
+                additionalText: AppSettings.syncCacheTimeout ? qsTranslate("settings", "%n second(s)",
+                                                                           "current sync cache timeout",
+                                                                           AppSettings.syncCacheTimeout)
+                                                             : qsTranslate("settings", "Disabled")
 
                 onClicked: TimeTracker.showDialogRequested(syncCacheTimeoutDialog)
             }
@@ -125,7 +125,8 @@ Page {
     SyncFolderDialog {
         id: syncPathDialog
 
-        folder: !!Settings.syncPath.toString() ? Settings.syncPath : TimeTracker.documentsLocation()
+        folder: !!AppSettings.syncPath.toString() ? AppSettings.syncPath
+                                                  : TimeTracker.documentsLocation()
     }
 
     SettingsSyncCacheSize {

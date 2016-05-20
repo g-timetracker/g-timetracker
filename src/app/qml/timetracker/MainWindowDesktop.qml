@@ -129,8 +129,8 @@ ApplicationWindow {
             MenuItem {
                 text: qsTranslate("settings", "Confirmations")
                 checkable: true
-                checked: Settings.isConfirmationsEnabled
-                onCheckedChanged: Settings.isConfirmationsEnabled = checked
+                checked: AppSettings.isConfirmationsEnabled
+                onCheckedChanged: AppSettings.isConfirmationsEnabled = checked
             }
             MenuItem {
                 text: qsTranslate("settings", "Sync folder")
@@ -142,13 +142,13 @@ ApplicationWindow {
     Binding {
         target: TimeTracker
         property: "dataPath"
-        value: TimeLogDataPath ? TimeLogDataPath : Settings.dataPath
+        value: TimeLogDataPath ? TimeLogDataPath : AppSettings.dataPath
     }
 
     Binding {
         target: TimeTracker.syncer
         property: "syncPath"
-        value: TimeLogSyncPath ? TimeLogSyncPath : Settings.syncPath
+        value: TimeLogSyncPath ? TimeLogSyncPath : AppSettings.syncPath
         when: TimeTracker.syncer
     }
 
@@ -162,14 +162,14 @@ ApplicationWindow {
     Binding {
         target: TimeTracker.syncer
         property: "autoSync"
-        value: Settings.isAutoSync
+        value: AppSettings.isAutoSync
         when: TimeTracker.syncer
     }
 
     Binding {
         target: TimeTracker.syncer
         property: "syncCacheSize"
-        value: Settings.syncCacheSize
+        value: AppSettings.syncCacheSize
         when: TimeTracker.syncer
     }
 
@@ -211,7 +211,8 @@ ApplicationWindow {
     SyncFolderDialog {
         id: syncPathDialog
 
-        folder: !!Settings.syncPath.toString() ? Settings.syncPath : TimeTracker.documentsLocation()
+        folder: !!AppSettings.syncPath.toString() ? AppSettings.syncPath
+                                                  : TimeTracker.documentsLocation()
     }
 
     Item {

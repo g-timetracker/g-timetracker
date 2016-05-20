@@ -75,7 +75,7 @@ Page {
         rightEnabled: dialog.isModified && delegateEditor.acceptable
 
         onLeftActivated: {
-            if (dialog.isModified && Settings.isConfirmationsEnabled) {
+            if (dialog.isModified && AppSettings.isConfirmationsEnabled) {
                 discardConfirmationDialog.open()
             } else {
                 dialog.close()

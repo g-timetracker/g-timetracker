@@ -68,7 +68,7 @@ Page {
         }
     }
 
-    onAccepted: Settings.syncPath = folder
+    onAccepted: AppSettings.syncPath = folder
 
     CreateFolderDialogMaterial {
         id: createDialog

@@ -36,7 +36,7 @@ Item {
         property bool isShowStatsEnabled: treeView.isCurrentIndexValid
 
         function remove() {
-            if (Settings.isConfirmationsEnabled) {
+            if (AppSettings.isConfirmationsEnabled) {
                 removeConfirmationDialog.open()
             } else {
                 categoryModel.removeItem(treeView.selection.currentIndex)

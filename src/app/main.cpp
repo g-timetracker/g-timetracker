@@ -193,7 +193,7 @@ int main(int argc, char *argv[])
         qmlRegisterType<TimeLogCategoryTreeModel>("TimeLog", 1, 0, "TimeLogCategoryTreeModel");
         qmlRegisterType<TimeLogCategoryDepthModel>("TimeLog", 1, 0, "TimeLogCategoryDepthModel");
         qmlRegisterUncreatableType<DataSyncer>("TimeLog", 1, 0, "DataSyncer", "This is a DataSyncer object");
-        qmlRegisterSingletonType(QUrl("qrc:/qml/timetracker/Settings.qml"), "TimeLog", 1, 0, "Settings");
+        qmlRegisterSingletonType(QUrl("qrc:/qml/timetracker/AppSettings.qml"), "TimeLog", 1, 0, "AppSettings");
         qmlRegisterSingletonType(QUrl("qrc:/qml/timetracker/MetricsMaterial.qml"), "TimeLog", 1, 0, "MetricsMaterial");
 
         QQmlApplicationEngine engine;

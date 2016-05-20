@@ -23,5 +23,5 @@ FileDialog {
     title: qsTranslate("settings", "Select sync folder")
     selectFolder: true
 
-    onAccepted: Settings.syncPath = folder
+    onAccepted: AppSettings.syncPath = folder
 }

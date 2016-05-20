@@ -67,8 +67,8 @@ Page {
                     anchors.horizontalCenter: parent.horizontalCenter
                     to: 24 * 3600
                     editable: true
-                    value: Settings.syncCacheTimeout
-                    onValueChanged: Settings.syncCacheTimeout = value
+                    value: AppSettings.syncCacheTimeout
+                    onValueChanged: AppSettings.syncCacheTimeout = value
                 }
 
                 Label {

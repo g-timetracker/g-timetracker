@@ -18,7 +18,7 @@
         <file>qml/timetracker/+desktopStyle/CalendarPopup.qml</file>
         <file>qml/timetracker/CalendarPopupDesktop.qml</file>
         <file>qml/timetracker/CalendarPopupMaterial.qml</file>
-        <file>qml/timetracker/Settings.qml</file>
+        <file>qml/timetracker/AppSettings.qml</file>
         <file>qml/timetracker/StatsView.qml</file>
         <file>qml/timetracker/ChartColors.js</file>
         <file>qml/timetracker/MaterialColors.js</file>

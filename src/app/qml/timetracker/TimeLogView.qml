@@ -127,7 +127,7 @@ Item {
     }
 
     function itemRemove() {
-        if (Settings.isConfirmationsEnabled) {
+        if (AppSettings.isConfirmationsEnabled) {
             removeConfirmationDialog.open()
         } else {
             d.deleteCurrentItem()

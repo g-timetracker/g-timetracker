@@ -87,7 +87,7 @@ Page {
         rightEnabled: dialog.isModified && editor.acceptable
 
         onLeftActivated: {
-            if (dialog.isModified && Settings.isConfirmationsEnabled) {
+            if (dialog.isModified && AppSettings.isConfirmationsEnabled) {
                 discardConfirmationDialog.open()
             } else {
                 dialog.reject()
