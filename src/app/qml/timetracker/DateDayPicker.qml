@@ -19,8 +19,10 @@
 import QtQuick 2.0
 
 ItemPositioner {
-    property var beginDate: dateField.selectedDate
-    property var endDate: new Date(dateField.selectedDate.valueOf() + 86399000)
+    id: picker
+
+    property var beginDate: pickerLoader.selectedDate
+    property var endDate: new Date(pickerLoader.selectedDate.valueOf() + 86399000)
 
     ComboBoxControl {
         id: periodSelector
@@ -35,21 +37,36 @@ ItemPositioner {
         onCurrentIndexChanged: {
             switch (currentIndex) {
             case 0:
-                dateField.selectedDate = new Date(new Date().setHours(0, 0, 0, 0))
+                pickerLoader.selectedDate = new Date(new Date().setHours(0, 0, 0, 0))
                 break
             case 1:
-                dateField.selectedDate = new Date(new Date(Date.now() - 86400000).setHours(0, 0, 0, 0))
+                pickerLoader.selectedDate = new Date(new Date(Date.now() - 86400000).setHours(0, 0, 0, 0))
                 break
             }
         }
     }
 
-    DatePicker {
-        id: dateField
+    Loader {
+        id: pickerLoader
 
-        visible: periodSelector.currentIndex == 2
+        property date selectedDate
 
-        minimumDate: new Date(0)
-        maximumDate: new Date()
+        source: "DatePicker.qml"
+        active: periodSelector.currentIndex === 2
+        visible: active
+
+        Binding {
+            target: pickerLoader
+            property: "selectedDate"
+            value: pickerLoader.item ? pickerLoader.item.selectedDate : new Date()
+            when: pickerLoader.active && pickerLoader.status === Loader.Ready
+        }
+
+        Binding {
+            target: pickerLoader.item
+            property: "selectedDate"
+            value: pickerLoader.selectedDate
+            when: pickerLoader.active && loader.status === Loader.Ready
+        }
     }
 }

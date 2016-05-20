@@ -27,145 +27,54 @@ ItemPositioner {
     ComboBoxControl {
         id: periodSelector
 
-        model: [
-            qsTr("day"),
-            qsTr("week"),
-            qsTr("month"),
-            qsTr("year"),
-            qsTr("all"),
-            qsTr("select")
+        property var selectorModel: [
+            {
+                name: qsTr("day"),
+                source: "DateDayPicker.qml"
+            },
+            {
+                name: qsTr("week"),
+                source: "DateWeekPicker.qml"
+            },
+            {
+                name: qsTr("month"),
+                source: "DateMonthPicker.qml"
+            },
+            {
+                name: qsTr("year"),
+                source: "DateYearPicker.qml"
+            },
+            {
+                name: qsTr("all"),
+                source: "DateAllPicker.qml"
+            },
+            {
+                name: qsTr("select"),
+                source: "DateRangePicker.qml"
+            }
         ]
+
+        model: selectorModel
+        textRole: "name"
     }
 
-    DateDayPicker {
-        id: dateDayPicker
+    Loader {
+        id: loader
 
-        property bool isCurrent: periodSelector.currentIndex == 0
-
-        visible: isCurrent
+        source: periodSelector.selectorModel[periodSelector.currentIndex]["source"]
 
         Binding {
             target: datePeriodPicker
             property: "beginDate"
-            value: dateDayPicker.beginDate
-            when: dateDayPicker.isCurrent
+            value: loader.item.beginDate
+            when: loader.status === Loader.Ready
         }
 
         Binding {
             target: datePeriodPicker
             property: "endDate"
-            value: dateDayPicker.endDate
-            when: dateDayPicker.isCurrent
-        }
-    }
-
-    DateWeekPicker {
-        id: dateWeekPicker
-
-        property bool isCurrent: periodSelector.currentIndex == 1
-
-        visible: isCurrent
-
-        Binding {
-            target: datePeriodPicker
-            property: "beginDate"
-            value: dateWeekPicker.beginDate
-            when: dateWeekPicker.isCurrent
-        }
-
-        Binding {
-            target: datePeriodPicker
-            property: "endDate"
-            value: dateWeekPicker.endDate
-            when: dateWeekPicker.isCurrent
-        }
-    }
-
-    DateMonthPicker {
-        id: dateMonthPicker
-
-        property bool isCurrent: periodSelector.currentIndex == 2
-
-        visible: isCurrent
-
-        Binding {
-            target: datePeriodPicker
-            property: "beginDate"
-            value: dateMonthPicker.beginDate
-            when: dateMonthPicker.isCurrent
-        }
-
-        Binding {
-            target: datePeriodPicker
-            property: "endDate"
-            value: dateMonthPicker.endDate
-            when: dateMonthPicker.isCurrent
-        }
-    }
-
-    DateYearPicker {
-        id: dateYearPicker
-
-        property bool isCurrent: periodSelector.currentIndex == 3
-
-        visible: isCurrent
-
-        Binding {
-            target: datePeriodPicker
-            property: "beginDate"
-            value: dateYearPicker.beginDate
-            when: dateYearPicker.isCurrent
-        }
-
-        Binding {
-            target: datePeriodPicker
-            property: "endDate"
-            value: dateYearPicker.endDate
-            when: dateYearPicker.isCurrent
-        }
-    }
-
-    Item {
-        id: dateAllPicker
-
-        property bool isCurrent: periodSelector.currentIndex == 4
-
-        visible: isCurrent
-
-        Binding {
-            target: datePeriodPicker
-            property: "beginDate"
-            value: new Date(0)
-            when: dateAllPicker.isCurrent
-        }
-
-        Binding {
-            target: datePeriodPicker
-            property: "endDate"
-            value: new Date()
-            when: dateAllPicker.isCurrent
-        }
-    }
-
-    DateRangePicker {
-        id: dateRangePicker
-
-        property bool isCurrent: periodSelector.currentIndex == 5
-
-        visible: isCurrent
-
-        Binding {
-            target: datePeriodPicker
-            property: "beginDate"
-            value: dateRangePicker.beginDate
-            when: dateRangePicker.isCurrent
-        }
-
-        Binding {
-            target: datePeriodPicker
-            property: "endDate"
-            value: dateRangePicker.endDate
-            when: dateRangePicker.isCurrent
+            value: loader.item.endDate
+            when: loader.status === Loader.Ready
         }
     }
 }
