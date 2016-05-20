@@ -20,6 +20,7 @@ import QtQuick 2.0
 import QtQuick.Layouts 1.3
 import QtQml.Models 2.2
 import QtQuick.Controls 2.0
+import QtQuick.Controls.Material 2.0
 import TimeLog 1.0
 
 ApplicationWindow {
@@ -178,6 +179,16 @@ ApplicationWindow {
                     onClicked: {
                         drawer.close()
                         mainWindow.showCategories()
+                    }
+                }
+                Item {
+                    Layout.fillWidth: true
+                    height: 16
+                    Rectangle {
+                        width: parent.width
+                        height: 1
+                        y: parent.height / 2 - height
+                        color: mainWindow.Material.dividerColor
                     }
                 }
                 ItemDelegateMaterial {
