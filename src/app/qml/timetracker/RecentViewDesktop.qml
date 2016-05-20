@@ -40,6 +40,7 @@ Item {
             Layout.fillHeight: true
             Layout.fillWidth: true
             reverse: true
+            lazyDialogs: false
             model: timeLogModel
 
             onInsert: timeLogModel.insertItem(modelIndex, newData)

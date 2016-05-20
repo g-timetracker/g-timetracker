@@ -50,6 +50,7 @@ Page {
 
         anchors.fill: parent
         reverse: true
+        lazyDialogs: false
         model: timeLogModel
 
         onInsert: timeLogModel.insertItem(modelIndex, newData)

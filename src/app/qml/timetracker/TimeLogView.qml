@@ -29,6 +29,7 @@ Item {
     property alias model: delegateModel.model
     property alias currentItem: listView.currentItem
     property bool reverse: false
+    property bool lazyDialogs: true
 
     property alias menuModel: itemMenu.contentData
     property MenuItem editMenuItem: MenuItemMaterial {
@@ -104,8 +105,8 @@ Item {
     signal remove(var modelIndex)
 
     function itemEdit() {
-        editDialog.setData(listView.currentItem)
-        TimeTracker.showDialogRequested(editDialog)
+        editDialog.get().setData(listView.currentItem)
+        TimeTracker.showDialogRequested(editDialog.get())
     }
 
     function itemInsertBefore() {
@@ -128,7 +129,7 @@ Item {
 
     function itemRemove() {
         if (AppSettings.isConfirmationsEnabled) {
-            removeConfirmationDialog.open()
+            removeConfirmationDialog.get().open()
         } else {
             d.deleteCurrentItem()
         }
@@ -143,8 +144,8 @@ Item {
 
         function insert(indexBefore, timeAfter, timeBefore) {
             if (Util.calcDuration(timeAfter, timeBefore) > 1) {
-                newDialog.setData(indexBefore, timeAfter, timeBefore)
-                TimeTracker.showDialogRequested(newDialog)
+                newDialog.get().setData(indexBefore, timeAfter, timeBefore)
+                TimeTracker.showDialogRequested(newDialog.get())
             } else {
                 TimeTracker.error(qsTr("Cannot insert between %1 and %2").arg(timeAfter).arg(timeBefore))
             }
@@ -165,7 +166,7 @@ Item {
         }
 
         onClosed: {
-            if (!removeConfirmationDialog.visible) {
+            if (!removeConfirmationDialog.get().visible) {
                 listView.currentIndex = -1
             }
         }
@@ -195,33 +196,44 @@ Item {
         }
     }
 
-    TimeLogEditDialog {
+    LazyLoader {
         id: editDialog
 
-        onError: TimeTracker.error(errorText)
+        isLazy: timeLogView.lazyDialogs
+        sourceComponent: TimeLogEditDialog {
+            onError: TimeTracker.error(errorText)
+        }
     }
 
-    TimeLogNewDialog {
+    LazyLoader {
         id: newDialog
 
-        onDataAccepted: {
-            if (newDialog.indexBefore === (timeLogView.reverse ? -1 : delegateModel.items.count - 1)) {
-                timeLogView.append(newData)
-            } else {
-                timeLogView.insert(delegateModel.modelIndex(newDialog.indexBefore), newData)
-            }
-        }
+        isLazy: timeLogView.lazyDialogs
+        sourceComponent: TimeLogNewDialog {
+            id: dialog
 
-        onError: TimeTracker.error(errorText)
+            onDataAccepted: {
+                if (dialog.indexBefore === (timeLogView.reverse ? -1 : delegateModel.items.count - 1)) {
+                    timeLogView.append(newData)
+                } else {
+                    timeLogView.insert(delegateModel.modelIndex(dialog.indexBefore), newData)
+                }
+            }
+
+            onError: TimeTracker.error(errorText)
+        }
     }
 
-    RemoveConfirmationDialog {
+    LazyLoader {
         id: removeConfirmationDialog
 
-        text: qsTr("Delete this entry?")
+        isLazy: timeLogView.lazyDialogs
+        sourceComponent: RemoveConfirmationDialog {
+            text: qsTr("Delete this entry?")
 
-        onAccepted: d.deleteCurrentItem()
-        onClosed: listView.currentIndex = -1
+            onAccepted: d.deleteCurrentItem()
+            onClosed: listView.currentIndex = -1
+        }
     }
 
     ColumnLayout {
@@ -303,7 +315,7 @@ Item {
         dragMargin: 0
 
         onClosed: {
-            if (!removeConfirmationDialog.visible) {
+            if (!removeConfirmationDialog.get().visible) {
                 listView.currentIndex = -1
             }
         }

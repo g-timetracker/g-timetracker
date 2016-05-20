@@ -44,21 +44,21 @@ Page {
         property bool isShowStatsEnabled: !!treeView.currentItem
 
         function create(parentName) {
-            newDialog.setData(parentName ? parentName + " > " : "")
-            TimeTracker.showDialogRequested(newDialog)
+            newDialog.get().setData(parentName ? parentName + " > " : "")
+            TimeTracker.showDialogRequested(newDialog.get())
         }
 
         function remove() {
             if (AppSettings.isConfirmationsEnabled) {
-                removeConfirmationDialog.open()
+                removeConfirmationDialog.get().open()
             } else {
                 categoryModel.removeItem(treeView.currentItem.fullName)
             }
         }
 
         function edit() {
-            editDialog.setData(treeView.currentItem)
-            TimeTracker.showDialogRequested(editDialog)
+            editDialog.get().setData(treeView.currentItem)
+            TimeTracker.showDialogRequested(editDialog.get())
         }
 
         function showEntries() {
@@ -82,23 +82,29 @@ Page {
         model: categoryModel
     }
 
-    CategoryEditDialog {
+    LazyLoader {
         id: editDialog
+
+        sourceComponent: CategoryEditDialog { }
     }
 
-    CategoryNewDialog {
+    LazyLoader {
         id: newDialog
 
-        onDataAccepted: categoryModel.addItem(newData)
+        sourceComponent: CategoryNewDialog {
+            onDataAccepted: categoryModel.addItem(newData)
+        }
     }
 
-    RemoveConfirmationDialog {
+    LazyLoader {
         id: removeConfirmationDialog
 
-        text: qsTranslate("categories view", "Delete this category?")
+        sourceComponent: RemoveConfirmationDialog {
+            text: qsTranslate("categories view", "Delete this category?")
 
-        onAccepted: categoryModel.removeItem(treeView.currentItem.fullName)
-        onClosed: treeView.currentIndex = -1
+            onAccepted: categoryModel.removeItem(treeView.currentItem.fullName)
+            onClosed: treeView.currentIndex = -1
+        }
     }
 
     Menu {
@@ -111,7 +117,7 @@ Page {
         }
 
         onClosed: {
-            if (!removeConfirmationDialog.visible) {
+            if (!removeConfirmationDialog.get().visible) {
                 treeView.currentIndex = -1
             }
         }
@@ -216,7 +222,7 @@ Page {
         dragMargin: 0
 
         onClosed: {
-            if (!removeConfirmationDialog.visible) {
+            if (!removeConfirmationDialog.get().visible) {
                 treeView.currentIndex = -1
             }
         }

@@ -41,7 +41,7 @@ Page {
     }
 
     function openSyncFolderDialog() {
-        syncPathDialog.open()
+        syncPathDialog.get().open()
     }
 
     Flickable {
@@ -95,7 +95,7 @@ Page {
                 additionalText: TimeTracker.syncer.syncPath.toString().replace(/file:\/\//, "")
                                 || qsTranslate("settings", "Not set")
 
-                onClicked: syncPathDialog.open()
+                onClicked: syncPathDialog.get().open()
             }
 
             SettingsSwitchDelegate {
@@ -117,7 +117,7 @@ Page {
                                                                         AppSettings.syncCacheSize)
                                                           : qsTranslate("settings", "Disabled")
 
-                onClicked: TimeTracker.showDialogRequested(syncCacheSizeDialog)
+                onClicked: TimeTracker.showDialogRequested(syncCacheSizeDialog.get())
             }
 
             SettingsAdvancedDelegate {
@@ -130,23 +130,29 @@ Page {
                                                                            AppSettings.syncCacheTimeout)
                                                              : qsTranslate("settings", "Disabled")
 
-                onClicked: TimeTracker.showDialogRequested(syncCacheTimeoutDialog)
+                onClicked: TimeTracker.showDialogRequested(syncCacheTimeoutDialog.get())
             }
         }
     }
 
-    SyncFolderDialog {
+    LazyLoader {
         id: syncPathDialog
 
-        folder: !!AppSettings.syncPath.toString() ? AppSettings.syncPath
-                                                  : TimeTracker.documentsLocation()
+        sourceComponent: SyncFolderDialog {
+            folder: !!AppSettings.syncPath.toString() ? AppSettings.syncPath
+                                                      : TimeTracker.documentsLocation()
+        }
     }
 
-    SettingsSyncCacheSize {
+    LazyLoader {
         id: syncCacheSizeDialog
+
+        sourceComponent: SettingsSyncCacheSize { }
     }
 
-    SettingsSyncCacheTimeout {
+    LazyLoader {
         id: syncCacheTimeoutDialog
+
+        sourceComponent: SettingsSyncCacheTimeout { }
     }
 }
