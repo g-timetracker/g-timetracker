@@ -281,7 +281,7 @@ ApplicationWindow {
         onLinkActivated: Qt.openUrlExternally(link)
     }
 
-    Item {
+    FocusScope {
         id: mainView
 
         function pushPages(pages) {
