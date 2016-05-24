@@ -32,7 +32,7 @@ RESOURCES += qml.qrc \
 # Windows resource variables
 win32 {
     RC_ICONS += $$PWD/icons/windows/app_icon.ico
-    VERSION = 0.5
+    VERSION = 0.5.1
     QMAKE_TARGET_PRODUCT = Global Time Tracker
     QMAKE_TARGET_DESCRIPTION = Simple and cloud-friendly open source time tracker
     QMAKE_TARGET_COPYRIGHT = Copyright (C) 2015-2016 Nikita Krupenko
