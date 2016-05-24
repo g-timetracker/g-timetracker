@@ -499,14 +499,19 @@
     <message>
         <location filename="../qml/timetracker/TimeLogView.qml" line="42"/>
         <location filename="../qml/timetracker/TimeLogView.qml" line="73"/>
-        <source>Insert before</source>
-        <translation>Вставить перед</translation>
+        <source>Add before</source>
+        <translation>Добавить перед</translation>
     </message>
     <message>
         <location filename="../qml/timetracker/TimeLogView.qml" line="51"/>
         <location filename="../qml/timetracker/TimeLogView.qml" line="86"/>
-        <source>Insert after</source>
-        <translation>Вставить после</translation>
+        <source>Add after</source>
+        <translation>Добавить после</translation>
+    </message>
+    <message>
+        <location filename="../qml/timetracker/TimeLogView.qml" line="151"/>
+        <source>Cannot add entry between %1 and %2</source>
+        <translation>Невозможно добавить запись между %1 и %2</translation>
     </message>
     <message>
         <location filename="../qml/timetracker/TimeLogView.qml" line="56"/>
@@ -518,11 +523,6 @@
         <location filename="../qml/timetracker/RecentViewDesktop.qml" line="58"/>
         <source>Add</source>
         <translation>Создать</translation>
-    </message>
-    <message>
-        <location filename="../qml/timetracker/TimeLogView.qml" line="151"/>
-        <source>Cannot insert between %1 and %2</source>
-        <translation>Невозможно вставить между %1 и %2</translation>
     </message>
     <message>
         <location filename="../qml/timetracker/TimeLogView.qml" line="233"/>

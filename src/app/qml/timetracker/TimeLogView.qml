@@ -38,19 +38,19 @@ Item {
         iconItem.source: "images/ic_mode_edit_white_24dp.png"
         onTriggered: timeLogView.itemEdit()
     }
-    property MenuItem insertBeforeMenuItem: MenuItemMaterial {
-        text: qsTr("Insert before")
+    property MenuItem addBeforeMenuItem: MenuItemMaterial {
+        text: qsTr("Add before")
         iconItem.source: "images/ic_subdirectory_arrow_right_white_24dp.png"
         iconItem.transform: Scale {
             yScale: -1
             origin.y: 12
         }
-        onTriggered: timeLogView.itemInsertBefore()
+        onTriggered: timeLogView.itemAddBefore()
     }
-    property MenuItem insertAfterMenuItem: MenuItemMaterial {
-        text: qsTr("Insert after")
+    property MenuItem addAfterMenuItem: MenuItemMaterial {
+        text: qsTr("Add after")
         iconItem.source: "images/ic_subdirectory_arrow_right_white_24dp.png"
-        onTriggered: timeLogView.itemInsertAfter()
+        onTriggered: timeLogView.itemAddAfter()
     }
     property MenuItem removeMenuItem: MenuItemMaterial {
         text: qsTr("Delete")
@@ -68,25 +68,25 @@ Item {
             timeLogView.closeBottomSheet()
         }
     }
-    property ItemDelegate insertBeforeBottomSheetItem: ItemDelegateMaterial {
+    property ItemDelegate addBeforeBottomSheetItem: ItemDelegateMaterial {
         width: bottomSheetItems.width
-        text: qsTr("Insert before")
+        text: qsTr("Add before")
         iconItem.source: "images/ic_subdirectory_arrow_right_white_24dp.png"
         iconItem.transform: Scale {
             yScale: -1
             origin.y: 12
         }
         onClicked: {
-            timeLogView.itemInsertBefore()
+            timeLogView.itemAddBefore()
             timeLogView.closeBottomSheet()
         }
     }
-    property ItemDelegate insertAfterBottomSheetItem: ItemDelegateMaterial {
+    property ItemDelegate addAfterBottomSheetItem: ItemDelegateMaterial {
         width: bottomSheetItems.width
-        text: qsTr("Insert after")
+        text: qsTr("Add after")
         iconItem.source: "images/ic_subdirectory_arrow_right_white_24dp.png"
         onClicked: {
-            timeLogView.itemInsertAfter()
+            timeLogView.itemAddAfter()
             timeLogView.closeBottomSheet()
         }
     }
@@ -110,22 +110,22 @@ Item {
         TimeTracker.showDialogRequested(editDialog.get())
     }
 
-    function itemInsertBefore() {
+    function itemAddBefore() {
         var index = listView.currentIndex
         var item = listView.currentItem
-        d.insert(index, item.precedingStart, item.startTime)
+        d.add(index, item.precedingStart, item.startTime)
     }
 
-    function itemInsertAfter() {
+    function itemAddAfter() {
         var index = listView.currentIndex
         var item = listView.currentItem
-        d.insert(timeLogView.reverse ? index - 1 : index + 1, item.startTime, item.succeedingStart)
+        d.add(timeLogView.reverse ? index - 1 : index + 1, item.startTime, item.succeedingStart)
     }
 
     function itemAppend() {
         var timeAfter = delegateModel.items.count ? delegateModel.items.get(0).model.startTime
                                                   : new Date(0)
-        d.insert(timeLogView.reverse ? -1 : delegateModel.items.count - 1, timeAfter, new Date())
+        d.add(timeLogView.reverse ? -1 : delegateModel.items.count - 1, timeAfter, new Date())
     }
 
     function itemRemove() {
@@ -143,12 +143,12 @@ Item {
     QtObject {
         id: d
 
-        function insert(indexBefore, timeAfter, timeBefore) {
+        function add(indexBefore, timeAfter, timeBefore) {
             if (Util.calcDuration(timeAfter, timeBefore) > 1) {
                 newDialog.get().setData(indexBefore, timeAfter, timeBefore)
                 TimeTracker.showDialogRequested(newDialog.get())
             } else {
-                TimeTracker.error(qsTr("Cannot insert between %1 and %2").arg(timeAfter).arg(timeBefore))
+                TimeTracker.error(qsTr("Cannot add entry between %1 and %2").arg(timeAfter).arg(timeBefore))
             }
         }
 
@@ -174,8 +174,8 @@ Item {
 
          contentData: [
              editMenuItem,
-             insertBeforeMenuItem,
-             insertAfterMenuItem,
+             addBeforeMenuItem,
+             addAfterMenuItem,
              removeMenuItem
         ]
     }
@@ -329,8 +329,8 @@ Item {
 
             children: [
                 editBottomSheetItem,
-                insertBeforeBottomSheetItem,
-                insertAfterBottomSheetItem,
+                addBeforeBottomSheetItem,
+                addAfterBottomSheetItem,
                 removeBottomSheetItem
             ]
         }
