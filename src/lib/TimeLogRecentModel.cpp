@@ -21,7 +21,8 @@
 static const int defaultPopulateCount(5);
 
 TimeLogRecentModel::TimeLogRecentModel(QObject *parent) :
-    SUPER(parent)
+    SUPER(parent),
+    m_moreDataRequested(false)
 {
 
 }
@@ -32,7 +33,12 @@ bool TimeLogRecentModel::canFetchMore(const QModelIndex &parent) const
         return false;
     }
 
-    return m_history ? m_history->size() > m_timeLog.size() : false;
+    bool result = m_history ? m_history->size() > m_timeLog.size() : false;
+    if (!result) {
+        m_moreDataRequested = true;
+    }
+
+    return result;
 }
 
 void TimeLogRecentModel::fetchMore(const QModelIndex &parent)
@@ -77,8 +83,12 @@ void TimeLogRecentModel::processHistoryData(QVector<TimeLogEntry> data)
 
 void TimeLogRecentModel::processDataInsert(TimeLogEntry data)
 {
-    if (m_timeLog.size() > defaultPopulateCount && startTimeCompare(data, m_timeLog.first())) {
-        return;
+    if (m_timeLog.isEmpty() || startTimeCompare(data, m_timeLog.first())) {
+        if (m_moreDataRequested) {
+            m_moreDataRequested = false;
+        } else {
+            return;
+        }
     }
 
     QVector<TimeLogEntry>::iterator it = std::lower_bound(m_timeLog.begin(), m_timeLog.end(),

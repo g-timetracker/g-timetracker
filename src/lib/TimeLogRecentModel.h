@@ -38,6 +38,8 @@ protected:
 
 private:
     void getMoreHistory();
+
+    mutable bool m_moreDataRequested;
 };
 
 #endif // TIMELOGRECENTMODEL_H
