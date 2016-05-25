@@ -93,7 +93,7 @@ int main(int argc, char *argv[])
     app.setOrganizationName("G-TimeTracker");
     app.setOrganizationDomain("g-timetracker.org");
     app.setApplicationName("G-TimeTracker");
-    app.setApplicationVersion("0.5.1");
+    app.setApplicationVersion("0.5.2");
 
     QTranslator translator;
     translator.load(QLocale::system(), "timetracker", "_", ":/translations/");
