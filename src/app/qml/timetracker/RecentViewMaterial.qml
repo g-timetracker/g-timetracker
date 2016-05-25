@@ -70,7 +70,7 @@ Page {
                 font.pixelSize: 34
                 wrapMode: Text.Wrap
                 color: view.Material.hintTextColor
-                text: qsTr("Click on the \u201C+\u201D button to create a new record and start tracking your time")
+                text: qsTr("Click on the \u2018+\u2019 button to create a new record and start tracking your time")
             }
         }
     }

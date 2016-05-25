@@ -328,7 +328,7 @@
     <name>RecentViewMaterial</name>
     <message>
         <location filename="../qml/timetracker/RecentViewMaterial.qml" line="73"/>
-        <source>Click on the “+” button to create a new record and start tracking your time</source>
+        <source>Click on the ‘+’ button to create a new record and start tracking your time</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -1022,7 +1022,7 @@
     </message>
     <message>
         <location filename="../qml/timetracker/MainWindowDesktop.qml" line="193"/>
-        <location filename="../qml/timetracker/MainWindowMaterial.qml" line="274"/>
+        <location filename="../qml/timetracker/MainWindowMaterial.qml" line="275"/>
         <source>Synced</source>
         <translation type="unfinished"></translation>
     </message>
