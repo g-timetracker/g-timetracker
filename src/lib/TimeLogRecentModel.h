@@ -24,6 +24,7 @@
 class TimeLogRecentModel : public TimeLogModel
 {
     Q_OBJECT
+    Q_PROPERTY(qlonglong availableSize MEMBER m_availableSize WRITE setAvailableSize NOTIFY availableSizeChanged)
     typedef TimeLogModel SUPER;
 public:
     explicit TimeLogRecentModel(QObject *parent = 0);
@@ -31,15 +32,25 @@ public:
     virtual bool canFetchMore(const QModelIndex &parent) const;
     virtual void fetchMore(const QModelIndex & parent);
 
+signals:
+    void availableSizeChanged(qlonglong newAvailableSize);
+
 protected:
     virtual void processHistoryData(QVector<TimeLogEntry> data);
     virtual void processDataInsert(TimeLogEntry data);
     virtual int findData(const TimeLogEntry &entry) const;
 
+protected slots:
+    virtual void setHistory(TimeLogHistory *history);
+
+private slots:
+    void setAvailableSize(qlonglong availableSize);
+
 private:
     void getMoreHistory();
 
     mutable bool m_moreDataRequested;
+    qlonglong m_availableSize;
 };
 
 #endif // TIMELOGRECENTMODEL_H

@@ -128,6 +128,7 @@ signals:
     void dataSynced(const QDateTime &maxSyncDate) const;
     void hashesUpdated() const;
 
+    void sizeChanged(qlonglong size) const;
     void categoriesChanged(const QSharedPointer<TimeLogCategoryTreeNode> &categories) const;
     void undoCountChanged(int undoCount) const;
 

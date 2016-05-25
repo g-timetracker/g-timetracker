@@ -247,7 +247,13 @@ void TimeLogHistory::getHashes(const QDateTime &maxDate, bool noUpdate)
 
 void TimeLogHistory::workerSizeChanged(qlonglong size)
 {
+    if (m_size == size) {
+        return;
+    }
+
     m_size = size;
+
+    emit sizeChanged(m_size);
 }
 
 void TimeLogHistory::workerCategoriesChanged(QSharedPointer<TimeLogCategoryTreeNode> categories)

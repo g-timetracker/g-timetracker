@@ -42,6 +42,8 @@ Page {
         id: timeLogModel
 
         sourceModel: TimeLogRecentModel {
+            id: recentModel
+
             timeTracker: TimeTracker
         }
     }
@@ -62,7 +64,7 @@ Page {
     Loader {
         anchors.margins: 32
         anchors.fill: parent
-        active: timeLogView.count === 0
+        active: recentModel.avaliableSize === 0
         sourceComponent: Component {
             Label {
                 horizontalAlignment: Text.AlignHCenter

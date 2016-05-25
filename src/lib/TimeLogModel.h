@@ -60,8 +60,10 @@ public:
 
     void setTimeTracker(TimeTracker *timeTracker);
 
+protected slots:
+    virtual void setHistory(TimeLogHistory *history);
+
 private slots:
-    void setHistory(TimeLogHistory *history);
     void historyDataOutdated();
     void historyRequestCompleted(QVector<TimeLogEntry> data, qlonglong id);
     void historyDataUpdated(QVector<TimeLogEntry> data, QVector<TimeLogHistory::Fields> fields);

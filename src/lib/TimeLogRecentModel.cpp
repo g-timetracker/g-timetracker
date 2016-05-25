@@ -22,7 +22,8 @@ static const int defaultPopulateCount(5);
 
 TimeLogRecentModel::TimeLogRecentModel(QObject *parent) :
     SUPER(parent),
-    m_moreDataRequested(false)
+    m_moreDataRequested(false),
+    m_availableSize(0)
 {
 
 }
@@ -112,6 +113,40 @@ int TimeLogRecentModel::findData(const TimeLogEntry &entry) const
     } else {
         return (it - m_timeLog.begin());
     }
+}
+
+void TimeLogRecentModel::setHistory(TimeLogHistory *history)
+{
+    if (m_history == history) {
+        return;
+    }
+
+    if (m_history) {
+        disconnect(m_history, SIGNAL(sizeChanged(qlonglong)),
+                   this, SLOT(setAvailableSize(qlonglong)));
+    }
+
+    setAvailableSize(0);
+
+    SUPER::setHistory(history);
+
+    if (history) {
+        connect(history, SIGNAL(sizeChanged(qlonglong)),
+                this, SLOT(setAvailableSize(qlonglong)));
+
+        setAvailableSize(history->size());
+    }
+}
+
+void TimeLogRecentModel::setAvailableSize(qlonglong availableSize)
+{
+    if (m_availableSize == availableSize) {
+        return;
+    }
+
+    m_availableSize = availableSize;
+
+    emit availableSizeChanged(m_availableSize);
 }
 
 void TimeLogRecentModel::getMoreHistory()
