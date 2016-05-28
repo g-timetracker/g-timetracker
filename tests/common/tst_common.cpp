@@ -366,15 +366,13 @@ QVector<TimeLogEntry> genData(int count)
         return QVector<TimeLogEntry>();
     }
 
-    int categoryCount = std::ceil(std::log(count + 1));
-    int categoriesCount = count / categoryCount;
+    int categoriesCount = count / std::ceil(std::log(count + 1));
     if (categoriesCount < minCategories) {
         categoriesCount = minCategories;
     } else if (categoriesCount > maxCategories) {
         categoriesCount = maxCategories;
     }
-    categoryCount = std::ceil(count / categoriesCount);
-    QStringList categories = genCategories(categoriesCount);
+    QStringList categories = genCategories(std::ceil(count / categoriesCount));
 
     QVector<TimeLogEntry> result;
 
