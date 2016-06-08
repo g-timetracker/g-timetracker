@@ -655,7 +655,7 @@ void DataSyncerWorker::updateTimestamp()
 #ifndef WIN32
         if (utimes(m_internalSyncPath.toLocal8Bit().constData(), NULL) != 0) {
 #else
-        if (_utime(m_internalSyncPath.toLocal8Bit().constData(), NULL) != 0) {
+        if (_utime(QDir::toNativeSeparators(m_internalSyncPath).toLocal8Bit().constData(), NULL) != 0) {
 #endif
             qCCritical(SYNC_WORKER_CATEGORY) << QString("utimes failed, errno: %1").arg(QString().setNum(errno));
             fail(tr("Fail to update directory timestamp"));
