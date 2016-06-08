@@ -79,7 +79,7 @@ Page {
     FolderListModel {
         id: folderModel
 
-        property string path: folder.toString().replace(/file:\/\//, "")
+        property string path: TimeTracker.urlToLocalFile(folder)
 
         showFiles: false
         showDotAndDotDot: true

@@ -43,7 +43,7 @@ class TimeTracker : public QObject
 public:
     explicit TimeTracker(QObject *parent = 0);
 
-    void setDataPath(const QUrl &dataPathUrl);
+    void setDataPath(const QUrl &dataPath);
 
     TimeLogHistory *history();
 
@@ -62,6 +62,7 @@ public:
     Q_INVOKABLE static QString rangeText(const QDateTime &from, const QDateTime &to);
     Q_INVOKABLE static QVariantList weeksModel();
     Q_INVOKABLE static QUrl documentsLocation();
+    Q_INVOKABLE static QString urlToLocalFile(const QUrl &url);
     Q_INVOKABLE static bool createFolder(const QString &path, const QString &name);
 
     void addCategory(const TimeLogCategory &category);

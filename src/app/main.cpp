@@ -206,8 +206,8 @@ int main(int argc, char *argv[])
 //        QQmlFileSelector::get(&engine)->setExtraSelectors(QStringList() << "desktopStyle");
 //        QQmlFileSelector::get(&engine)->setExtraSelectors(QStringList() << "android");
         engine.addImportPath(QString("%1/qml").arg(app.applicationDirPath()));
-        engine.rootContext()->setContextProperty("TimeLogDataPath", parser.value(dataPathOption));
-        engine.rootContext()->setContextProperty("TimeLogSyncPath", parser.value(syncPathOption));
+        engine.rootContext()->setContextProperty("TimeLogDataPath", QUrl::fromLocalFile(parser.value(dataPathOption)));
+        engine.rootContext()->setContextProperty("TimeLogSyncPath", QUrl::fromLocalFile(parser.value(syncPathOption)));
         engine.load(QUrl(QStringLiteral("qrc:/qml/timetracker/main.qml")));
         return app.exec();
     }

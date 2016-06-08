@@ -116,7 +116,7 @@ void DataSyncer::setSyncPath(const QUrl &syncPathUrl)
     m_syncPath = syncPathUrl;
 
     QMetaObject::invokeMethod(m_worker, "setSyncPath", Qt::AutoConnection,
-                              Q_ARG(QString, syncPathUrl.path()));
+                              Q_ARG(QString, syncPathUrl.toLocalFile()));
 
     emit syncPathChanged(m_syncPath);
 }

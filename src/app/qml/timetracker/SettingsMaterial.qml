@@ -92,7 +92,7 @@ Page {
                 width: parent.width
                 isLastItem: Positioner.isLastItem
                 text: qsTranslate("settings", "Sync folder")
-                additionalText: TimeTracker.syncer.syncPath.toString().replace(/file:\/\//, "")
+                additionalText: TimeTracker.urlToLocalFile(TimeTracker.syncer.syncPath)
                                 || qsTranslate("settings", "Not set")
 
                 onClicked: syncPathDialog.get().open()

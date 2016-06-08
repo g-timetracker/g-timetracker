@@ -143,13 +143,13 @@ ApplicationWindow {
     Binding {
         target: TimeTracker
         property: "dataPath"
-        value: TimeLogDataPath ? TimeLogDataPath : AppSettings.dataPath
+        value: !!TimeLogDataPath.toString() ? TimeLogDataPath : AppSettings.dataPath
     }
 
     Binding {
         target: TimeTracker.syncer
         property: "syncPath"
-        value: TimeLogSyncPath ? TimeLogSyncPath : AppSettings.syncPath
+        value: !!TimeLogSyncPath.toString() ? TimeLogSyncPath : AppSettings.syncPath
         when: TimeTracker.syncer
     }
 

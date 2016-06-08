@@ -100,16 +100,16 @@ TimeTracker::TimeTracker(QObject *parent) :
 
 }
 
-void TimeTracker::setDataPath(const QUrl &dataPathUrl)
+void TimeTracker::setDataPath(const QUrl &dataPath)
 {
-    if (m_dataPath.path() == dataPathUrl.path() && m_history && m_syncer) {
+    if (m_dataPath.toLocalFile() == dataPath.toLocalFile() && m_history && m_syncer) {
         return;
     }
 
-    m_dataPath = dataPathUrl;
+    m_dataPath = dataPath;
 
     TimeLogHistory *history = new TimeLogHistory(this);
-    if (!history->init(dataPathUrl.path(), QString(), false, true)) {
+    if (!history->init(dataPath.toLocalFile(), QString(), false, true)) {
         emit error(tr("Fail to initialize DB"));
         delete history;
         return;
@@ -117,7 +117,7 @@ void TimeTracker::setDataPath(const QUrl &dataPathUrl)
     setHistory(history);
 
     DataSyncer *syncer = new DataSyncer(m_history, this);
-    syncer->init(dataPathUrl.path());
+    syncer->init(dataPath.toLocalFile());
     setSyncer(syncer);
 
     emit dataPathChanged(m_dataPath);
@@ -232,6 +232,11 @@ QVariantList TimeTracker::weeksModel()
 QUrl TimeTracker::documentsLocation()
 {
     return QUrl::fromLocalFile(QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation));
+}
+
+QString TimeTracker::urlToLocalFile(const QUrl &url)
+{
+    return url.toLocalFile();
 }
 
 bool TimeTracker::createFolder(const QString &path, const QString &name)
