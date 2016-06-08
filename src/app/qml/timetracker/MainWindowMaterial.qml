@@ -104,9 +104,13 @@ ApplicationWindow {
     function back() {
         if (stackView.depth > 1) {
             stackView.pop()
-        } else {
+        } else if (stackView.currentItem !== recentPage) {
             mainWindow.showRecent()
+        } else {
+            return false
         }
+
+        return true
     }
 
     Drawer {
@@ -320,7 +324,7 @@ ApplicationWindow {
             if (drawer.position) {
                 drawer.close()
             } else {
-                mainWindow.back()
+                event.accepted = mainWindow.back()
             }
         }
 
