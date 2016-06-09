@@ -144,7 +144,7 @@ private:
     QMap<QString, TimeLogCategory> m_categories;
     QHash<QString, int> m_categoryRecordsCount;
     QSharedPointer<TimeLogCategoryTreeNode> m_categoryTree;
-    QRegularExpression m_categorySplitRegexp;
+    const QRegularExpression m_categorySplitRegexp;
     QStack<Undo> m_undoStack;
 
     QSqlQuery *m_insertQuery;

@@ -73,7 +73,7 @@ private:
     QSharedPointer<TimeLogCategoryTreeNode> m_root;
     QStringList m_categoryFields;
     QList<TimeLogCategoryTreeNode*> m_categoryEntries;
-    QRegularExpression m_splitRegexp;
+    const QRegularExpression m_splitRegexp;
 };
 
 #endif // TIMELOGCATEGORYDEPTHMODEL_H
