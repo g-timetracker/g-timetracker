@@ -125,6 +125,7 @@ void tst_Sync_benchmark::cleanup()
 
     delete syncer1;
     syncer1 = Q_NULLPTR;
+    history1->deinit();
     delete history1;
     history1 = Q_NULLPTR;
     delete dataDir1;
@@ -132,6 +133,7 @@ void tst_Sync_benchmark::cleanup()
 
     delete syncer2;
     syncer2 = Q_NULLPTR;
+    history2->deinit();
     delete history2;
     history2 = Q_NULLPTR;
     delete dataDir2;

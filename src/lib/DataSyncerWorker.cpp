@@ -491,6 +491,7 @@ void DataSyncerWorker::packImported(QDateTime latestMTime)
 
     delete m_dbSyncer;
     m_dbSyncer = nullptr;
+    m_pack->deinit();
     delete m_pack;
     m_pack = nullptr;
 
@@ -503,6 +504,7 @@ void DataSyncerWorker::packExported(QDateTime latestMTime)
 {
     delete m_dbSyncer;
     m_dbSyncer = nullptr;
+    m_pack->deinit();
     delete m_pack;
     m_pack = nullptr;
 

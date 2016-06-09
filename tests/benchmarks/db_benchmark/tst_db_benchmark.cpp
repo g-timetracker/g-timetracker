@@ -80,6 +80,7 @@ void tst_DB_Benchmark::cleanup()
     if (QTest::currentTestFailed()) {
 //        dataDir->setAutoRemove(false);
     }
+    history->deinit();
     delete history;
     history = Q_NULLPTR;
     delete dataDir;

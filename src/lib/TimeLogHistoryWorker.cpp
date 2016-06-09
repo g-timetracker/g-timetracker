@@ -61,21 +61,25 @@ TimeLogHistoryWorker::TimeLogHistoryWorker(QObject *parent) :
 
 TimeLogHistoryWorker::~TimeLogHistoryWorker()
 {
-    delete m_insertQuery;
-    delete m_removeQuery;
-    delete m_notifyInsertQuery;
-    delete m_notifyRemoveQuery;
-    delete m_notifyEditQuery;
-    delete m_notifyEditStartQuery;
-    delete m_syncAffectedQuery;
-    delete m_entryQuery;
+    if (m_isInitialized) {
+        delete m_insertQuery;
+        delete m_removeQuery;
+        delete m_notifyInsertQuery;
+        delete m_notifyRemoveQuery;
+        delete m_notifyEditQuery;
+        delete m_notifyEditStartQuery;
+        delete m_syncAffectedQuery;
+        delete m_entryQuery;
 
-    QSqlDatabase::database(m_connectionName).close();
-    QSqlDatabase::removeDatabase(m_connectionName);
+        QSqlDatabase::database(m_connectionName).close();
+        QSqlDatabase::removeDatabase(m_connectionName);
+    }
 }
 
 bool TimeLogHistoryWorker::init(const QString &dataPath, const QString &filePath, bool isReadonly, bool isPopulateCategories)
 {
+    Q_ASSERT(!m_isInitialized);
+
     QString dirPath(QString("%1%2")
                     .arg(!dataPath.isEmpty() ? dataPath
                                              : QStandardPaths::writableLocation(QStandardPaths::AppDataLocation))
@@ -137,6 +141,45 @@ bool TimeLogHistoryWorker::init(const QString &dataPath, const QString &filePath
     m_isInitialized = true;
 
     return true;
+}
+
+void TimeLogHistoryWorker::deinit()
+{
+    Q_ASSERT(m_isInitialized);
+
+    delete m_insertQuery;
+    m_insertQuery = nullptr;
+    delete m_removeQuery;
+    m_removeQuery = nullptr;
+    delete m_notifyInsertQuery;
+    m_notifyInsertQuery = nullptr;
+    delete m_notifyRemoveQuery;
+    m_notifyRemoveQuery = nullptr;
+    delete m_notifyEditQuery;
+    m_notifyEditQuery = nullptr;
+    delete m_notifyEditStartQuery;
+    m_notifyEditStartQuery = nullptr;
+    delete m_syncAffectedQuery;
+    m_syncAffectedQuery = nullptr;
+    delete m_entryQuery;
+    m_entryQuery = nullptr;
+
+    QSqlDatabase::database(m_connectionName).close();
+    QSqlDatabase::removeDatabase(m_connectionName);
+    m_connectionName.clear();
+
+    setSize(0);
+
+    m_categories.clear();
+    m_categoryRecordsCount.clear();
+    updateCategories();
+
+    if (!m_undoStack.isEmpty()) {
+        m_undoStack.clear();
+        emit undoCountChanged(0);
+    }
+
+    m_isInitialized = false;
 }
 
 qlonglong TimeLogHistoryWorker::size() const

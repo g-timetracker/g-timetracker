@@ -117,6 +117,11 @@ bool TimeLogHistory::init(const QString &dataPath, const QString &filePath, bool
     return result;
 }
 
+void TimeLogHistory::deinit()
+{
+    QMetaObject::invokeMethod(m_worker, "deinit", Qt::BlockingQueuedConnection);
+}
+
 qlonglong TimeLogHistory::size() const
 {
     return m_size;

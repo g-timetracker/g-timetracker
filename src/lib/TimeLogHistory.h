@@ -52,6 +52,7 @@ public:
 
     bool init(const QString &dataPath, const QString &filePath = QString(), bool isReadonly = false,
               bool isPopulateCategories = false);
+    void deinit();
 
     qlonglong size() const;
     QSharedPointer<TimeLogCategoryTreeNode> categories() const;

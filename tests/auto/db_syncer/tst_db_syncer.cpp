@@ -86,11 +86,13 @@ void tst_DBSyncer::cleanup()
     delete dbSyncer;
     dbSyncer = nullptr;
 
+    history1->deinit();
     delete history1;
     history1 = nullptr;
     delete dataDir1;
     dataDir1 = nullptr;
 
+    history2->deinit();
     delete history2;
     history2 = nullptr;
     delete dataDir2;

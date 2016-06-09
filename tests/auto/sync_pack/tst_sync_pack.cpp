@@ -358,6 +358,7 @@ void tst_SyncPack::cleanup()
 
     delete syncer1;
     syncer1 = nullptr;
+    history1->deinit();
     delete history1;
     history1 = nullptr;
     delete dataDir1;
@@ -365,6 +366,7 @@ void tst_SyncPack::cleanup()
 
     delete syncer2;
     syncer2 = nullptr;
+    history2->deinit();
     delete history2;
     history2 = nullptr;
     delete dataDir2;
@@ -372,6 +374,7 @@ void tst_SyncPack::cleanup()
 
     delete syncer3;
     syncer3 = nullptr;
+    history3->deinit();
     delete history3;
     history3 = nullptr;
     delete dataDir3;
