@@ -239,6 +239,11 @@ QString TimeTracker::urlToLocalFile(const QUrl &url)
     return url.toLocalFile();
 }
 
+QString TimeTracker::pathToNativeSeparators(const QString &path)
+{
+    return QDir::toNativeSeparators(path);
+}
+
 bool TimeTracker::createFolder(const QString &path, const QString &name)
 {
     return QDir(path).mkdir(name);

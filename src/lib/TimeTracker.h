@@ -63,6 +63,7 @@ public:
     Q_INVOKABLE static QVariantList weeksModel();
     Q_INVOKABLE static QUrl documentsLocation();
     Q_INVOKABLE static QString urlToLocalFile(const QUrl &url);
+    Q_INVOKABLE static QString pathToNativeSeparators(const QString &path);
     Q_INVOKABLE static bool createFolder(const QString &path, const QString &name);
 
     void addCategory(const TimeLogCategory &category);

@@ -92,7 +92,7 @@ Page {
                 width: parent.width
                 isLastItem: Positioner.isLastItem
                 text: qsTranslate("settings", "Sync folder")
-                additionalText: TimeTracker.urlToLocalFile(TimeTracker.syncer.syncPath)
+                additionalText: TimeTracker.pathToNativeSeparators(TimeTracker.urlToLocalFile(TimeTracker.syncer.syncPath))
                                 || qsTranslate("settings", "Not set")
 
                 onClicked: syncPathDialog.get().open()
