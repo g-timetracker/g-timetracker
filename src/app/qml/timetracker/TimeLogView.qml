@@ -28,7 +28,8 @@ Item {
 
     property alias model: delegateModel.model
     property alias currentItem: listView.currentItem
-    property bool reverse: false
+    property bool reverseModel: false
+    property bool reverseView: false
     property bool lazyDialogs: true
 
     property alias menuModel: itemMenu.contentData
@@ -37,19 +38,19 @@ Item {
         iconItem.source: "images/ic_mode_edit_white_24dp.png"
         onTriggered: timeLogView.itemEdit()
     }
-    property MenuItem addBeforeMenuItem: MenuItemMaterial {
-        text: qsTr("Add before")
+    property MenuItem addAboveMenuItem: MenuItemMaterial {
+        text: d.isSwapBeforeAndAfter ? qsTr("Add after") : qsTr("Add before")
         iconItem.source: "images/ic_subdirectory_arrow_right_white_24dp.png"
         iconItem.transform: Scale {
             yScale: -1
             origin.y: 12
         }
-        onTriggered: timeLogView.itemAddBefore()
+        onTriggered: timeLogView.itemAddAbove()
     }
-    property MenuItem addAfterMenuItem: MenuItemMaterial {
-        text: qsTr("Add after")
+    property MenuItem addBelowMenuItem: MenuItemMaterial {
+        text: d.isSwapBeforeAndAfter ? qsTr("Add before") : qsTr("Add after")
         iconItem.source: "images/ic_subdirectory_arrow_right_white_24dp.png"
-        onTriggered: timeLogView.itemAddAfter()
+        onTriggered: timeLogView.itemAddBelow()
     }
     property MenuItem removeMenuItem: MenuItemMaterial {
         text: qsTr("Delete")
@@ -67,25 +68,25 @@ Item {
             timeLogView.closeBottomSheet()
         }
     }
-    property ItemDelegate addBeforeBottomSheetItem: ItemDelegateMaterial {
+    property ItemDelegate addAboveBottomSheetItem: ItemDelegateMaterial {
         width: bottomSheetItems.width
-        text: qsTr("Add before")
+        text: d.isSwapBeforeAndAfter ? qsTr("Add after") : qsTr("Add before")
         iconItem.source: "images/ic_subdirectory_arrow_right_white_24dp.png"
         iconItem.transform: Scale {
             yScale: -1
             origin.y: 12
         }
         onClicked: {
-            timeLogView.itemAddBefore()
+            timeLogView.itemAddAbove()
             timeLogView.closeBottomSheet()
         }
     }
-    property ItemDelegate addAfterBottomSheetItem: ItemDelegateMaterial {
+    property ItemDelegate addBelowBottomSheetItem: ItemDelegateMaterial {
         width: bottomSheetItems.width
-        text: qsTr("Add after")
+        text: d.isSwapBeforeAndAfter ? qsTr("Add before") : qsTr("Add after")
         iconItem.source: "images/ic_subdirectory_arrow_right_white_24dp.png"
         onClicked: {
-            timeLogView.itemAddAfter()
+            timeLogView.itemAddBelow()
             timeLogView.closeBottomSheet()
         }
     }
@@ -109,22 +110,26 @@ Item {
         TimeTracker.showDialogRequested(editDialog.get())
     }
 
-    function itemAddBefore() {
-        var index = listView.currentIndex
-        var item = listView.currentItem
-        d.add(index, item.precedingStart, item.startTime)
+    function itemAddAbove() {
+        if (d.isSwapBeforeAndAfter) {
+            d.addAfter()
+        } else {
+            d.addBefore()
+        }
     }
 
-    function itemAddAfter() {
-        var index = listView.currentIndex
-        var item = listView.currentItem
-        d.add(timeLogView.reverse ? index - 1 : index + 1, item.startTime, item.succeedingStart)
+    function itemAddBelow() {
+        if (d.isSwapBeforeAndAfter) {
+            d.addBefore()
+        } else {
+            d.addAfter()
+        }
     }
 
     function itemAppend() {
         var timeAfter = delegateModel.items.count ? delegateModel.items.get(0).model.startTime
                                                   : new Date(0)
-        d.add(timeLogView.reverse ? -1 : delegateModel.items.count - 1, timeAfter, new Date())
+        d.add(timeLogView.reverseModel ? -1 : delegateModel.items.count - 1, timeAfter, new Date())
     }
 
     function itemRemove() {
@@ -141,6 +146,20 @@ Item {
 
     QtObject {
         id: d
+
+        property bool isSwapBeforeAndAfter: timeLogView.reverseModel !== timeLogView.reverseView
+
+        function addBefore() {
+            var index = listView.currentIndex
+            var item = listView.currentItem
+            d.add(index, item.precedingStart, item.startTime)
+        }
+
+        function addAfter() {
+            var index = listView.currentIndex
+            var item = listView.currentItem
+            d.add(timeLogView.reverseModel ? index - 1 : index + 1, item.startTime, item.succeedingStart)
+        }
 
         function add(indexBefore, timeAfter, timeBefore) {
             if (Util.calcDuration(timeAfter, timeBefore) > 1) {
@@ -173,8 +192,8 @@ Item {
 
          contentData: [
              editMenuItem,
-             addBeforeMenuItem,
-             addAfterMenuItem,
+             addAboveMenuItem,
+             addBelowMenuItem,
              removeMenuItem
         ]
     }
@@ -192,7 +211,7 @@ Item {
             precedingStart: model.precedingStart
             succeedingStart: model.succeedingStart
             isCurrent: ListView.isCurrentItem
-            isLast: model.index === (timeLogView.reverse ? 0 : listView.count - 1)
+            isLast: model.index === (timeLogView.reverseView ? 0 : listView.count - 1)
         }
     }
 
@@ -213,7 +232,7 @@ Item {
             id: dialog
 
             onDataAccepted: {
-                if (dialog.indexBefore === (timeLogView.reverse ? -1 : delegateModel.items.count - 1)) {
+                if (dialog.indexBefore === (timeLogView.reverseModel ? -1 : delegateModel.items.count - 1)) {
                     timeLogView.append(newData)
                 } else {
                     timeLogView.insert(delegateModel.modelIndex(dialog.indexBefore), newData)
@@ -245,7 +264,7 @@ Item {
 
             Layout.fillHeight: true
             Layout.fillWidth: true
-            verticalLayoutDirection: timeLogView.reverse ? ListView.BottomToTop : ListView.TopToBottom
+            verticalLayoutDirection: timeLogView.reverseView ? ListView.BottomToTop : ListView.TopToBottom
             clip: true
             model: delegateModel
             currentIndex: -1
@@ -302,7 +321,7 @@ Item {
             }
         }
         Item {
-            Layout.preferredHeight: (!timeLogView.reverse || listView.contentHeight > parent.height ? 0 : parent.height - listView.contentHeight)
+            Layout.preferredHeight: (!timeLogView.reverseView || listView.contentHeight > parent.height ? 0 : parent.height - listView.contentHeight)
         }
     }
 
@@ -328,8 +347,8 @@ Item {
 
             children: [
                 editBottomSheetItem,
-                addBeforeBottomSheetItem,
-                addAfterBottomSheetItem,
+                addAboveBottomSheetItem,
+                addBelowBottomSheetItem,
                 removeBottomSheetItem
             ]
         }

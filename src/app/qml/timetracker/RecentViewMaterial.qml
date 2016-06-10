@@ -19,6 +19,7 @@
 import QtQuick 2.6
 import QtQuick.Controls 2.0
 import QtQuick.Controls.Material 2.0
+import Qt.labs.settings 1.0
 import TimeLog 1.0
 
 Page {
@@ -29,6 +30,13 @@ Page {
     header: MainToolBarMaterial {
         title: view.title
         isBottomItem: view.StackView.index === 0
+        rightText: "customize"
+        rightContent: Image {
+            fillMode: Image.Pad
+            source: "images/ic_tune_white_24dp.png"
+        }
+
+        onRightActivated: rightDrawer.open()
 
         ProgressBar {
             width: parent.width
@@ -52,7 +60,8 @@ Page {
         id: timeLogView
 
         anchors.fill: parent
-        reverse: true
+        reverseModel: true
+        reverseView: forwardOrderButton.checked
         lazyDialogs: false
         model: timeLogModel
 
@@ -84,5 +93,58 @@ Page {
         iconSource: "images/ic_add_white_24dp.png"
 
         onClicked: timeLogView.itemAppend()
+    }
+
+    Settings {
+        property alias reverseOrder: reverseOrderButton.checked
+
+        category: "recent"
+    }
+
+    Drawer {
+        id: rightDrawer
+
+        height: parent.height + view.header.height
+        implicitWidth: Math.min(searchSettings.implicitWidth, parent.width - 56)
+        edge: Qt.RightEdge
+
+        Flickable {
+            anchors.fill: parent
+            contentWidth: searchSettings.implicitWidth
+            contentHeight: searchSettings.implicitHeight
+            boundsBehavior: Flickable.StopAtBounds
+
+            ScrollBar.vertical: ScrollBar { }
+
+            Column {
+                id: searchSettings
+
+                padding: 16
+                topPadding: 8
+                bottomPadding: 8
+                spacing: 8
+
+                LabelControl {
+                    text: qsTr("Display order")
+                }
+
+                RadioButton {
+                    id: forwardOrderButton
+
+                    leftPadding: 0
+                    rightPadding: 0
+                    text: qsTr("Forward")
+                    checked: true
+                }
+
+                RadioButton {
+                    id: reverseOrderButton
+
+                    leftPadding: 0
+                    rightPadding: 0
+                    text: qsTr("Reverse")
+                }
+            }
+        }
     }
 }

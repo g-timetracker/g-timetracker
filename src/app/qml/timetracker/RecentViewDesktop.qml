@@ -39,7 +39,8 @@ Item {
 
             Layout.fillHeight: true
             Layout.fillWidth: true
-            reverse: true
+            reverseModel: true
+            reverseView: true
             lazyDialogs: false
             model: timeLogModel
 
