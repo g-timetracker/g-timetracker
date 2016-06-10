@@ -17,7 +17,8 @@
  **/
 
 #ifdef WIN32
-# include <sys/utime.h>
+# define NOMINMAX
+# include <Windows.h>
 #else
 # include <sys/time.h>
 #endif
@@ -656,10 +657,29 @@ void DataSyncerWorker::updateTimestamp()
         qCDebug(SYNC_WORKER_CATEGORY) << "Wrote to sync folder, updating mtime";
 #ifndef WIN32
         if (utimes(m_internalSyncPath.toLocal8Bit().constData(), NULL) != 0) {
-#else
-        if (_utime(QDir::toNativeSeparators(m_internalSyncPath).toLocal8Bit().constData(), NULL) != 0) {
-#endif
             qCCritical(SYNC_WORKER_CATEGORY) << QString("utimes failed, errno: %1").arg(QString().setNum(errno));
+#else
+        SYSTEMTIME systemTime;
+        FILETIME fileTime;
+        ::GetSystemTime(&systemTime);
+        ::SystemTimeToFileTime(&systemTime, &fileTime);
+
+        HANDLE fileHandle = ::CreateFile((const wchar_t*) QDir::toNativeSeparators(m_internalSyncPath).utf16(),
+                                         GENERIC_READ | GENERIC_WRITE,
+                                         FILE_SHARE_READ | FILE_SHARE_WRITE,
+                                         NULL,
+                                         OPEN_EXISTING,
+                                         FILE_FLAG_BACKUP_SEMANTICS,
+                                         NULL);
+        if (fileHandle == INVALID_HANDLE_VALUE) {
+            qCCritical(SYNC_WORKER_CATEGORY) << QString("CreateFile failed, error code: %1").arg(QString().setNum(::GetLastError()));
+            fail(tr("Fail to update directory timestamp"));
+        }
+        bool result = ::SetFileTime(fileHandle, NULL, NULL, &fileTime);
+        ::CloseHandle(fileHandle);
+        if (!result) {
+            qCCritical(SYNC_WORKER_CATEGORY) << QString("SetFileTime failed, error code: %1").arg(QString().setNum(::GetLastError()));
+#endif
             fail(tr("Fail to update directory timestamp"));
             return;
         }
