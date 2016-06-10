@@ -278,6 +278,7 @@ void DataSyncerWorker::setSyncPath(const QString &path)
         }
     }
 
+    const QString oldPath = m_externalSyncPath;
     m_externalSyncPath = path;
 
     if (!m_externalSyncPath.isEmpty()) {
@@ -287,7 +288,12 @@ void DataSyncerWorker::setSyncPath(const QString &path)
     }
 
     if (m_autoSync && !m_externalSyncPath.isEmpty()) {
-        checkSyncFolder();
+        if (!oldPath.isEmpty()) {
+            qCDebug(SYNC_WORKER_CATEGORY) << "Changed sync folder, force sync";
+            sync();
+        } else {
+            checkSyncFolder();
+        }
     }
 }
 
