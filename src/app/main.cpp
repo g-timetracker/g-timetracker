@@ -95,9 +95,15 @@ int main(int argc, char *argv[])
     app.setApplicationName("G-TimeTracker");
     app.setApplicationVersion("0.5.2");
 
+    QTranslator translator_en;
+    translator_en.load("timetracker_en", ":/translations/");
+    app.installTranslator(&translator_en);
+
     QTranslator translator;
-    translator.load(QLocale::system(), "timetracker", "_", ":/translations/");
-    app.installTranslator(&translator);
+    if (QLocale::system().language() != QLocale::English) {
+        translator.load(QLocale::system(), "timetracker", "_", ":/translations/");
+        app.installTranslator(&translator);
+    }
 
     qSetMessagePattern("[%{time}] <%{category}> %{type} (%{file}:%{line}, %{function}) %{message}");
     FileLogger::setup();
