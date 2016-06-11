@@ -20,32 +20,18 @@ import QtQuick 2.4
 import QtQuick.Controls 2.0
 import QtQuick.Controls.Material 2.0
 
-SettingsDelegate {
+SwitchDelegate {
     id: control
 
-    indicator: Switch {
-        anchors.margins: control.padding
-        anchors.right: parent.right
-        anchors.verticalCenter: parent.verticalCenter
-        enabled: control.enabled
+    property bool isLastItem: false
 
-        checked: control.checked
-        onCheckedChanged: control.checked = checked
-    }
+    Rectangle {
+        id: separator
 
-    contentItem: Text {
-        anchors.left: parent.left
-        anchors.right: indicator.right
-        anchors.leftMargin: control.padding
-        anchors.rightMargin: control.spacing
-        anchors.verticalCenter: parent.verticalCenter
-        height: control.availableHeight
-        text: control.text
-        font: control.font
-        color: control.enabled ? control.Material.primaryTextColor : control.Material.hintTextColor
-        elide: Text.ElideRight
-        visible: control.text
-        horizontalAlignment: Text.AlignLeft
-        verticalAlignment: Text.AlignVCenter
+        y: parent.height - 1
+        width: parent.width
+        height: 1
+        color: control.Material.dividerColor
+        visible: !control.isLastItem
     }
 }

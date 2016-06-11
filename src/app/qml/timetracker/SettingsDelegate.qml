@@ -18,6 +18,7 @@
 
 import QtQuick 2.4
 import QtQuick.Controls 2.0
+import QtQuick.Controls.Material 2.0
 
 ItemDelegate {
     id: settingItem
@@ -34,8 +35,7 @@ ItemDelegate {
         y: parent.height - 1
         width: parent.width
         height: 1
-        color: "black"
-        opacity: 0.12
+        color: settingItem.Material.dividerColor
         visible: !settingItem.isLastItem
     }
 }
