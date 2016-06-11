@@ -197,5 +197,7 @@
         <file>qml/timetracker/images/ic_more_vert_white_24dp@3x.png</file>
         <file>qml/timetracker/images/ic_more_vert_white_24dp@4x.png</file>
         <file>qml/timetracker/LazyLoader.qml</file>
+        <file>qml/timetracker/ChangeLogDialogMaterial.qml</file>
+        <file>qml/timetracker/ChangeLogNotifierMaterial.qml</file>
     </qresource>
 </RCC>

@@ -49,6 +49,7 @@
 #ifndef Q_OS_ANDROID
 # include "Updater.h"
 #endif
+#include "ChangeLog.h"
 
 Q_LOGGING_CATEGORY(MAIN_CATEGORY, "main", QtInfoMsg)
 
@@ -205,6 +206,7 @@ int main(int argc, char *argv[])
 #ifndef Q_OS_ANDROID
         qmlRegisterType<Updater>("TimeLog", 1, 0, "Updater");
 #endif
+        qmlRegisterType<ChangeLog>("TimeLog", 1, 0, "ChangeLog");
         qmlRegisterSingletonType(QUrl("qrc:/qml/timetracker/AppSettings.qml"), "TimeLog", 1, 0, "AppSettings");
         qmlRegisterSingletonType(QUrl("qrc:/qml/timetracker/PlatformMaterial.qml"), "TimeLog", 1, 0, "PlatformMaterial");
 

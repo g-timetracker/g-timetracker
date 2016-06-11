@@ -74,6 +74,19 @@
     </message>
 </context>
 <context>
+    <name>ChangeLogDialogMaterial</name>
+    <message>
+        <location filename="../qml/timetracker/ChangeLogDialogMaterial.qml" line="45"/>
+        <source>What&apos;s new</source>
+        <translation>Что нового</translation>
+    </message>
+    <message>
+        <location filename="../qml/timetracker/ChangeLogDialogMaterial.qml" line="65"/>
+        <source>Version %1</source>
+        <translation>Версия %1</translation>
+    </message>
+</context>
+<context>
     <name>DataSyncerWorker</name>
     <message>
         <location filename="../../lib/DataSyncerWorker.cpp" line="523"/>
@@ -1111,13 +1124,13 @@
     <name>settings</name>
     <message>
         <location filename="../qml/timetracker/MainWindowDesktop.qml" line="131"/>
-        <location filename="../qml/timetracker/SettingsMaterial.qml" line="74"/>
+        <location filename="../qml/timetracker/SettingsMaterial.qml" line="83"/>
         <source>Confirmations</source>
         <translation>Подтверждения</translation>
     </message>
     <message>
         <location filename="../qml/timetracker/MainWindowDesktop.qml" line="137"/>
-        <location filename="../qml/timetracker/SettingsMaterial.qml" line="94"/>
+        <location filename="../qml/timetracker/SettingsMaterial.qml" line="103"/>
         <location filename="../qml/timetracker/SyncFolderDialogMaterial.qml" line="47"/>
         <source>Sync folder</source>
         <translation>Каталог для синхронизации</translation>
@@ -1133,28 +1146,33 @@
         <translation>Проверять обновления</translation>
     </message>
     <message>
-        <location filename="../qml/timetracker/SettingsMaterial.qml" line="88"/>
+        <location filename="../qml/timetracker/SettingsMaterial.qml" line="74"/>
+        <source>Show change log after update</source>
+        <translation>Показывать список изменений после обновления</translation>
+    </message>
+    <message>
+        <location filename="../qml/timetracker/SettingsMaterial.qml" line="97"/>
         <source>Sync</source>
         <translation>Синхронизация</translation>
     </message>
     <message>
-        <location filename="../qml/timetracker/SettingsMaterial.qml" line="96"/>
+        <location filename="../qml/timetracker/SettingsMaterial.qml" line="105"/>
         <source>Not set</source>
         <translation>На задан</translation>
     </message>
     <message>
-        <location filename="../qml/timetracker/SettingsMaterial.qml" line="104"/>
+        <location filename="../qml/timetracker/SettingsMaterial.qml" line="113"/>
         <source>Auto sync</source>
         <translation>Синхронизировать автоматически</translation>
     </message>
     <message>
-        <location filename="../qml/timetracker/SettingsMaterial.qml" line="114"/>
+        <location filename="../qml/timetracker/SettingsMaterial.qml" line="123"/>
         <location filename="../qml/timetracker/SettingsSyncCacheSize.qml" line="33"/>
         <source>Sync cache size</source>
         <translation>Размер кэша синхронизации</translation>
     </message>
     <message numerus="yes">
-        <location filename="../qml/timetracker/SettingsMaterial.qml" line="115"/>
+        <location filename="../qml/timetracker/SettingsMaterial.qml" line="124"/>
         <source>%n record(s)</source>
         <comment>current sync cache size</comment>
         <translation>
@@ -1164,13 +1182,13 @@
         </translation>
     </message>
     <message>
-        <location filename="../qml/timetracker/SettingsMaterial.qml" line="127"/>
+        <location filename="../qml/timetracker/SettingsMaterial.qml" line="136"/>
         <location filename="../qml/timetracker/SettingsSyncCacheTimeout.qml" line="33"/>
         <source>Sync timeout</source>
         <translation>Таймаут синхронизации</translation>
     </message>
     <message numerus="yes">
-        <location filename="../qml/timetracker/SettingsMaterial.qml" line="128"/>
+        <location filename="../qml/timetracker/SettingsMaterial.qml" line="137"/>
         <source>%n second(s)</source>
         <comment>current sync cache timeout</comment>
         <translation>
@@ -1180,8 +1198,8 @@
         </translation>
     </message>
     <message>
-        <location filename="../qml/timetracker/SettingsMaterial.qml" line="118"/>
-        <location filename="../qml/timetracker/SettingsMaterial.qml" line="131"/>
+        <location filename="../qml/timetracker/SettingsMaterial.qml" line="127"/>
+        <location filename="../qml/timetracker/SettingsMaterial.qml" line="140"/>
         <source>Disabled</source>
         <translation>Отключено</translation>
     </message>

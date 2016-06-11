@@ -342,9 +342,17 @@ ApplicationWindow {
         }
     }
 
+    ChangeLogNotifierMaterial {
+        id: changeLogNotifier
+    }
+
     Component.onCompleted: {
         if (!AppSettings.lastVersion) {    // First start
             AppSettings.lastVersion = Qt.application.version
+        } else if (AppSettings.lastVersion !== Qt.application.version) {
+            if (changeLogNotifier.showChangeLog(AppSettings.lastVersion, Qt.application.version)) {
+                AppSettings.lastVersion = Qt.application.version
+            }
         }
     }
 }

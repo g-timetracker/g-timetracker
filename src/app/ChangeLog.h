@@ -16,34 +16,23 @@
  ** along with this program.  If not, see <http://www.gnu.org/licenses/>.
  **/
 
-import QtQuick 2.6
-import QtQuick.Layouts 1.3
-import QtQuick.Controls 2.0
-import QtQuick.Controls.Material 2.0
+#ifndef CHANGELOG_H
+#define CHANGELOG_H
 
-DialogMaterial {
-    id: dialog
+#include <QObject>
+#include <QVariant>
 
-    property alias text: label.text
+class ChangeLog : public QObject
+{
+    Q_OBJECT
+public:
+    explicit ChangeLog(QObject *parent = 0);
 
-    signal linkActivated(string link)
+signals:
+    void changesAvailable(const QVariantList &changes);
 
-    Label {
-        id: label
+public slots:
+    bool checkChanges(const QString &previousVersion, const QString &currentVersion);
+};
 
-        Layout.fillWidth: true
-        Layout.fillHeight: true
-        bottomPadding: 24
-        font.pixelSize: 16
-        wrapMode: Text.Wrap
-        color: Material.secondaryTextColor
-
-        onLinkActivated: dialog.linkActivated(link)
-
-        MouseArea {
-            anchors.fill: parent
-            cursorShape: label.hoveredLink ? Qt.PointingHandCursor : Qt.ArrowCursor
-            acceptedButtons: Qt.NoButton
-        }
-    }
-}
+#endif // CHANGELOG_H

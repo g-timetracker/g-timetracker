@@ -1,0 +1,25 @@
+[
+    {
+        "version": "0.5.3",
+        "date": "2016-06-12",
+        "changes": [
+            "Added ability to display recent records in reverse order",
+            "Handle \"Back\" key in main screen on Android",
+            "Fixed incorrect sync path on Windows",
+            "Fixed directory timestamping error on Windows",
+            "Fixed possible start problems with some videocards on Windows",
+            "Fixed display of sync folder path in settings on Windows",
+            "Fixed not starting sync on folder change",
+            "Fixed wrong symbol in time range on Windows",
+            "Fixed wrong texts for time units on some locales"
+        ]
+    },
+
+    {
+        "version": "0.5.2",
+        "date": "2016-05-25",
+        "changes": [
+            "First public release"
+        ]
+    }
+]

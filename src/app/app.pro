@@ -11,11 +11,13 @@ QT += qml quick sql
 SOURCES += \
     main.cpp \
     FileLogger.cpp \
-    Notifier.cpp
+    Notifier.cpp \
+    ChangeLog.cpp
 
 HEADERS += \
     FileLogger.h \
-    Notifier.h
+    Notifier.h \
+    ChangeLog.h
 
 !android {
     SOURCES += Updater.cpp
@@ -23,7 +25,8 @@ HEADERS += \
 }
 
 RESOURCES += qml.qrc \
-    translations.qrc
+    translations.qrc \
+    changelogs.qrc
 
 !android {
     RESOURCES += fonts.qrc

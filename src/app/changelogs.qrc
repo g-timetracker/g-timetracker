@@ -1,0 +1,6 @@
+<RCC>
+    <qresource prefix="/">
+        <file>changelogs/changelog.json</file>
+        <file>changelogs/+ru/changelog.json</file>
+    </qresource>
+</RCC>

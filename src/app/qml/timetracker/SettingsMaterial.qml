@@ -71,6 +71,15 @@ Page {
             SettingsSwitchDelegate {
                 width: parent.width
                 isLastItem: Positioner.isLastItem
+                text: qsTranslate("settings", "Show change log after update")
+
+                checked: AppSettings.isShowChangeLog
+                onCheckedChanged: AppSettings.isShowChangeLog = checked
+            }
+
+            SettingsSwitchDelegate {
+                width: parent.width
+                isLastItem: Positioner.isLastItem
                 text: qsTranslate("settings", "Confirmations")
 
                 checked: AppSettings.isConfirmationsEnabled

@@ -26,6 +26,7 @@ Item {
     property bool isConfirmationsEnabled: true
     property bool isCheckForUpdates: true
     property string lastVersion
+    property bool isShowChangeLog: true
     property bool isAutoSync: true
     property int syncCacheSize: 10
     property int syncCacheTimeout: 3600
@@ -36,6 +37,7 @@ Item {
         property alias confirmationsEnabled: settings.isConfirmationsEnabled
         property alias checkForUpdates: settings.isCheckForUpdates
         property alias lastVersion: settings.lastVersion
+        property alias showChangeLog: settings.isShowChangeLog
 
         category: "main"
     }

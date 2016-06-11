@@ -86,14 +86,43 @@ Popup {
                 color: dialog.Material.primaryTextColor
                 text: dialog.title
             }
+
+            Rectangle {
+                width: parent.width
+                height: 1
+                y: parent.height - height
+                color: Material.dividerColor
+                visible: !contentFlickable.atYBeginning
+            }
         }
 
-        GridLayout {
-            id: contentContainer
-
+        Item {
             Layout.fillHeight: true
             Layout.fillWidth: true
             Layout.alignment: Qt.AlignLeft
+            implicitHeight: contentFlickable.contentHeight
+            implicitWidth: contentFlickable.contentWidth + contentFlickable.anchors.rightMargin
+                           + contentFlickable.anchors.leftMargin
+
+            Flickable {
+                id: contentFlickable
+
+                anchors.rightMargin: 24
+                anchors.leftMargin: 24
+                anchors.fill: parent
+                contentWidth: contentContainer.implicitWidth
+                contentHeight: contentContainer.implicitHeight
+                boundsBehavior: Flickable.StopAtBounds
+                clip: true
+
+                ScrollBar.vertical: ScrollBar { }
+
+                GridLayout {
+                    id: contentContainer
+
+                    width: contentFlickable.width
+                }
+            }
         }
 
         DialogMaterialButtonBox {
@@ -107,6 +136,14 @@ Popup {
 
             onAccepted: dialog.accept()
             onRejected: dialog.reject()
+
+            Rectangle {
+                width: parent.width
+                height: 1
+                y: 0
+                color: Material.dividerColor
+                visible: !contentFlickable.atYEnd
+            }
         }
     }
 }
