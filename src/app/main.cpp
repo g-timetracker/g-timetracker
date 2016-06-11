@@ -217,6 +217,11 @@ int main(int argc, char *argv[])
         engine.rootContext()->setContextProperty("TimeLogDataPath", QUrl::fromLocalFile(parser.value(dataPathOption)));
         engine.rootContext()->setContextProperty("TimeLogSyncPath", QUrl::fromLocalFile(parser.value(syncPathOption)));
         engine.load(QUrl(QStringLiteral("qrc:/qml/timetracker/main.qml")));
+        if (engine.rootObjects().isEmpty()) {
+            qCCritical(MAIN_CATEGORY) << "Fail to load QML engine";
+            return -1;
+        }
+
         return app.exec();
     }
 }
