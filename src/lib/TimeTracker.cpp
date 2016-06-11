@@ -200,10 +200,10 @@ QString TimeTracker::rangeText(const QDateTime &from, const QDateTime &to)
 
     if (fromDate == toDate) {
         return QString(fromDate.toString(Qt::DefaultLocaleShortDate) + " "
-                       + from.time().toString(Qt::DefaultLocaleShortDate) + "\u2013"
+                       + from.time().toString(Qt::DefaultLocaleShortDate) + u8"\u2013"
                        + to.time().toString(Qt::DefaultLocaleShortDate));
     } else {
-        return QString(from.toString(Qt::DefaultLocaleShortDate) + " \u2013 "
+        return QString(from.toString(Qt::DefaultLocaleShortDate) + u8"\u2013"
                        + to.toString(Qt::DefaultLocaleShortDate));
     }
 }
