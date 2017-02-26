@@ -476,6 +476,14 @@ void tst_DBSyncer::bothChange_data()
                 << (QVector<TimeLogSyncDataEntry>() << syncEntry)
                 << QVector<TimeLogSyncDataCategory>();
 
+        entry = defaultEntries().at(index);
+        syncEntry = TimeLogSyncDataEntry(entry, mTime);
+
+        QTest::newRow(QString("%1 entries, edit nothing (mtime only) %2 %3").arg(size).arg(index).arg(info).toLocal8Bit())
+                << size << 0 << maxMonth
+                << (QVector<TimeLogSyncDataEntry>() << syncEntry)
+                << QVector<TimeLogSyncDataCategory>();
+
         TimeLogCategory category = defaultCategories().at(index);
         category.name = "CategoryNew";
         TimeLogSyncDataCategory syncCategory = TimeLogSyncDataCategory(category, mTime);

@@ -1385,7 +1385,6 @@ bool TimeLogHistoryWorker::removeEntryData(const TimeLogSyncDataEntry &data)
 bool TimeLogHistoryWorker::editEntryData(const TimeLogSyncDataEntry &data, TimeLogHistory::Fields fields)
 {
     Q_ASSERT(data.entry.isValid());
-    Q_ASSERT(fields != TimeLogHistory::NoFields);
 
     QSqlDatabase db = QSqlDatabase::database(m_connectionName);
     QSqlQuery query(db);
@@ -1399,8 +1398,9 @@ bool TimeLogHistoryWorker::editEntryData(const TimeLogSyncDataEntry &data, TimeL
     if (fields & TimeLogHistory::Comment) {
         fieldNames.append("comment=?");
     }
-    QString queryString = QString("UPDATE timelog SET %1, mtime=?"
-                                  " WHERE uuid=?;").arg(fieldNames.join(", "));
+    QString queryString = QString("UPDATE timelog SET %1 mtime=?"
+                                  " WHERE uuid=?;").arg(fieldNames.isEmpty() ? QString()
+                                                                             : fieldNames.join(", ") + ",");
     if (!query.prepare(queryString)) {
         qCCritical(HISTORY_WORKER_CATEGORY) << "Fail to prepare query:" << query.lastError().text()
                                             << query.lastQuery();

@@ -529,10 +529,23 @@ void tst_Sync::entryEdit()
         entry.comment = newData.comment;
         fields |= TimeLogHistory::Comment;
     }
-    historyUpdateSpy1.clear();
-    history1->edit(entry, fields);
-    QVERIFY(historyUpdateSpy1.wait());
-    origData[index] = entry;
+    if (fields == TimeLogHistory::NoFields) {
+        entry.startTime.addSecs(1);
+        historyUpdateSpy1.clear();
+        history1->edit(entry, TimeLogHistory::StartTime);
+        QVERIFY(historyUpdateSpy1.wait());
+
+        entry.startTime.addSecs(-1);
+        historyUpdateSpy1.clear();
+        history1->edit(entry, TimeLogHistory::StartTime);
+        QVERIFY(historyUpdateSpy1.wait());
+        origData[index] = entry;
+    } else {
+        historyUpdateSpy1.clear();
+        history1->edit(entry, fields);
+        QVERIFY(historyUpdateSpy1.wait());
+        origData[index] = entry;
+    }
 
     // Sync 1 [out]
     syncer1->sync();
@@ -604,6 +617,10 @@ void tst_Sync::entryEdit_data()
     entry.category = "CategoryNew";
     entry.comment = "Test comment";
     QTest::newRow("all") << index << entry;
+
+    index = 1;
+    entry = defaultEntries().at(index);
+    QTest::newRow("nothing (mtime only)") << index << entry;
 }
 
 void tst_Sync::categoryAdd()
@@ -1370,9 +1387,22 @@ void tst_Sync::bothEdit()
         entry.comment = newData1.comment;
         fields |= TimeLogHistory::Comment;
     }
-    historyUpdateSpy1.clear();
-    history1->edit(entry, fields);
-    QVERIFY(historyUpdateSpy1.wait());
+    if (fields == TimeLogHistory::NoFields) {
+        entry.startTime.addSecs(1);
+        historyUpdateSpy1.clear();
+        history1->edit(entry, TimeLogHistory::StartTime);
+        QVERIFY(historyUpdateSpy1.wait());
+
+        entry.startTime.addSecs(-1);
+        historyUpdateSpy1.clear();
+        history1->edit(entry, TimeLogHistory::StartTime);
+        QVERIFY(historyUpdateSpy1.wait());
+        origData[index] = entry;
+    } else {
+        historyUpdateSpy1.clear();
+        history1->edit(entry, fields);
+        QVERIFY(historyUpdateSpy1.wait());
+    }
 
     QTest::qSleep(1);   // Ensure entries has different mTime
     entry = historyData.at(index);
@@ -1389,10 +1419,23 @@ void tst_Sync::bothEdit()
         entry.comment = newData2.comment;
         fields |= TimeLogHistory::Comment;
     }
-    historyUpdateSpy2.clear();
-    history2->edit(entry, fields);
-    QVERIFY(historyUpdateSpy2.wait());
-    origData[index] = entry;
+    if (fields == TimeLogHistory::NoFields) {
+        entry.startTime.addSecs(1);
+        historyUpdateSpy2.clear();
+        history2->edit(entry, TimeLogHistory::StartTime);
+        QVERIFY(historyUpdateSpy2.wait());
+
+        entry.startTime.addSecs(-1);
+        historyUpdateSpy2.clear();
+        history2->edit(entry, TimeLogHistory::StartTime);
+        QVERIFY(historyUpdateSpy2.wait());
+        origData[index] = entry;
+    } else {
+        historyUpdateSpy2.clear();
+        history2->edit(entry, fields);
+        QVERIFY(historyUpdateSpy2.wait());
+        origData[index] = entry;
+    }
 
     // Sync 2 [out]
     historyUpdateSpy2.clear();
@@ -1489,6 +1532,11 @@ void tst_Sync::bothEdit_data()
     entry2.category = "CategoryNew";
     entry2.comment = "Test comment new";
     QTest::newRow("all") << index << entry1 << entry2;
+
+    index = 1;
+    entry1 = defaultEntries().at(index);
+    entry2 = defaultEntries().at(index);
+    QTest::newRow("nothing (mtime only)") << index << entry1 << entry2;
 }
 
 void tst_Sync::editRemove()
@@ -1553,9 +1601,22 @@ void tst_Sync::editRemove()
         entry.comment = newData.comment;
         fields |= TimeLogHistory::Comment;
     }
-    historyUpdateSpy.clear();
-    history1->edit(entry, fields);
-    QVERIFY(historyUpdateSpy.wait());
+    if (fields == TimeLogHistory::NoFields) {
+        entry.startTime.addSecs(1);
+        historyUpdateSpy.clear();
+        history1->edit(entry, TimeLogHistory::StartTime);
+        QVERIFY(historyUpdateSpy.wait());
+
+        entry.startTime.addSecs(-1);
+        historyUpdateSpy.clear();
+        history1->edit(entry, TimeLogHistory::StartTime);
+        QVERIFY(historyUpdateSpy.wait());
+        origData[index] = entry;
+    } else {
+        historyUpdateSpy.clear();
+        history1->edit(entry, fields);
+        QVERIFY(historyUpdateSpy.wait());
+    }
 
     QTest::qSleep(1);   // Ensure entries has different mTime
     removeSpy2.clear();
@@ -1633,6 +1694,10 @@ void tst_Sync::editRemove_data()
     entry.category = "CategoryNew";
     entry.comment = "Test comment";
     QTest::newRow("all") << index << entry;
+
+    index = 1;
+    entry = defaultEntries().at(index);
+    QTest::newRow("nothing (mtime only)") << index << entry;
 }
 
 void tst_Sync::removeEdit()
@@ -1704,10 +1769,23 @@ void tst_Sync::removeEdit()
         entry.comment = newData.comment;
         fields |= TimeLogHistory::Comment;
     }
-    historyUpdateSpy2.clear();
-    history2->edit(entry, fields);
-    QVERIFY(historyUpdateSpy2.wait());
-    origData[index] = entry;
+    if (fields == TimeLogHistory::NoFields) {
+        entry.startTime.addSecs(1);
+        historyUpdateSpy2.clear();
+        history2->edit(entry, TimeLogHistory::StartTime);
+        QVERIFY(historyUpdateSpy2.wait());
+
+        entry.startTime.addSecs(-1);
+        historyUpdateSpy2.clear();
+        history2->edit(entry, TimeLogHistory::StartTime);
+        QVERIFY(historyUpdateSpy2.wait());
+        origData[index] = entry;
+    } else {
+        historyUpdateSpy2.clear();
+        history2->edit(entry, fields);
+        QVERIFY(historyUpdateSpy2.wait());
+        origData[index] = entry;
+    }
 
     // Sync 2 [out]
     syncer2->sync();
@@ -1782,6 +1860,10 @@ void tst_Sync::removeEdit_data()
     entry.category = "CategoryNew";
     entry.comment = "Test comment";
     QTest::newRow("all") << index << entry;
+
+    index = 1;
+    entry = defaultEntries().at(index);
+    QTest::newRow("nothing (mtime only)") << index << entry;
 }
 
 void tst_Sync::removeOldEdit()
@@ -1857,9 +1939,22 @@ void tst_Sync::removeOldEdit()
         entry.comment = newData.comment;
         fields |= TimeLogHistory::Comment;
     }
-    historyUpdateSpy1.clear();
-    history1->edit(entry, fields);
-    QVERIFY(historyUpdateSpy1.wait());
+    if (fields == TimeLogHistory::NoFields) {
+        entry.startTime.addSecs(1);
+        historyUpdateSpy1.clear();
+        history1->edit(entry, TimeLogHistory::StartTime);
+        QVERIFY(historyUpdateSpy1.wait());
+
+        entry.startTime.addSecs(-1);
+        historyUpdateSpy1.clear();
+        history1->edit(entry, TimeLogHistory::StartTime);
+        QVERIFY(historyUpdateSpy1.wait());
+        origData[index] = entry;
+    } else {
+        historyUpdateSpy1.clear();
+        history1->edit(entry, fields);
+        QVERIFY(historyUpdateSpy1.wait());
+    }
 
     QTest::qSleep(1);   // Ensure entries has different mTime
     removeSpy2.clear();
@@ -1958,6 +2053,10 @@ void tst_Sync::removeOldEdit_data()
     entry.category = "CategoryNew";
     entry.comment = "Test comment";
     QTest::newRow("all") << index << entry;
+
+    index = 1;
+    entry = defaultEntries().at(index);
+    QTest::newRow("nothing (mtime only)") << index << entry;
 }
 
 void tst_Sync::removeOldInsert()
@@ -2289,9 +2388,22 @@ void tst_Sync::editOldEdit()
         entry.comment = newData1.comment;
         fields |= TimeLogHistory::Comment;
     }
-    historyUpdateSpy1.clear();
-    history1->edit(entry, fields);
-    QVERIFY(historyUpdateSpy1.wait());
+    if (fields == TimeLogHistory::NoFields) {
+        entry.startTime.addSecs(1);
+        historyUpdateSpy1.clear();
+        history1->edit(entry, TimeLogHistory::StartTime);
+        QVERIFY(historyUpdateSpy1.wait());
+
+        entry.startTime.addSecs(-1);
+        historyUpdateSpy1.clear();
+        history1->edit(entry, TimeLogHistory::StartTime);
+        QVERIFY(historyUpdateSpy1.wait());
+        origData[index] = entry;
+    } else {
+        historyUpdateSpy1.clear();
+        history1->edit(entry, fields);
+        QVERIFY(historyUpdateSpy1.wait());
+    }
 
     QTest::qSleep(1);   // Ensure entries has different mTime
     entry = historyData.at(index);
@@ -2308,10 +2420,23 @@ void tst_Sync::editOldEdit()
         entry.comment = newData2.comment;
         fields |= TimeLogHistory::Comment;
     }
-    historyUpdateSpy2.clear();
-    history2->edit(entry, fields);
-    QVERIFY(historyUpdateSpy2.wait());
-    origData[index] = entry;
+    if (fields == TimeLogHistory::NoFields) {
+        entry.startTime.addSecs(1);
+        historyUpdateSpy2.clear();
+        history2->edit(entry, TimeLogHistory::StartTime);
+        QVERIFY(historyUpdateSpy2.wait());
+
+        entry.startTime.addSecs(-1);
+        historyUpdateSpy2.clear();
+        history2->edit(entry, TimeLogHistory::StartTime);
+        QVERIFY(historyUpdateSpy2.wait());
+        origData[index] = entry;
+    } else {
+        historyUpdateSpy2.clear();
+        history2->edit(entry, fields);
+        QVERIFY(historyUpdateSpy2.wait());
+        origData[index] = entry;
+    }
 
     // Sync 2 [out]
     syncer2->sync();
@@ -2428,6 +2553,11 @@ void tst_Sync::editOldEdit_data()
     entry2.category = "CategoryNew";
     entry2.comment = "Test comment new";
     QTest::newRow("all") << index << entry1 << entry2;
+
+    index = 1;
+    entry1 = defaultEntries().at(index);
+    entry2 = defaultEntries().at(index);
+    QTest::newRow("nothing (mtime only)") << index << entry1 << entry2;
 }
 
 void tst_Sync::editOldRemove()
@@ -2508,10 +2638,23 @@ void tst_Sync::editOldRemove()
         entry.comment = newData.comment;
         fields |= TimeLogHistory::Comment;
     }
-    historyUpdateSpy2.clear();
-    history2->edit(entry, fields);
-    QVERIFY(historyUpdateSpy2.wait());
-    origData[index] = entry;
+    if (fields == TimeLogHistory::NoFields) {
+        entry.startTime.addSecs(1);
+        historyUpdateSpy2.clear();
+        history2->edit(entry, TimeLogHistory::StartTime);
+        QVERIFY(historyUpdateSpy2.wait());
+
+        entry.startTime.addSecs(-1);
+        historyUpdateSpy2.clear();
+        history2->edit(entry, TimeLogHistory::StartTime);
+        QVERIFY(historyUpdateSpy2.wait());
+        origData[index] = entry;
+    } else {
+        historyUpdateSpy2.clear();
+        history2->edit(entry, fields);
+        QVERIFY(historyUpdateSpy2.wait());
+        origData[index] = entry;
+    }
 
     // Sync 2 [out]
     syncer2->sync();
@@ -2606,6 +2749,10 @@ void tst_Sync::editOldRemove_data()
     entry.category = "CategoryNew";
     entry.comment = "Test comment";
     QTest::newRow("all") << index << entry;
+
+    index = 1;
+    entry = defaultEntries().at(index);
+    QTest::newRow("nothing (mtime only)") << index << entry;
 }
 
 QTEST_MAIN(tst_Sync)
