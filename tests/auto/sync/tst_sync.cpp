@@ -1516,7 +1516,7 @@ void tst_Sync::bothEdit_data()
     index = 2;
     entry1 = defaultEntries().at(index);
     entry1.startTime = entry1.startTime.addSecs(-100);
-    entry1.comment = "Test comment iold";
+    entry1.comment = "Test comment old";
     entry2 = defaultEntries().at(index);
     entry2.startTime = entry2.startTime.addSecs(-50);
     entry2.comment = "Test comment new";
@@ -2537,7 +2537,7 @@ void tst_Sync::editOldEdit_data()
     index = 2;
     entry1 = defaultEntries().at(index);
     entry1.startTime = entry1.startTime.addSecs(-100);
-    entry1.comment = "Test comment iold";
+    entry1.comment = "Test comment old";
     entry2 = defaultEntries().at(index);
     entry2.startTime = entry2.startTime.addSecs(-50);
     entry2.comment = "Test comment new";
