@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<manifest package="org.g_timetracker" xmlns:android="http://schemas.android.com/apk/res/android" android:versionName="0.5.3" android:versionCode="5" android:installLocation="auto">
+<manifest package="org.g_timetracker" xmlns:android="http://schemas.android.com/apk/res/android" android:versionName="0.5.4" android:versionCode="6" android:installLocation="auto">
     <application android:hardwareAccelerated="true" android:name="org.qtproject.qt5.android.bindings.QtApplication" android:label="G-TimeTracker" android:icon="@drawable/app_icon">
         <activity android:configChanges="orientation|uiMode|screenLayout|screenSize|smallestScreenSize|layoutDirection|locale|fontScale|keyboard|keyboardHidden|navigation" android:name="org.qtproject.qt5.android.bindings.QtActivity" android:label="G-TimeTracker" android:theme="@style/AppTheme" android:screenOrientation="unspecified" android:launchMode="singleTop">
             <intent-filter>
